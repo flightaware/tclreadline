@@ -1,0 +1,28 @@
+
+YOU TYPE:                         YOU GET:
+
+
+=== SCENARIO 1 ===
+
+puts $<tab>                       puts $
+                                      + a list of all variables ...
+puts $t<tab>                      puts $t
+                                      + a list of all variables
+									    beginning with t ...
+puts $tcl_pl<tab>                 puts $tcl_platform(
+	                                  + a list of all array names of
+									    tcl_platform
+puts $tcl_platform(b<tab>         puts $tcl_platform(byteOrder)
+
+
+
+=== SCENARIO 2 ===
+
+button .b                         button .b
+.b co<tab>                        .b configure 
+.b co<tab><tab>                   .b configure
+                                      + a list of all button options ...
+.b co<tab><tab>-r<tab>            .b configure -relief 
+.b co<tab><tab>-r<tab>g<tab>      .b configure -relief groove
+
+

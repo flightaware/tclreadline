@@ -1,17 +1,14 @@
 #!/bin/sh
 # FILE: "/home/joze/src/tclreadline/tclreadlineConfig.sh.in"
-# LAST MODIFICATION: "Sat, 25 Mar 2000 20:51:07 +0100 (joze)"
+# LAST MODIFICATION: "Sat, 01 Jul 2000 21:52:25 +0200 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
-#
 # tclreadline -- gnu readline for tcl
 # http://www.zellner.org/tclreadline/
 # Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
-#
 # This software is copyright under the BSD license.
-#
-# ================================================================== 
+# ---
 # 
 # This shell script (for sh) is generated automatically by tclreadline's
 # configure script.  It will create shell variables for most of
@@ -25,24 +22,9 @@
 # The information in this file is specific to a single platform.
 
 # tclreadline's version number.
-TCLREADLINE_VERSION='@TCLREADLINE_VERSION@'
-TCLREADLINE_MAJOR_VERSION='@TCLREADLINE_MAJOR_VERSION@'
-TCLREADLINE_MINOR_VERSION='@TCLREADLINE_MINOR_VERSION@'
+TCLREADLINE_VERSION='@VERSION@'
+TCLREADLINE_MAJOR_VERSION='@MAJOR@'
+TCLREADLINE_MINOR_VERSION='@MINOR@'
 # there's no leading dot here as in tclConfig.sh!
-TCLREADLINE_PATCHLEVEL='@TCLREADLINE_PATCHLEVEL@'
+TCLREADLINE_PATCHLEVEL='@PATCHLEVEL@'
 
-# The name of the tclreadline library
-# (may be either a .a file or a shared library):
-TCLREADLINE_LIB_FILE=@TCLREADLINE_LIB_FILE@
-
-# String to pass to linker to pick up the tclreadline library from its
-# build directory.
-TCLREADLINE_BUILD_LIB_SPEC='@TCLREADLINE_BUILD_LIB_SPEC@'
-
-# String to pass to linker to pick up the tclreadline library from its
-# installed directory.
-TCLREADLINE_LIB_SPEC='@TCLREADLINE_LIB_SPEC@'
-
-# Location of the top-level source directories from which tclreadline
-# was built.
-TCLREADLINE_SRC_DIR='@srcdir@'

@@ -1,18 +1,14 @@
 
  /* ==================================================================
-
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sat, 25 Mar 2000 21:40:27 +0100 (joze)"
+    LAST MODIFICATION: "Sat, 01 Jul 2000 23:47:30 +0200 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
-
     tclreadline -- gnu readline for tcl
     http://www.zellner.org/tclreadline/
     Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
-
     This software is copyright under the BSD license.
-
     ================================================================== */  
 
 #ifdef HAVE_CONFIG_H
@@ -32,7 +28,8 @@
 #   include <readline/history.h>
 #endif
 
-/**
+
+/*
  * this prototype is missing
  * in readline.h
  */
@@ -543,7 +540,7 @@ Tclreadline_Init(Tcl_Interp *interp)
 	return status;
 
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::library",
-		(char*) &TCLRL_LIBRARY, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+		(char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::version",
 		(char*) &TCLRL_VERSION, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
@@ -556,7 +553,7 @@ Tclreadline_Init(Tcl_Interp *interp)
 	return status;
 
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_library",
-		(char*) &TCLRL_LIBRARY, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+		(char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_version",
 		(char*) &TCLRL_VERSION, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))

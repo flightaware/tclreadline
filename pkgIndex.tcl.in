@@ -1,17 +1,13 @@
 #!/usr/local/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/pkgIndex.tcl.in"
-# LAST MODIFICATION: "Sat, 25 Mar 2000 20:49:59 +0100 (joze)"
+# LAST MODIFICATION: "Sat, 01 Jul 2000 21:53:04 +0200 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
-#
 # tclreadline -- gnu readline for tcl
 # http://www.zellner.org/tclreadline/
 # Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
-#
 # This software is copyright under the BSD license.
-#
-# ================================================================== 
 
-package ifneeded tclreadline @TCLREADLINE_VERSION@ \
+package ifneeded tclreadline @VERSION@ \
     [list source [file join $dir tclreadlineInit.tcl]]

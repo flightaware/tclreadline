@@ -1,24 +1,29 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
 
- /* ==================================================================
-   
-    FILE: "/home/joze/src/tclreadline/config.h.in"
-    LAST MODIFICATION: "Sat, 25 Mar 2000 20:46:56 +0100 (joze)"
-    (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
-    $Id$
-    vim:set ft=c:
-    ---
+/* Define to empty if the keyword does not work.  */
+#undef const
 
-    tclreadline -- gnu readline for tcl
-    http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
 
-    This software is copyright under the BSD license.
+/* Define if you have the <string.h> header file.  */
+#undef HAVE_STRING_H
 
-    ================================================================== */  
+/* Define if you have the readline library (-lreadline).  */
+#undef HAVE_LIBREADLINE
 
+/* Name of package */
+#undef PACKAGE
 
+/* Version number of package */
+#undef VERSION
+
+/*  Define if we have libreadline.  */
+#undef READLINE_LIBRARY
+
+/*  Define if _rl_executing_macro is resolved in libreadline.  */
 #undef EXECUTING_MACRO_HACK
 
+/*  Define if rl_cleanup_after_signal is resolved in libreadline.  */
 #undef CLEANUP_AFER_SIGNAL
 
-#undef READLINE_LIBRARY

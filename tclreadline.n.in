@@ -1,15 +1,13 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Sat, 25 Mar 2000 21:51:43 +0100 (joze)"
+.\" LAST MODIFICATION: "Sat, 01 Jul 2000 21:52:43 +0200 (joze)"
 .\" (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
-.\"
 .\" tclreadline -- gnu readline for tcl
 .\" http://www.zellner.org/tclreadline/
 .\" Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
-.\"
 .\" This software is copyright under the BSD license.
 
 
