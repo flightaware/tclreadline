@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Sat, 25 Mar 2000 21:28:45 +0100 (joze)"
+# LAST MODIFICATION: "Sat, 01 Jul 2000 16:15:55 +0200 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ts=4:
@@ -494,13 +494,21 @@ proc OptionTable {cmd optionsT} {
 	if {[catch [list set option_table [eval ${cmd} configure]] msg]} {
 		return 0
 	}
+	set retval 0
 	foreach optline ${option_table} {
-		if {5 != [llength ${optline}]} continue else {
+		if {5 == [llength ${optline}]} {
+			# tk returns a list of length 5
 			lappend options(switches) [lindex ${optline} 0]
 			lappend options(value)    [lindex ${optline} 4]
+			incr retval
+		} elseif {3 == [llength ${optline}]} {
+			# itcl returns a list of length 3
+			lappend options(switches) [lindex ${optline} 0]
+			lappend options(value)    [lindex ${optline} 2]
+			incr retval
 		}
 	}
-	return [llength ${option_table}]
+	return $retval
 }
 
 #**
