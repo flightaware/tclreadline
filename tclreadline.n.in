@@ -2,7 +2,7 @@
 
 .\" (C) 1999 by Johannes Zellner
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Sun Sep 19 21:24:19 1999 (joze)"
+.\" LAST MODIFICATION: "Tue Sep 21 21:18:31 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -184,6 +184,13 @@ the historyfile will be truncated to hold only this number lines.
 w/o argument: reset the state of the terminal to what it was
 before tclreadline was used. With argument: reinitialize readline's
 idea of the terminal settings using terminalName as the terminal type.
+The form w/o argument might not work if tclreadline was compiled
+with an older version of libreadline.
+
+.TP 5
+\fB::tclreadline::readline bell\fP
+Ring the terminal bell, obeying the setting of bell-style
+-- audible or visible.
 
 .TP 5
 \fB::tclreadline::Print\fP [\fIyes / no\fP]

@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/disk01/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Mon Sep 20 02:20:33 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Tue Sep 21 21:19:35 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -197,13 +197,13 @@ TclReadlineCmd(
     static char *subCmds[] = {
         "read", "initialize", "write", "add", "complete",
         "customcompleter", "builtincompleter", "eofchar",
-		"reset-terminal",
+		"reset-terminal", "bell",
         (char *) NULL
     };
     enum SubCmdIdx {
         TCLRL_READ, TCLRL_INITIALIZE, TCLRL_WRITE, TCLRL_ADD, TCLRL_COMPLETE,
         TCLRL_CUSTOMCOMPLETER, TCLRL_BUILTINCOMPLETER, TCLRL_EOFCHAR,
-		TCLRL_RESET_TERMINAL
+		TCLRL_RESET_TERMINAL, TCLRL_BELL
     };
 
 
@@ -398,6 +398,14 @@ TclReadlineCmd(
 #endif
 			}
             break;
+
+        case TCLRL_BELL:
+			/*
+			 * ring the terminal bell obeying the current
+			 * settings -- audible or visible.
+			 */
+			ding();
+			break;
 
         default:
             goto BAD_COMMAND;

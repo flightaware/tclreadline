@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Sun Sep 19 22:09:08 1999 (joze)"
+# LAST MODIFICATION: "Tue Sep 21 21:19:07 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -768,8 +768,7 @@ proc RemoveUsedOptions {line opts {terminate {}}} {
 }
 
 proc Alert {} {
-	puts -nonewline \a
-	flush stdout
+	::tclreadline::readline bell
 }
 
 #**
@@ -3484,8 +3483,8 @@ proc tclreadline::complete(readline) {text start end line pos mod} {
 	set cmd [Lindex ${line} 1]
 	switch -- ${pos} {
 		1 { return [CompleteFromList ${text} {
-			read initialize write add complete
-			customcompleter builtincompleter eofchar reset-terminal}]
+			read initialize write add complete customcompleter
+			builtincompleter eofchar reset-terminal bell}]
 		}
 		2 {
 			switch -- ${cmd} {

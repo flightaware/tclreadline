@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Mon Sep 20 00:59:50 1999 (joze)"
+    LAST MODIFICATION: "Tue Sep 21 21:21:36 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -76,6 +76,14 @@ does the rest.
 
 4. History and Changes.
 -----------------------
+
+tclreadline-1.0.1: (Sep 1999)
+
+	changes:
+	    - tclreadline::readline bell.
+          Ring the terminal bell, obeying the setting
+		  of bell-style -- audible or visible.
+
 
 tclreadline-1.0.0: (Sep 1999)
 
