@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Fri Sep  3 10:21:15 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Fri Sep  3 16:16:44 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -115,8 +115,8 @@
 # 
 
 
-package provide tclreadline @TCLREADLINE_VERSION@
-# package provide tclreadline 0.9
+# package provide tclreadline @TCLREADLINE_VERSION@
+package provide tclreadline 0.9
 
 proc unknown args {
 
@@ -1637,7 +1637,7 @@ proc complete(lsearch) {text start end line pos mod} {
 }
 
 proc complete(lsort) {text start end line pos mod} {
-    set options [MenuFromList ${mod} {
+    set options [Menu ${mod} {
         -ascii -dictionary -integer -real -command
         -increasing -decreasing -index
     }]
