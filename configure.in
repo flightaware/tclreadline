@@ -1,6 +1,6 @@
 # -*- autoconf -*-
 # FILE: "/disk01/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Sep 20 01:54:59 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep 20 02:37:03 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -50,7 +50,7 @@ AC_CANONICAL_HOST
 
 
 TCLREADLINE_LPATH=`echo $LD_LIBRARY_PATH $LD_RUN_PATH $LPATH | sed 's/:/ /g'`
-TCLREADLINE_LPATH="$TCLREADLINE_LPATH /usr/local/lib /lib /usr/lib"
+TCLREADLINE_LPATH="$TCLREADLINE_LPATH /usr/local/lib /lib /usr/lib /usr/shlib"
 
 
 #--------------------------------------------------------------------
@@ -300,6 +300,10 @@ if test -z "$READLINE_INCLUDE_DIR"; then
   containing readline.h on your system.])
 else
     AC_MSG_RESULT($READLINE_INCLUDE_DIR/readline.h)
+	base="`(basename ${READLINE_INCLUDE_DIR}) 2>/dev/null`"
+	if test "x${base}" != "xreadline"; then
+		AC_DEFINE_UNQUOTED(READLINE_LIBRARY, 1)
+	fi
 fi
 
 
@@ -425,11 +429,9 @@ fi
 
 AC_MSG_CHECKING([for _rl_executing_macro in -lreadline])
 AC_TRY_LINK(,[
-extern char* _rl_executing_macro;
-int main () {
-    _rl_executing_macro = (char*) 0;
-    return 0;
-}],
+	extern char* _rl_executing_macro;
+	_rl_executing_macro = (char*) 0;
+],
     AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(EXECUTING_MACRO_HACK, 1),
     AC_MSG_RESULT(no))
 
@@ -437,11 +439,9 @@ int main () {
 
 AC_MSG_CHECKING([for rl_cleanup_after_signal() in -lreadline])
 AC_TRY_LINK(,[
-extern void rl_cleanup_after_signal();
-int main () {
-    rl_cleanup_after_signal();
-    return 0;
-}],
+    extern void rl_cleanup_after_signal();
+	rl_cleanup_after_signal();
+],
     AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(CLEANUP_AFER_SIGNAL, 1),
     AC_MSG_RESULT(no))
 

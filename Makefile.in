@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon Sep 20 00:50:49 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Mon Sep 20 02:18:01 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -193,11 +193,12 @@ HTML = tclreadline.n.html
 
 CIFLAGS = -f -t-"gnu readline for tcl" -m"before initial relase"
 
+all: $(TCLREADLINE_LIB_FILE)
+
 .PHONY: clean distclean ctags tcltags vimtags tags ci co
 
 .SUFFIXES: .c .o .so .sl .tcl
 
-all: $(TCLREADLINE_LIB_FILE)
 
 
 @TCLREADLINE_LIB_FILE@: ${OBJS}
