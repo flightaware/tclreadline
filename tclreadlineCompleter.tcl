@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Thu Sep 23 02:16:55 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep 27 00:09:06 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -618,6 +618,8 @@ proc ObjectClassCompleter {text start end line pos resultT} {
 		if {![catch [list set class [winfo class [Lindex ${line} 0]]]]} {
 			if {[string length [info proc ${class}Obj]]} {
 				set result [${class}Obj ${text} ${start} ${end} ${line} ${pos}]
+				return 1
+			} else {
 				return 0
 			}
 		}
