@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Wed Sep  8 17:30:20 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Fri Sep 10 03:06:31 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -29,6 +29,7 @@
 
 # done:
 #
+# - after
 # - append
 # - array
 # - bgerror
@@ -117,6 +118,100 @@
 
 namespace eval tclreadline {
 
+# TryFromList will return an empty string, if
+# the text typed so far does not match any of the
+# elements in list. This might be used to allow
+# subsequent filename completion by the builtin
+# completer.
+#
+proc TryFromList {text lst} {
+
+    # puts stderr "(CompleteFromList) \ntext=|$text|"
+    # puts stderr "(CompleteFromList) lst=|$lst|"
+    set pre [GetQuotedPrefix ${text}]
+    set matches [MatchesFromList $text $lst]
+
+    # puts stderr "(CompleteFromList) matches=|$matches|"
+    if {1 == [llength $matches]} { ; # unique match
+        # puts stderr \nunique=$matches\n
+        # puts stderr "\n|${pre}${matches}[Right ${pre}]|\n"
+        return [string trim ${pre}${matches}[Right ${pre}]]
+    } elseif {"" != ${matches}} {
+        # puts stderr \nmore=$matches\n
+        set longest [CompleteLongest ${matches}]
+        # puts stderr longest=|$longest|
+        if {"" == $longest} {
+            return [string trim "[list $text] ${matches}"]
+        } else {
+            return [string trim "${pre}${longest} ${matches}"]
+        }
+    } else {
+        return ""; # nothing to complete
+    }
+}
+
+# CompleteFromList will never return an empty string.
+# completes, if a completion can be done, or ring
+# the bell if not.
+#
+proc CompleteFromList {text lst} {
+    set result [TryFromList ${text} ${lst}]
+    if {![llength ${result}]} {
+        Alert
+        # return [string trim [list ${text}] ${lst}"]
+        return [string trim "${text} ${lst}"]
+    } else {
+        return ${result}
+    }
+}
+
+proc MenuFromList {text lst} {
+    return [CompleteFromList $text $lst]
+}
+# ???????
+# 
+# proc MenuFromList {text lst} {
+#     if {![llength ${text}]} {
+#         return [string trim "{} ${lst}"]
+#     } else {
+#         return [TryFromList ${text} ${lst}]
+#     }
+# }
+# 
+
+
+#**
+# never return an empty string, never complete.
+# This is useful for showing options lists for example.
+#
+proc DisplayHints {lst} {
+    return [string trim "{} ${lst}"]
+}
+
+#**
+# find (partial) matches for `text' in `lst'.
+# Ring the bell and return the whole list, if
+# the user tries to complete ?..? options or
+# <..> hints.
+#
+proc MatchesFromList {text lst} {
+    set result ""
+    set text [StripPrefix $text]
+    set null [string index $text 0]
+    if {"<" == $null || "?" == $null} {
+        Alert
+        return $lst
+    }
+    # puts stderr "(MatchesFromList) text=$text"
+    # puts stderr "(MatchesFromList) lst=$lst"
+    foreach word $lst {
+        if {[string match ${text}* ${word}]} {
+            lappend result ${word}
+        }
+    }
+    return [string trim $result]
+}
+
 proc FirstNonOption {line} {
     set expr_pos 1
     foreach word [lrange ${line} 1 end] {; # 0 is the command itself
@@ -149,59 +244,12 @@ proc Alert {} {
     flush stdout
 }
 
-# AttemptFromList will return an empty string, if
-# the text typed so far does not match any of the
-# elements in list. This might be used to allow
-# subsequent filename completion by the builtin
-# completer.
-#
-proc AttemptFromList {text lst} {
-    return [string trim [Format [FindInList $text $lst] $text]]
-}
-
-# CompleteFromList will never return an empty string.
-#
-proc CompleteFromList {text lst} {
-    set result [AttemptFromList ${text} ${lst}]
-    if {![llength ${result}]} {
-        Alert
-        return [string trim "${text} ${lst}"]
-    } else {
-        return ${result}
-    }
-}
-
-# ???????
-proc MenuFromList {text lst} {
-    if {![llength ${text}]} {
-        return [string trim "{} ${lst}"]
-    } else {
-        return [AttemptFromList ${text} ${lst}]
-    }
-}
-
-# never return an empty string
-#
-proc Menu {lst} {
-    return [string trim "{} ${lst}"]
-}
-
-proc FindInList {text lst} {
-    set result ""
-    foreach word $lst {
-        if {[string match ${text}* ${word}]} {
-            lappend result ${word}
-        }
-    }
-    return [string trim $result]
-}
-
 
 # get the longest common completion
 # e.g. str == {tcl_version tclreadline_version tclreadline_library}
-# --> [GetCommon ${str}] == "tcl"
+# --> [CompleteLongest ${str}] == "tcl"
 #
-proc GetCommon {str} {
+proc CompleteLongest {str} {
     # puts stderr str=$str
     set match0 [lindex ${str} 0]
     set len0 [string length $match0]
@@ -224,9 +272,9 @@ proc GetCommon {str} {
     return ${part}
 }
 
-proc SubCmd {start line} {
+proc SplitLine {start line} {
     set depth 0
-    # puts stderr SubCmd
+    # puts stderr SplitLine
     for {set i $start} {$i >= 0} {incr i -1} {
         set c [string index $line $i]
         if {{;} == $c} {
@@ -288,14 +336,17 @@ proc OutChannelId {text} {
 
 proc ChannelId {text {descript channelId} {chs ""}} {
     if {"" == ${chs}} {
+        # the `file channels' command is present
+        # only in pretty new versions.
+        #
         if [catch {set chs [file channels]}] {
             set chs {stdin stdout stderr}
         }
     }
-    if {[llength [set channel [MenuFromList ${text} ${chs}]]]} {
+    if {[llength [set channel [MatchesFromList ${text} ${chs}]]]} {
         return ${channel}
     } else {
-        return [Menu ${descript}]
+        return [DisplayHints ${descript}]
     }
 }
 
@@ -303,6 +354,17 @@ proc QuoteQuotes {line} {
     regsub -all -- \" $line {\"} line
     regsub -all -- \{ $line {\{} line; # \}\} (keep the editor happy)
     return $line
+}
+
+proc Trace {varT} {
+    if {![info exists ::tclreadline::Debug]} {return}
+    upvar $varT var
+    if {![info exists var]} {
+        puts $varT=<notdefined>
+    } else {
+        puts $varT=|$var|
+    }
+    # puts $var
 }
 
 #**
@@ -325,26 +387,26 @@ proc PartPosition {partT startT endT lineT} {
 
     upvar $partT part $startT start $endT end $lineT line
     EventuallyEvaluateFirst part start end line
+    return [Llength [string range $line 0 [expr $start - 1]]]
 
-    # puts stderr "(PartPosition) line\[start\]=[string index $line $start]"
-    # puts stderr "(PartPosition) part=|$part|"
-    incr start -1
-    if {"\"" == [string index $line $start]} {
-        incr start -1
-    }
-    # puts stderr "(PartPosition) line=|$line|" 
-    # puts stderr "(PartPosition) start=$start"
-    set line [string range $line 0 $start]
-    set line [QuoteQuotes $line]
-    # puts stderr "(PartPosition) line=|$line|" 
-    set result [llength $line]
-    # puts stderr $result
-    return $result
+# 
+#     set local_start [expr $start - 1]
+#     set local_start_chr [string index $line $local_start]
+#     if {"\"" == $local_start_chr || "\{" == $local_start_chr} {
+#         incr local_start -1
+#     }
+# 
+#     set pre_text [QuoteQuotes [string range $line 0 $local_start]]
+#     return [llength $pre_text]
+# 
 }
 
 proc Right {left} {
+    # puts left=$left
     if {"\"" == $left} {
-        return ""
+        return {\"}
+    } elseif {"\\\"" == $left} {
+        return "\\\""
     } elseif {"\{" == $left} {
         return "\}"
     } elseif {"\\\{" == $left} {
@@ -353,41 +415,78 @@ proc Right {left} {
     return ""
 }
 
-proc GetPrefix {text} {
+proc GetQuotedPrefix {text} {
     set null [string index $text 0]
-    # puts null=|$null|
-    if {"\"" == $null} {
-        # puts stderr \neins\n
-        set pre "\\\""
-    } elseif {"\{" == $null} {
-        # puts stderr \nzwei\n
-        set pre "\\\{"
+    if {"\"" == $null || "\{" == $null} {
+        return \\$null
     } else {
-        # puts stderr \ndrei\n
-        set pre ""
+        return {}
     }
-    return ${pre}
 }
 
-proc Format {matches {part {}}} {
-    # puts matches=|$matches|
-    # puts stderr \npart=|$part|\n
-    set pre [GetPrefix ${part}]
-    if {1 == [llength $matches]} { ; # unique match
-        # puts stderr \nunique=$matches\n
-        # puts stderr "\n|${pre}${matches}[Right ${pre}]|\n"
-        return [string trim ${pre}${matches}[Right ${pre}]]
-    } elseif {"" != ${matches}} {
-        # puts stderr \nmore=$matches\n
-        set common [GetCommon ${matches}]
-        # puts stderr common=|$common|
-        if {"" == $common} {
-            return [string trim "[list $part] ${matches}"]
-        } else {
-            return [string trim "${pre}${common} ${matches}"]
+proc CountChar {line char} {
+    # puts stderr char=|$char|
+    set found 0
+    set pos 0
+    while {-1 != [set pos [string first $char $line $pos]]} {
+        incr pos
+        incr found
+    }
+    return $found
+}
+
+#**
+# save `lindex'. works also for non-complete lines
+# with opening parentheses or quotes.
+# usage as `lindex'.
+#
+proc Lindex {line pos} {
+    if {[catch [list set sub [lindex $line $pos]]]} {
+        set diff [expr [CountChar $line \{] - [CountChar $line \}]]
+        # puts stderr diff=$diff
+        for {set i 0} {$i < $diff} {incr i} { ; # \{ keep the editor happy
+            append line \}
         }
+        # puts stderr line=$line
+        if {!$diff || [catch [list set sub [lindex $line $pos]]]} {
+            if {[expr [CountChar $line \"] % 2]} { append line \" }
+        }
+        if {[catch [list set sub [lindex $line $pos]]]} { return {} }
+    }
+    return $sub
+}
+
+#**
+# save `llength' (see above).
+#
+proc Llength {line} {
+    set diff 0
+    if {[catch [list set len [llength $line]]]} {
+        set diff [expr [CountChar $line \{] - [CountChar $line \}]]
+        # puts stderr diff=$diff
+        for {set i 0} {$i < $diff} {incr i} { ; # \{ keep the editor happy
+            append line \}
+        }
+        if {$diff < 0} {
+            set diff 0
+        }
+        # puts stderr line=$line
+        if {!$diff || [catch [list set len [llength $line]]]} {
+            incr diff
+            if {[expr [CountChar $line \"] % 2]} { append line \" }
+        }
+        if {[catch [list set len [llength $line]]]} { return {} }
+    }
+    return [expr $len - $diff]
+}
+
+proc StripPrefix {text} {
+    # puts "(StripPrefix) text=|$text|"
+    set null [string index $text 0]
+    if {"\"" == $null || "\{" == $null} {
+        return [string range $text 1 end]
     } else {
-        return ""; # nothing to complete
+        return $text
     }
 }
 
@@ -403,13 +502,10 @@ proc VarCompletion {text {level -1}} {
     } else {
         incr level
     }
-    set pre [GetPrefix ${text}]
-
-    if {"" == ${pre}} {
-        set var ${text}
-    } else {
-        set var [string range ${text} 1 end]
-    }
+    set pre [GetQuotedPrefix ${text}]
+    set var [StripPrefix ${text}]
+    # puts stderr "(VarCompletion) pre=|$pre|"
+    # puts stderr "(VarCompletion) var=|$var|"
 
     # arrays
     #
@@ -418,7 +514,7 @@ proc VarCompletion {text {level -1}} {
         if {1 == [llength $names]} { ; # unique match
             return "${array}(${names})"
         } elseif {"" != ${names}} {
-            return "${array}([GetCommon ${names}] ${names}"
+            return "${array}([CompleteLongest ${names}] ${names}"
         } else {
             return ""; # nothing to complete
         }
@@ -450,12 +546,17 @@ proc VarCompletion {text {level -1}} {
             return ${pre}${matches}[Right ${pre}]
         }
     } elseif {"" != $matches} { ; # more than one match
-        set common [GetCommon ${matches}]
-        if {"" == ${common}} {
-            return [Format ${matches} ${text}]
-        } else {
-            return [string trim "${pre}${common} ${matches}"]
-        }
+        #puts stderr "(VarComletion) matches=|$matches|"
+        #puts stderr "(VarComletion) text=|$text|"
+# 
+#         set common [CompleteLongest ${matches}]
+#         if {"" == ${common}} {
+#             return [Format ${matches} ${text}]
+#         } else {
+#             return [string trim "${pre}${common} ${matches}"]
+#         }
+# 
+          return [CompleteFromList ${text} ${matches}]
     } else {
         return ""; # nothing to complete
     }
@@ -481,6 +582,9 @@ proc CommandsOnlyCompletion {cmd} {
 }
 
 proc CommandCompletion {cmd {action both} {spc ::}} {
+    # puts stderr "(CommandCompletion) cmd=|$cmd|"
+    # puts stderr "(CommandCompletion) action=|$action|"
+    # puts stderr "(CommandCompletion) spc=|$spc|"
     set quali [namespace qualifiers ${cmd}]
     if {[llength ${quali}]} {
         set rec [CommandCompletion [namespace tail ${cmd}] ${action} ${quali}]
@@ -541,8 +645,10 @@ proc CommandCompletion {cmd {action both} {spc ::}} {
             set matches [FullQualifiedMatches ${namespaces} ${matches}]
             set namespaces ""
         }
+        return [string trim "${matches} ${namespaces}"]
+    } else {
+        return [string trim "${matches} ${namespaces}"]
     }
-    return [string trim "${matches} ${namespaces}"]
 }
 
 #**
@@ -633,28 +739,30 @@ proc ScriptCompleter {part start end line} {
     # start == 10
     # end   == 13
     # line  == "puts bla; put $b"
-    # [SubCmd] --> {1 " put $b"} == sub
+    # [SplitLine] --> {1 " put $b"} == sub
     # new_start = [lindex $sub 0] == 1
     # new_end   = [expr $end - ($start - $new_start)] == 4
     # new_part  == $part == put
     # new_line  = [lindex $sub 1] == " put $b"
     # 
-    } elseif {"" != [set sub [SubCmd $start $line]]} {
+    } elseif {"" != [set sub [SplitLine $start $line]]} {
         set new_start [lindex $sub 0]
         set new_end [expr $end - ($start - $new_start)]
         set new_line [lindex $sub 1]
-        # puts stderr "(SubCmd) $new_start $new_end $new_line"
+        # puts stderr "(SplitLine) $new_start $new_end $new_line"
         return [ScriptCompleter $part $new_start $new_end $new_line]
     } elseif {0 == [set pos [PartPosition part start end line]]} {
         # puts stderr "(PartPosition) $part $start $end $line"
         # set matches [array names known_cmds "[string trim ${part}]*"]
         set all [CommandCompletion ${part}]
+        # puts stderr "(ScriptCompleter) all=$all"
         #puts \nmatches=$matches\n
-        return [Format $all $part]
+        # return [Format $all $part]
+        return [TryFromList $part $all]
     } else {
         # try to use $pos further ...
         # puts stderr |$line|
-        if {"." == [string index [lindex ${line} 0] 0]} {
+        if {"." == [string index [string trim ${line}] 0]} {
             set alias WIDGET
         } else {
             set alias [lindex [QuoteQuotes ${line}] 0]
@@ -676,13 +784,8 @@ proc ScriptCompleter {part start end line} {
 
                 # remove leading quotes
                 #
-                if {"\"" == [string index $part 0] \
-                    || "\{" == [string index $part 0]
-                } {
-                    set mod [string range $part 1 end]
-                } else {
-                    set mod $part
-                }
+                set mod [StripPrefix $part]
+                # puts stderr mod=$mod
 
                 if {[catch [list set script_result \
                     [complete(${cmd}) $part \
@@ -690,6 +793,7 @@ proc ScriptCompleter {part start end line} {
                 } {
                     error "error during evaluation of `complete(${cmd})'"
                 }
+                # puts stderr \nscript_result=|${script_result}|
                 return ${script_result}
             }
         }
@@ -716,26 +820,154 @@ proc ScriptCompleter {part start end line} {
 #                 TCL
 # -------------------------------------
 
+proc complete(after) {text start end line pos mod} {
+    set sub [Lindex $line 1]
+    # puts \npos=$pos
+    switch -- $pos {
+        1 {
+            return [CompleteFromList ${text} {<ms> cancel idle info}]
+        }
+        2 {
+            switch -- $sub {
+                cancel {
+                    set after_info [after info]
+                    if {![llength $after_info]} {
+                        return [DisplayHints <script>]
+                    } else {
+                        return [CompleteFromList $mod "<script> [after info]"]
+                    }
+                }
+                idle {
+                    return [DisplayHints <script>]
+                }
+                info {
+                    return [CompleteFromList $mod [after info]]
+                }
+                default { return [DisplayHints ?script?] }
+            }
+        }
+        default {
+            switch -- $sub {
+                info { return [DisplayHints {}] }
+                default { return [DisplayHints ?script?] }
+            }
+        }
+    }
+    return ""
+}
+
 proc complete(append) {text start end line pos mod} {
     switch -- $pos {
-        1 { return [VarCompletion ${text}] }
-        default { return [Menu ?value?] }
+        1       { return [VarCompletion ${text}] }
+        default { return [DisplayHints ?value?] }
     }
+    return ""
 }
+
+proc complete(array) {text start end line pos mod} {
+    switch -- $pos {
+        1 {
+            set cmds {
+                anymore donesearch exists get names
+                nextelement set size startsearch
+            }
+            return [CompleteFromList $text $cmds]
+        }
+        2 {
+            set matches ""
+            set vars [uplevel [info level] info vars ${mod}*]
+            foreach var ${vars} {
+                if {[uplevel [info level] array exists ${var}]} {
+                    lappend matches ${var}
+                }
+            }
+            return [CompleteFromList ${text} ${matches}]
+        }
+        default {
+            set cmd [Lindex $line 1]
+            set array_name [Lindex $line 2]
+            switch -- $cmd {
+                get -
+                names {
+                    set pattern [Lindex $line 3]
+                    set matches [uplevel [info level] \
+                    array names ${array_name} ${pattern}*]
+                    if {![llength $matches]} {
+                        return [Menu ?pattern?]
+                    } else {
+                        return [CompleteFromList ${text} ${matches}]
+                    }
+                }
+                anymore -
+                donesearch -
+                nextid { return [Menu <searchId>] }
+            }
+        }
+    }
+    return ""
+}
+
+# proc complete(bgerror) {text start end line pos mod} {
+# }
+
+proc complete(binary) {text start end line pos mod} {
+    set cmd [Lindex $line 1]
+    switch -- $pos {
+        1 {
+            return [CompleteFromList $text {format scan}]
+        }
+        2 {
+            switch -- $cmd {
+                format { return [DisplayHints <formatString>] }
+                scan   { return [DisplayHints <string>] }
+            }
+        }
+        3 {
+            switch -- $cmd {
+                format { return [DisplayHints ?arg?] }
+                scan   { return [DisplayHints <formatString>] }
+            }
+        }
+        default {
+            switch -- $cmd {
+                format { return [DisplayHints ?arg?] }
+                scan   { return [DisplayHints ?varName?] }
+            }
+        }
+    }
+    return ""
+}
+
+# proc complete(break) {text start end line pos mod} {
+# }
+
+proc complete(catch) {text start end line pos mod} {
+    switch -- $pos {
+        1 { return [DisplayHints <script>] }
+        2 { return [DisplayHints ?varName?] }
+    }
+    return ""
+}
+
+# proc complete(cd) {text start end line pos mod} {
+# }
 
 proc complete(if) {text start end line pos mod} {
     # TODO: this is not good yet.
-    if {2 == $pos} {
-        return [AttemptFromList $text {then}]
-    } elseif {$pos > 2} {
-        set prev [PreviousWord ${start} ${line}]
-        switch $prev {
-            then -
-            else -
-            elseif { return "" }
+    switch -- $pos {
+        1 { return [CompleteFromList $mod {\{}] }
+        2 { return [TryFromList $mod {then}] }
+        default {
+            set prev [PreviousWord ${start} ${line}]
+            switch $prev {
+                then -
+                else -
+                elseif { return [CompleteFromList $mod {\{}] }
+                default { return [TryFromList $text {then else elseif}] }
+            }
         }
-        return [AttemptFromList $text {then else elseif}]
     }
+    return ""
 }
 
 proc complete(incr) {text start end line pos mod} {
@@ -756,96 +988,16 @@ proc complete(incr) {text start end line pos mod} {
     }
 }
 
-proc complete(array) {text start end line pos mod} {
-    if {1 == $pos} {
-        set cmds {
-            anymore donesearch exists get names
-            nextelement set size startsearch
-        }
-        return [AttemptFromList $text $cmds]
-    } elseif {2 == $pos} {
-        set cmd [lindex $line 1]
-        switch -- $cmd {
-            anymore -
-            donesearch -
-            exists -
-            get -
-            names -
-            nextelement -
-            set -
-            size -
-            startsearch {
-                set matches ""
-                set vars [uplevel [info level] info vars ${mod}*]
-                foreach var ${vars} {
-                    if {[uplevel [info level] array exists ${var}]} {
-                        lappend matches ${var}
-                    }
-                }
-                return [Format ${matches} ${text}]
-            }
-        }
-    } elseif {3 == $pos} {
-        set cmd [lindex $line 1]
-        switch -- $cmd {
-            get -
-            names {
-                if {[catch {
-                    set names [uplevel [info level] \
-                    array names [lindex $line 2] [lindex $line 3]*]}]} {
-                    return ""
-                } else {
-                    set common [GetCommon ${names}]
-                    if {"" == ${common}} {
-                        return [Format ${names} ${text}]
-                    } else {
-                        return [string trim "${common} ${names}"]
-                    }
-                }
-            }
-        }
-    }
-    return ""
-}
-
-proc complete(binary) {text start end line pos mod} {
-    set cmd [lindex $line 1]
-    switch -- $pos {
-        1 {
-            return [AttemptFromList $text {format scan}]
-        }
-        2 {
-            switch -- $cmd {
-                format { return [Menu formatString] }
-                scan   { return [Menu string] }
-            }
-        }
-        3 {
-            switch -- $cmd {
-                format { return [Menu ?arg?] }
-                scan   { return [Menu formatString] }
-            }
-        }
-        default {
-            switch -- $cmd {
-                format { return [Menu ?arg?] }
-                scan   { return [Menu ?varName?] }
-            }
-        }
-    }
-    return ""
-}
-
 proc complete(clock) {text start end line pos mod} {
     set cmd [lindex $line 1]
     switch -- $pos {
         1 {
-            return [AttemptFromList $text {clicks format scan seconds}]
+            return [TryFromList $text {clicks format scan seconds}]
         }
         2 {
             switch -- $cmd {
-                format  { return [Menu clockValue] }
-                scan    { return [Menu dateString] }
+                format  { return [DisplayHints clockValue] }
+                scan    { return [DisplayHints dateString] }
                 clicks  -
                 seconds {}
             }
@@ -855,12 +1007,12 @@ proc complete(clock) {text start end line pos mod} {
                 format {
                     set sub [lindex $line 3]
                     set subcmds {-fmt -gmt}
-                    return [AttemptFromList $text $subcmds]
+                    return [TryFromList $text $subcmds]
                 }
                 scan {
                     set sub [lindex $line 3]
                     set subcmds {-base -gmt}
-                    return [AttemptFromList $text $subcmds]
+                    return [TryFromList $text $subcmds]
                 }
                 clicks  -
                 seconds {}
@@ -874,7 +1026,7 @@ proc complete(encoding) {text start end line pos mod} {
     set cmd [lindex $line 1]
     switch -- $pos {
         1 {
-            return [AttemptFromList $text {convertfrom convertto names system}]
+            return [TryFromList $text {convertfrom convertto names system}]
         }
         2 {
             switch -- $cmd {
@@ -882,7 +1034,7 @@ proc complete(encoding) {text start end line pos mod} {
                 convertfrom -
                 convertto -
                 system {
-                    return [AttemptFromList ${text} [encoding names]]
+                    return [TryFromList ${text} [encoding names]]
                 }
             }
         }
@@ -900,7 +1052,7 @@ proc complete(expr) {text start end line pos mod} {
         double  int     rand    round 
         srand 
     }
-    return [AttemptFromList $text $cmds]
+    return [TryFromList $text $cmds]
 }
 
 proc complete(fconfigure) {text start end line pos mod} {
@@ -913,26 +1065,26 @@ proc complete(fconfigure) {text start end line pos mod} {
             set option [PreviousWord ${start} ${line}]
             switch -- $option {
                 -blocking {
-                    return [AttemptFromList ${text} {yes no}]
+                    return [TryFromList ${text} {yes no}]
                 }
                 -buffering {
-                    return [AttemptFromList ${text} {full line none}]
+                    return [TryFromList ${text} {full line none}]
                 }
                 -buffersize {
                     if {![llength ${text}]} {
-                        return [Menu newSize]
+                        return [DisplayHints newSize]
                     }
                 }
                 -encoding {
-                    return [AttemptFromList ${text} [encoding names]]
+                    return [TryFromList ${text} [encoding names]]
                 }
                 -eofchar {
-                    return [Menu {\{inChar\ outChar\}}]
+                    return [DisplayHints {\{inChar\ outChar\}}]
                 }
                 -translation {
-                    return [AttemptFromList ${text} {auto binary cr crlf lf}]
+                    return [TryFromList ${text} {auto binary cr crlf lf}]
                 }
-                default {return [AttemptFromList $text {
+                default {return [TryFromList $text {
                     -blocking -buffering -buffersize
                     -encoding -eofchar -translation}]
                 }
@@ -953,9 +1105,9 @@ proc complete(fcopy) {text start end line pos mod} {
         default {
             set option [PreviousWord ${start} ${line}]
             switch -- $option {
-                -size    { return [Menu size] }
-                -command { return [Menu callback] }
-                default  { return [AttemptFromList $text {-size -command}] }
+                -size    { return [DisplayHints size] }
+                -command { return [DisplayHints callback] }
+                default  { return [TryFromList $text {-size -command}] }
             }
         }
     }
@@ -971,7 +1123,7 @@ proc complete(file) {text start end line pos mod} {
                 nativename owned pathtype readable readlink rename
                 rootname size split stat tail type volumes writable
             }
-            return [AttemptFromList $text $cmds]
+            return [TryFromList $text $cmds]
         }
         2 {
             set cmd [lindex $line 1]
@@ -1022,7 +1174,7 @@ proc complete(fileevent) {text start end line pos mod} {
             return [ChannelId ${mod}]
         }
         2 {
-            return [CompleteFromList ${mod} {readable writable}]
+            return [MenuFromList ${mod} {readable writable}]
         }
     }
     return ""
@@ -1045,7 +1197,7 @@ proc complete(gets) {text start end line pos mod} {
 proc complete(glob) {text start end line pos mod} {
     switch -- $pos {
         1 {
-            set matches [AttemptFromList ${mod} {-nocomplain --}]
+            set matches [TryFromList ${mod} {-nocomplain --}]
             if {[llength [string trim ${mod}]] && [llength ${matches}]} {
                 return ${matches}
             }
@@ -1073,7 +1225,7 @@ proc complete(info) {text start end line pos mod} {
             args body cmdcount commands complete default exists
             globals hostname level library loaded locals nameofexecutable
             patchlevel procs script sharedlibextension tclversion vars}
-        return [AttemptFromList $text $cmds]
+        return [TryFromList $text $cmds]
     } elseif {2 == $pos} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1112,11 +1264,11 @@ proc complete(interp) {text start end line pos mod} {
         set cmds {
             alias aliases create delete eval exists expose hide hidden
             issafe invokehidden marktrusted slaves share target transfer}
-        return [AttemptFromList $text $cmds]
+        return [TryFromList $text $cmds]
     } elseif {2 == $pos} {
         switch -- $cmd {
             create {
-                return [AttemptFromList $text {-safe -- ?path?}]
+                return [TryFromList $text {-safe -- ?path?}]
             }
 
             eval -
@@ -1143,7 +1295,7 @@ proc complete(interp) {text start end line pos mod} {
             alias {if {![llength ${mod}]} { return <srcCmd> }}
 
             create {
-                return [AttemptFromList $text {-safe -- ?path?}]
+                return [TryFromList $text {-safe -- ?path?}]
             }
 
             eval {if {![llength ${mod}]} { return <arg> }}
@@ -1154,7 +1306,7 @@ proc complete(interp) {text start end line pos mod} {
 
             invokehidden {
                 return \
-                [AttemptFromList $text {?-global? <hiddenCmdName}]
+                [TryFromList $text {?-global? <hiddenCmdName}]
             }
 
             target {if {![llength ${mod}]} { return <alias> }}
@@ -1175,7 +1327,7 @@ proc complete(interp) {text start end line pos mod} {
             alias {if {![llength ${mod}]} { return <targetPath> }}
 
             create {
-                return [AttemptFromList $text {-safe -- path}]
+                return [TryFromList $text {-safe -- path}]
             }
 
             expose {if {![llength ${mod}]} { return ?exposedCmdName? }}
@@ -1275,7 +1427,7 @@ proc complete(lsearch) {text start end line pos mod} {
 }
 
 proc complete(lsort) {text start end line pos mod} {
-    set options [Menu ${mod} {
+    set options [DisplayHints ${mod} {
         -ascii -dictionary -integer -real -command
         -increasing -decreasing -index
     }]
@@ -1286,7 +1438,7 @@ proc complete(lsort) {text start end line pos mod} {
 proc complete(history) {text start end line pos mod} {
     if {1 == $pos} {
         set cmds {add change clear event info keep nextid redo}
-        return [AttemptFromList $text $cmds]
+        return [TryFromList $text $cmds]
     } elseif {2 == ${pos}} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1316,7 +1468,7 @@ proc complete(namespace) {text start end line pos mod} {
         set cmds {
             children code current delete eval export forget
             import inscope origin parent qualifiers tail which}
-        return [AttemptFromList $text $cmds]
+        return [TryFromList $text $cmds]
     } elseif {2 == $pos} {
         switch -- $cmd {
             children -
@@ -1324,12 +1476,12 @@ proc complete(namespace) {text start end line pos mod} {
             eval -
             inscope -
             forget -
-            parent { return [AttemptFromList ${mod} $space_matches] }
+            parent { return [TryFromList ${mod} $space_matches] }
             code { return "" }
             current {}
-            export { return [MenuFromList ${mod} -clear ?pattern?] }
+            export { return [MenuFromList ${mod} {-clear ?pattern?}] }
             import {
-                return [MenuFromList ${mod} "-force $space_matches"]
+                return [MenuFromList ${mod} {-force $space_matches}]
             }
             origin { if {![llength ${mod}]} { return <command> } }
             qualifiers -
@@ -1343,7 +1495,7 @@ proc complete(namespace) {text start end line pos mod} {
     } else {
         switch -- $cmd {
             children { if {![llength ${mod}]} { return ?pattern? } }
-            delete { return [AttemptFromList $text $space_matches] }
+            delete { return [TryFromList $text $space_matches] }
             eval { if {![llength ${mod}]} { return ?arg? } }
             inscope { if {![llength ${mod}]} { return ?arg? } }
             parent {}
@@ -1351,7 +1503,7 @@ proc complete(namespace) {text start end line pos mod} {
             current {}
             export -
             forget -
-            import { return [Menu ?pattern?] }
+            import { return [DisplayHints ?pattern?] }
             origin {}
             qualifiers {}
             tail {}
@@ -1379,7 +1531,7 @@ proc complete(package) {text start end line pos mod} {
         set cmds {
             forget ifneeded names present provide require
             unknown vcompare versions vsatisfies}
-        return [AttemptFromList $text $cmds]
+        return [TryFromList $text $cmds]
     } elseif {2 == $pos} {
         switch -- $cmd {
             forget -
@@ -1437,7 +1589,7 @@ proc complete(proc) {text start end line pos mod} {
     # puts known_procs=|${known_procs}|
     if {1 == $pos} {
         set known_procs [ProcsOnlyCompletion ${mod}]
-        set common [GetCommon ${known_procs}]
+        set common [CompleteLongest ${known_procs}]
         if {"" == ${common}} {
             return [Format ${known_procs} ${text}]
         } else {
@@ -1456,7 +1608,7 @@ proc complete(proc) {text start end line pos mod} {
 
 proc complete(puts) {text start end line pos mod} {
     if {1 == $pos} {
-        return [MenuFromList ${mod} "-nonewline [OutChannelId ${mod}]"]
+        return [TryFromList ${mod} "-nonewline [OutChannelId ${mod}]"]
     } elseif {2 <= $pos} {
         if {![llength ${mod}]} {
             set opt [lindex ${line} 1]
@@ -1466,7 +1618,7 @@ proc complete(puts) {text start end line pos mod} {
             if {1 == $pos} {
                 return [OutChannelId ${mod}]
             } elseif {2 == $pos} {
-                return [Menu <string>]
+                return [DisplayHints <string>]
                 return <string>
             }
         }
@@ -1476,14 +1628,14 @@ proc complete(puts) {text start end line pos mod} {
 
 proc complete(read) {text start end line pos mod} {
     if {1 == $pos} {
-        return [MenuFromList ${mod} "-nonewline [InChannelId ${mod}]"]
+        return [MenuFromList ${mod} {-nonewline [InChannelId ${mod}]}]
     } elseif {2 == $pos} {
         if {![llength ${mod}]} {
             set opt [lindex ${line} 1]
             if {[llength [MenuFromList ${opt} {-nonewline}]]} {
                 return [InChannelId ${mod}]
             } elseif {![llength ${mod}]} {
-                return <numBytes>
+                return [DisplayHints <numBytes>]
             }
         }
     }
@@ -1532,7 +1684,7 @@ proc complete(regsub) {text start end line pos mod} {
 
 proc complete(rename) {text start end line pos mod} {
     if {1 == $pos} {
-        set all [CommandCompletion ${mod}]
+        # TODO set all [CommandCompletion ${mod}]
         return [Format $all ${mod}]
     } elseif {2 == $pos && ![llength ${mod}]} {
         return <newName>
@@ -1550,7 +1702,7 @@ proc complete(return) {text start end line pos mod} {
             -code -
             -errorcode {
                 set codes {ok error return break continue}
-                return [AttemptFromList ${mod} ${codes}]
+                return [TryFromList ${mod} ${codes}]
             }
         }
     }
@@ -1566,7 +1718,7 @@ proc complete(seek) {text start end line pos mod} {
     if {1 == $pos} {
         return [ChannelId ${mod}]
     } elseif {2 == $pos} {
-        return [AttemptFromList ${mod} {start current end}]
+        return [TryFromList ${mod} {start current end}]
     }
     return ""
 }
@@ -1599,7 +1751,7 @@ proc complete(socket) {text start end line pos mod} {
         switch -- ${prev} {
             -myaddr { if {![llength ${mod}]} { return <addr> } }
         }
-        return [AttemptFromList ${mod} [concat {-error -sockname -peername}]]
+        return [TryFromList ${mod} [concat {-error -sockname -peername}]]
     } else {
         # client sockets
         #
@@ -1628,7 +1780,7 @@ proc complete(socket) {text start end line pos mod} {
         if {$pos <= 1} {
             lappend cmds -server
         }
-        return [AttemptFromList ${mod} [concat ${cmds} ${hosts}]]
+        return [TryFromList ${mod} [concat ${cmds} ${hosts}]]
     }
     return ""
 }
@@ -1643,7 +1795,7 @@ proc complete(string) {text start end line pos mod} {
         compare first index last length match range tolower
         totitle toupper trim trimleft trimright wordend wordstart}
     if {1 == $pos} {
-        return [AttemptFromList ${mod} ${cmds}]
+        return [TryFromList ${mod} ${cmds}]
     } elseif {2 == $pos} {
         switch -- $cmd {
             compare -
@@ -1694,14 +1846,14 @@ proc complete(string) {text start end line pos mod} {
 proc complete(subst) {text start end line pos mod} {
     set opts {-nobackslashes -nocommands -novariables}
     set opts [RemoveUsedOptions ${line} ${opts}]
-    return [AttemptFromList ${mod} [concat ${opts} <string>]]
+    return [TryFromList ${mod} [concat ${opts} <string>]]
     return ""
 }
 
 proc complete(switch) {text start end line pos mod} {
     set opts {-exact -glob -regexp --}
     set opts [RemoveUsedOptions ${line} ${opts} {--}]
-    return [AttemptFromList ${mod} [concat ${opts} <string>]]
+    return [TryFromList ${mod} [concat ${opts} <string>]]
     return ""
 }
 
@@ -1715,11 +1867,11 @@ proc complete(tell) {text start end line pos mod} {
 proc complete(trace) {text start end line pos mod} {
     set cmd [lindex ${line} 1]
     if {1 == $pos} {
-        return [AttemptFromList ${mod} {variable vdelete vinfo}]
+        return [TryFromList ${mod} {variable vdelete vinfo}]
     } elseif {2 == $pos} {
         return [Format [uplevel 2 info vars "${mod}*"] ${mod}]
     } elseif {3 == $pos && "variable" == ${cmd}} {
-        return [AttemptFromList ${mod} {r w u}]
+        return [TryFromList ${mod} {r w u}]
     }
     return ""
 }
@@ -1859,7 +2011,7 @@ proc complete(WIDGET) {text start end line pos mod} {
     if {1 >= ${pos}} {
         set cmds [TrySubCmds ${widget}]
         if {[llength ${cmds}]} {
-            return [AttemptFromList ${mod} ${cmds}]
+            return [TryFromList ${mod} ${cmds}]
         }
     } elseif {2 <= ${pos} && 
         ([string match ${cmd}* cget] || \
@@ -1873,7 +2025,7 @@ proc complete(WIDGET) {text start end line pos mod} {
                 return [list "[lindex $options(value) ${found}]"]
             }
         } else {
-            return [AttemptFromList ${mod} $options(switches)]
+            return [TryFromList ${mod} $options(switches)]
         }
     }
     return ""
@@ -1884,10 +2036,10 @@ proc complete(winfo) {text start end line pos mod} {
     if {1 >= ${pos}} {
         set cmds [TrySubCmds winfo]
         if {[llength ${cmds}]} {
-            return [AttemptFromList ${mod} ${cmds}]
+            return [TryFromList ${mod} ${cmds}]
         }
     } elseif {2 == ${pos}} {
-        return [AttemptFromList ${mod} [WidgetList ${mod}]]
+        return [TryFromList ${mod} [WidgetList ${mod}]]
     }
     return ""
 }

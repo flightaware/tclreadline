@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Wed Sep  8 20:53:23 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Fri Sep 10 02:57:55 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -466,15 +466,19 @@ int
 TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 {
     rl_readline_name = "tclreadline";
-    rl_special_prefixes = "${\"";
+    //    rl_special_prefixes = "${\"[";
+    rl_special_prefixes = "$";
     /**
      * default is " \t\n\"\\'`@$><=;|&{("
      * removed "(" <-- arrays
      * removed "{" <-- `${' variables 
+     * removed "<" <-- completion lists with < ... >
      * added "[]"
+     * added "}"
      */
-    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&[]";
-    rl_completer_quote_characters = "\"";
+    rl_basic_word_break_characters = " \t\n\"\\@$}>=;|&[]";
+    // rl_basic_quote_characters = "\"{"; // XXX ??? XXX
+    // rl_completer_quote_characters = "\"";
     /*
     rl_filename_quote_characters
     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -520,7 +524,8 @@ char**
 TclReadlineCompletion(char* text, int start, int end)
 {
     char** matches = (char**) NULL;
-    rl_attempted_completion_over = 0;
+    int status;
+    // rl_attempted_completion_over = 0;
 
 #if 0
     fprintf(stderr, "DEBUG> TclReadlineCompletion: text=|%s|\n", text);
@@ -547,7 +552,7 @@ TclReadlineCompletion(char* text, int start, int end)
             || (start && rl_line_buffer[start - 1] == '!' /* for '$' */))) {
         char* expansion = (char*) NULL;
         int oldlen = strlen(rl_line_buffer);
-        int status = history_expand(rl_line_buffer, &expansion);
+        status = history_expand(rl_line_buffer, &expansion);
         if (status >= 1) {
             rl_extend_line_buffer(strlen(expansion) + 1);
             strcpy(rl_line_buffer, expansion);
@@ -596,13 +601,16 @@ TclReadlineCompletion(char* text, int start, int end)
             Tcl_AppendResult (tclrl_interp, " `", tclrl_custom_completer,
                 " \"", quoted_text, "\" ", start_s, " ", end_s,
                 " \"", quoted_rl_line_buffer, "\"' failed.", (char*) NULL);
-#if 0
-            fprintf(stderr, "\n|%s|\n", Tcl_GetStringResult(tclrl_interp));
-#endif
             return matches;
         }
+#if 0
+        fprintf(stderr, "\nscript returned |%s|\n",
+            Tcl_GetStringResult(tclrl_interp));
+#endif
         obj = Tcl_GetObjResult(tclrl_interp);
-        Tcl_ListObjGetElements(tclrl_interp, obj, &objc, &objv);
+        status = Tcl_ListObjGetElements(tclrl_interp, obj, &objc, &objv);
+        if (TCL_OK != status)
+            return matches;
         /* fprintf (stderr, "(TclReadlineCompletion) objc = %d\n", objc); */
         if (objc) {
             int i, length;
@@ -610,7 +618,7 @@ TclReadlineCompletion(char* text, int start, int end)
             for (i = 0; i < objc; i++) {
                 matches[i] = strdup(Tcl_GetStringFromObj(objv[i], &length));
                 if (1 == objc && !strlen(matches[i])) {
-                    rl_attempted_completion_over = 1;
+                    // rl_attempted_completion_over = 1;
                     FREE(matches[i]);
                     FREE(matches);
                     return (char**) NULL;
