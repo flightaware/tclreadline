@@ -1,7 +1,7 @@
 
  /* ==================================================================
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Son, 27 Aug 2000 16:11:02 +0200 (joze)"
+    LAST MODIFICATION: "Mit, 20 Sep 2000 19:27:47 +0200 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -45,6 +45,9 @@ extern char* _rl_executing_macro;
 #endif
 
 #include "tclreadline.h"
+static const char* tclrl_library = TCLRL_LIBRARY;
+static const char* tclrl_version_str = TCLRL_VERSION_STR;
+static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
 
 #define MALLOC(size) Tcl_Alloc((int) size)
 #define FREE(ptr) if (ptr) { Tcl_Free((char*) ptr); ptr = 0; }
@@ -81,10 +84,6 @@ static char** TclReadlineCompletion(char* text, int start, int end);
 static char* TclReadline0generator(char* text, int state);
 static char* TclReadlineKnownCommands(char* text, int state, int mode);
 static int TclReadlineParse(char** args, int maxargs, char* buf);
-
-/* must be non-static */
-int Tclreadline_SafeInit(Tcl_Interp* interp);
-int Tclreadline_Init(Tcl_Interp* interp);
 
 
 enum { 
@@ -571,10 +570,10 @@ Tclreadline_Init(Tcl_Interp *interp)
 		(char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::version",
-		(char*) &TCLRL_VERSION, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+		(char*) &tclrl_version_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::patchLevel",
-		(char*) &TCLRL_PATCHLEVEL, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+		(char*) &tclrl_patchlevel_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::license",
 		(char*) &tclrl_license, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
@@ -584,13 +583,13 @@ Tclreadline_Init(Tcl_Interp *interp)
 		(char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_version",
-		(char*) &TCLRL_VERSION, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+		(char*) &tclrl_version_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_patchLevel",
-		(char*) &TCLRL_PATCHLEVEL, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+		(char*) &tclrl_patchlevel_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
 
-    return Tcl_PkgProvide(interp, "tclreadline", TCLRL_VERSION);
+    return Tcl_PkgProvide(interp, "tclreadline", (char*)tclrl_version_str);
 }
 
 static int

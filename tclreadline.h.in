@@ -1,7 +1,7 @@
 
  /* ==================================================================
     FILE: "/home/joze/src/tclreadline/tclreadline.h.in"
-    LAST MODIFICATION: "Sat, 01 Jul 2000 23:46:41 +0200 (joze)"
+    LAST MODIFICATION: "Mit, 20 Sep 2000 17:18:12 +0200 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     vim:set ft=c:
@@ -12,12 +12,29 @@
     This software is copyright under the BSD license.
     ================================================================== */  
 
-static char *TCLRL_VERSION = "@VERSION@";
+#ifndef TCLREADLINE_H_
+#define TCLREADLINE_H_
 
-static char* tclrl_library = "@TCLRL_DIR@";
+#include <tcl.h>
 
-/*
- * NOTE, that PATCHLEVEL is the complete version string.
- */
-static char *TCLRL_PATCHLEVEL = "@PATCHLEVEL_STR@";
+#define TCLRL_LIBRARY        "@TCLRL_DIR@"
 
+/* VERSION STRINGS */
+#define TCLRL_VERSION_STR    "@VERSION@"
+#define TCLRL_PATCHLEVEL_STR "@PATCHLEVEL_STR@"
+
+/* VERSION NUMBERS */
+#define TCLRL_MAJOR      @MAJOR@
+#define TCLRL_MINOR      @MINOR@
+#define TCLRL_PATCHLEVEL @PATCHLEVEL@
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int Tclreadline_Init(Tcl_Interp *interp);
+int Tclreadline_SafeInit(Tcl_Interp *interp);
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* TCLREADLINE_H_ */

@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
-# LAST MODIFICATION: "Sat, 01 Jul 2000 23:54:15 +0200 (joze)"
+# LAST MODIFICATION: "Mit, 20 Sep 2000 19:29:26 +0200 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -18,7 +18,7 @@ namespace eval tclreadline:: {
 proc ::tclreadline::Init {} {
     uplevel #0 {
 	if ![info exists tclreadline::library] {
-	    if [catch {load @TCLRL_DIR@/../libtclreadline[info sharedlibextension]} msg] {
+	    if [catch {load [file join @TCLRL_LIBDIR@ libtclreadline[info sharedlibextension]]} msg] {
 		puts stderr $msg
 		exit 2
 	    }

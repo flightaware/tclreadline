@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Son, 27 Aug 2000 16:10:18 +0200 (joze)"
+dnl LAST MODIFICATION: "Mit, 20 Sep 2000 17:25:06 +0200 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
@@ -17,7 +17,7 @@ AC_CONFIG_AUX_DIR(./aux)
 
 MAJOR=2
 MINOR=0
-PATCHLEVEL=3
+PATCHLEVEL=4
 VERSION=$MAJOR.$MINOR
 PATCHLEVEL_STR=$VERSION.$PATCHLEVEL
 
@@ -96,7 +96,9 @@ fi
 if test "${prefix}" = "NONE"; then
     prefix=$TCL_PREFIX
 fi
-TCLRL_DIR="${prefix}/lib/tclreadline$VERSION"
+TCLRL_LIBDIR="${prefix}/lib"
+AC_SUBST(TCLRL_LIBDIR)
+TCLRL_DIR="${TCLRL_LIBDIR}/tclreadline$VERSION"
 AC_SUBST(TCLRL_DIR)
 
 # HEADERS

@@ -1,4 +1,8 @@
 
+2000-09-20  Johannes Zellner <johannes@zellner.org>
+
+    * made tclreadline.h installing to ${prefix}/include
+
 2000-08-27  Johannes Zellner <johannes@zellner.org>
 
     * added Mark to AUTHORS :)
