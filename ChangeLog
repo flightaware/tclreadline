@@ -1,4 +1,8 @@
 
+2000-11-19  Johannes Zellner  <johannes@zellner.org>
+
+    * configure.in: moved the tlib check before the libreadline check
+
 2000-09-20  Johannes Zellner <johannes@zellner.org>
 
     * made tclreadline.h installing to ${prefix}/include
