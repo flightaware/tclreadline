@@ -1,7 +1,7 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@" "Johannes Zellner"
 
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFIED: "Mon Mar  1 09:49:08 1999 (joze)"
+.\" LAST MODIFIED: "Mon Mar  1 13:38:15 1999 (joze)"
 .\" (C) 1999 by Johannes Zellner
 .\" Johannes.Zellner@physik.uni-karlsruhe.de
 .\" $Id$
@@ -55,6 +55,13 @@ The advantage of \fBtclreadline\fP is that it uses the callback
 handler mechanism of the gnu readline while it processes tcl
 events. This way X events from a wish gui will processed as
 well as events from the \fPtclreadline\fP line interface.
+
+.PP
+
+\fBtclreadline\fP is basically a shared library and a few tcl scripts
+which are accessed with the tcl package require command. Therefore
+\fBtclreadline\fP should work with all common extensions like
+\fBblt, itcl, itk, tix ...\fP.
 
 
 .\".SH SOURCE FILES
