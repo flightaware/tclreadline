@@ -1,8 +1,8 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" (C) 1999 by Johannes Zellner
-.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Sun Aug 29 01:14:06 1999 (joze)"
+.\" FILE: "/diska/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Mon Aug 30 14:12:14 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -320,7 +320,8 @@ Les Johnson <les@infolabs.com>,
 Harald Kirsch <kir@iitb.fhg.de>,
 Christian Krone <krischan@sql.de>,
 Larry W. Virden <lvirden@cas.org>,
-David Engel <dlengel@home.com>, <david@debian.org>
+David Engel <dlengel@home.com> <david@debian.org>,
+Matthew Clarke <Matthew_Clarke@mindlink.bc.ca>
 
 .SH "DEBIAN PACKAGE"
 David Engel <dlengel@home.com>, <david@debian.org>

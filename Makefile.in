@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Sun Aug 29 08:23:45 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Mon Aug 30 14:13:02 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -271,6 +271,7 @@ ci: $(SOURCES)
 co: $(SOURCES)
 	co -l $^
 
+dist: distribution
 distribution: $(SOURCES) configure $(AUXILIARY) tclreadline.n.html
 	- mkdir -p dist/tclreadline-$(PATCHLEVEL)/aux
 	- cp $(SOURCES) configure tclreadline.n.html dist/tclreadline-$(PATCHLEVEL)

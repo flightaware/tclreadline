@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Sun Aug 29 08:08:34 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Mon Aug 30 11:04:20 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -66,7 +66,7 @@ AC_ARG_WITH(
 
 AC_MSG_CHECKING([which tclConfig.sh to use])
 TCL_LIB_DIR=""
-for dir in $tcl_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix; do
+for dir in $tcl_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
     if test -r $dir/tclConfig.sh; then
         TCL_LIB_DIR=$dir
         break
@@ -284,7 +284,7 @@ AC_ARG_WITH(readline-includes,
 
 AC_MSG_CHECKING([where to look for readline.h])
 READLINE_INCLUDE_DIR=""
-for dir in $rl_includes $prefix/include/readline /usr/include; do
+for dir in $rl_includes $prefix/include/readline /usr/include/readline /usr/include; do
     if test -r $dir/readline.h; then
         READLINE_INCLUDE_DIR=$dir
         break
