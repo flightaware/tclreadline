@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
-# FILE: "/krispc6/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Mon May 10 13:01:16 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Thu May 27 14:26:19 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -296,6 +296,8 @@ proc ::tclreadline::Loop {} {
                     ${::tclreadline::prompt2}]
             }
 
+            # Magnus Eriksson <magnus.eriksson@netinsight.se> proposed
+            history add $::tclreadline::LINE
 
             if [catch {
                 set result [eval $::tclreadline::LINE]
