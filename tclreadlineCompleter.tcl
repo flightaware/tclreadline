@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Sat Sep 18 04:27:54 1999 (joze)"
+# LAST MODIFICATION: "Sun Sep 19 01:02:44 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -48,7 +48,7 @@ namespace export \
 TryFromList CompleteFromList DisplayHints Rehash \
 PreviousWord CommandCompletion RemoveUsedOptions \
 HostList ChannelId InChannelId OutChannelId \
-Lindex Llength CompleteBoolean
+Lindex Llength CompleteBoolean WidgetChildren
 
 # set tclreadline::trace to 1, if you
 # want to enable explicit trace calls.
@@ -144,14 +144,16 @@ proc TryFromList {text lst {allow ""} {inhibit 0}} {
 	# puts stderr "(CompleteFromList) \ntext=|$text|"
 	# puts stderr "(CompleteFromList) lst=|$lst|"
 	set pre [GetQuotedPrefix ${text}]
-	set matches [MatchesFromList $text $lst $allow]
+	set matches [MatchesFromList ${text} ${lst} ${allow}]
 
 	# puts stderr "(CompleteFromList) matches=|$matches|"
 	if {1 == [llength $matches]} { ; # unique match
 		# puts stderr \nunique=$matches\n
 		# puts stderr "\n|${pre}${matches}[Right ${pre}]|\n"
 		set null [string index $matches 0]
-		if {"<" == $null || "?" == $null} {
+		if {("<" == ${null} || "?" == ${null}) && \
+			-1 == [string first ${null} ${allow}]
+		} {
 			set completion [string trim "[list $text] $lst"]
 		} else {
 			set completion [string trim ${pre}${matches}[Right ${pre}]]
@@ -182,8 +184,8 @@ proc TryFromList {text lst {allow ""} {inhibit 0}} {
 # will be formatted such that readline will not insert
 # a space after a complete (single) match.
 #
-proc CompleteFromList {text lst {inhibit 0}} {
-	set result [TryFromList ${text} ${lst} "" $inhibit]
+proc CompleteFromList {text lst {allow ""} {inhibit 0}} {
+	set result [TryFromList ${text} ${lst} ${allow} $inhibit]
 	if {![llength ${result}]} {
 		Alert
 		# return [string trim [list ${text}] ${lst}"]
@@ -397,6 +399,33 @@ proc TrySubCmds {text cmd} {
 }
 
 #**
+# try to get casses for commands which
+# allow `configure' (cget).
+# @param  command.
+# @param  optionsT where the table will be stored.
+# @return number of options
+# @date   Sat-Sep-18
+#
+proc ClassTable {cmd} {
+
+	# first we build an option table.
+	# We always use `configure' here,
+	# because cget will not return the
+	# option table.
+	#
+	if {[catch [list set option_table [eval ${cmd} configure]] msg]} {
+		return ""
+	}
+	set classes ""
+	foreach optline ${option_table} {
+		if {5 != [llength ${optline}]} continue else {
+			lappend classes [lindex ${optline} 2]
+		}
+	}
+	return ${classes}
+}
+
+#**
 # try to get options for commands which
 # allow `configure' (cget).
 # @param command.
@@ -537,7 +566,7 @@ proc CompleteListFromList {text fullpart lst pre sep post} {
 		#
 		return [list ${pre} {}]
 
-	} elseif {[regexp ${post} ${text}]} {
+	} elseif {${post} == [String index ${text} end]} {
 
 		# finalize, append the post and a space.
 		#
@@ -569,7 +598,7 @@ proc CompleteListFromList {text fullpart lst pre sep post} {
 		#set completion [CompleteFromList ${right} [list ${sep} ${post}] 1]
 		return [list ${left}${right}${sep} {}]
 	} else {
-		set completion [CompleteFromList ${right} ${lst} 1]
+		set completion [CompleteFromList ${right} ${lst} "" 1]
 	}
 	# puts stderr \ncompletion=|$completion|
 	if {![string length [lindex $completion 0]]} {
@@ -686,6 +715,10 @@ proc IsWhite {char} {
 	} else {
 		return 0
 	}
+}
+
+proc PreviousWordOfIncompletePosition {start line} {
+	return [lindex [ProperList [string range ${line} 0 ${start}]] end]
 }
 
 proc PreviousWord {start line} {
@@ -900,6 +933,10 @@ proc Llength {line} {
 #**
 # string function, which works also for older versions
 # of tcl, which don't have the `end' index.
+# I tried also defining `string' and thus overriding
+# the builtin `string' which worked, but slowed down
+# things considerably. So I decided to call `String'
+# only if I really need the `end' index.
 #
 proc String args {
 	if {[info tclversion] < 8.2} {
@@ -927,10 +964,12 @@ proc StripPrefix {text} {
 }
 
 proc VarCompletion {text {level -1}} {
-	if {-1 == ${level}} {
-		set level [info level]
-	} else {
-		incr level
+	if {"#" != [string index ${level} 0]} {
+		if {-1 == ${level}} {
+			set level [info level]
+		} else {
+			incr level
+		}
 	}
 	set pre [GetQuotedPrefix ${text}]
 	set var [StripPrefix ${text}]
@@ -2664,7 +2703,7 @@ proc complete(open) {text start end line pos mod} {
 		2 {
 			set access {r r+ w w+ a a+ 
 				RDONLY WRONLY RDWR APPEND CREAT EXCL NOCTTY NONBLOCK TRUNC}
-			return [CompleteFromList ${text} $access]
+			return [CompleteFromList ${text} ${access}]
 		}
 		3 { return [DisplayHints ?permissions?] }
 	}
@@ -2681,7 +2720,7 @@ proc complete(package) {text start end line pos mod} {
 			return [TryFromList $text $cmds]
 		}
 		2 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				forget -
 				ifneeded -
 				provide -
@@ -2697,19 +2736,19 @@ proc complete(package) {text start end line pos mod} {
 		}
 		3 {
 			set versions ""
-			catch [list set versions [package versions [Lindex $line 2]]]
-			switch -- $cmd {
+			catch [list set versions [package versions [Lindex ${line} 2]]]
+			switch -- ${cmd} {
 				forget {}
 				ifneeded {
 					if {"" != $versions} {
-						return [CompleteFromList ${text} $versions]
+						return [CompleteFromList ${text} ${versions}]
 					} else {
 						return [DisplayHints <version>]
 					}
 				}
 				provide {
-					if {"" != $versions} {
-						return [CompleteFromList ${text} $versions]
+					if {"" != ${versions}} {
+						return [CompleteFromList ${text} ${versions}]
 					} else {
 						return [DisplayHints ?version?]
 					}
@@ -2720,8 +2759,8 @@ proc complete(package) {text start end line pos mod} {
 					if {"-exact" == [PreviousWord ${start} ${line}]} {
 						return [CompleteFromList ${mod} [package names]]
 					} else {
-						if {"" != $versions} {
-							return [CompleteFromList ${text} $versions]
+						if {"" != ${versions}} {
+							return [CompleteFromList ${text} ${versions}]
 						} else {
 							return [DisplayHints ?version?]
 						}
@@ -2738,31 +2777,31 @@ proc complete(package) {text start end line pos mod} {
 }
 
 proc complete(pid) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [ChannelId ${text}] }
 	}
 }
 
 proc complete(pkg_mkIndex) {text start end line pos mod} {
 	set cmds [RemoveUsedOptions ${line} {-direct -load -verbose -- <dir>} {--}]
-	set res [string trim [TryFromList $text $cmds]]
+	set res [string trim [TryFromList ${text} ${cmds}]]
 	set prev [PreviousWord ${start} ${line}]
-	if {"-load" == $prev} {
+	if {"-load" == ${prev}} {
 		return [DisplayHints <pkgPat>]
-	} elseif {"--" == $prev} {
+	} elseif {"--" == ${prev}} {
 		return [TryFromList ${text} <dir>]
 	}
 	return ${res}
 }
 
 proc complete(proc) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
 			set known_procs [ProcsOnlyCompletion ${text}]
 			return [CompleteFromList ${text} ${known_procs}]
 		}
 		2 {
-			set proc [Lindex $line 1]
+			set proc [Lindex ${line} 1]
 			if {[catch {set args [uplevel [info level] info args ${proc}]}]} {
 				return [DisplayHints <args>]
 			} else {
@@ -2770,11 +2809,12 @@ proc complete(proc) {text start end line pos mod} {
 			}
 		}
 		3 {
-			if {![string length [Lindex $line $pos]]} {
+			if {![string length [Lindex ${line} ${pos}]]} {
 				return [list \{ {}]; # \}
 			} else {
 				# return [DisplayHints <body>]
-				return [BraceOrCommand $text $start $end $line $pos $mod]
+				return [BraceOrCommand \
+				${text} ${start} ${end} ${line} ${pos} ${mod}]
 			}
 		}
 	}
@@ -2829,7 +2869,7 @@ proc complete(regexp) {text start end line pos mod} {
 			-nocase -indices -expanded -line 
 			-linestop -lineanchor -about <expression> --} {--}]
 		if {[llength ${cmds}]} {
-			return [string trim [CompleteFromList $text $cmds]]
+			return [string trim [CompleteFromList ${text} ${cmds}]]
 		}
 	} else {
 		set virtual_pos [expr ${pos} - [FirstNonOption ${line}]]
@@ -2849,11 +2889,11 @@ proc complete(regexp) {text start end line pos mod} {
 proc complete(regsub) {text start end line pos mod} {
 	set prev [PreviousWord ${start} ${line}]
 	if {[llength ${prev}] && "--" != $prev && \
-		("-" == [string index ${prev} 0] || 1 == $pos)} {
+		("-" == [string index ${prev} 0] || 1 == ${pos)}} {
 		set cmds [RemoveUsedOptions ${line} {
 			-all -nocase --} {--}]
 		if {[llength ${cmds}]} {
-			return [string trim [CompleteFromList $text $cmds]]
+			return [string trim [CompleteFromList ${text} ${cmds}]]
 		}
 	} else {
 		set virtual_pos [expr ${pos} - [FirstNonOption ${line}]]
@@ -2870,7 +2910,7 @@ proc complete(regsub) {text start end line pos mod} {
 proc complete(rename) {text start end line pos mod} {
 	switch -- $pos {
 		1 {
-			return [CompleteFromList $text [CommandCompletion $text]]
+			return [CompleteFromList ${text} [CommandCompletion ${text}]]
 		}
 		2 {
 			return [DisplayHints <newName>]
@@ -2910,7 +2950,8 @@ namespace eval safe {
 		::tclreadline::CompleteFromList ::tclreadline::CommandCompletion \
 		::tclreadline::RemoveUsedOptions ::tclreadline::HostList \
 		::tclreadline::ChannelId ::tclreadline::Lindex \
-		::tclreadline::CompleteBoolean
+		::tclreadline::CompleteBoolean \
+		::tclreadline::WidgetChildren
 	}
 	variable opts
 	set opts {
@@ -2936,11 +2977,11 @@ namespace eval safe {
 }
 
 proc safe::complete(interpCreate) {text start end line pos mod} {
-	return [SlaveOrOpts $text $start $line $pos ?slave?]
+	return [SlaveOrOpts ${text} ${start} ${line} ${pos} ?slave?]
 }
 
 proc safe::complete(interpInit) {text start end line pos mod} {
-	return [SlaveOrOpts $text $start $line $pos [interp slaves]]
+	return [SlaveOrOpts ${text} ${start} ${line} ${pos} [interp slaves]]
 }
 
 proc safe::complete(interpConfigure) {text start end line pos mod} {
@@ -2948,32 +2989,53 @@ proc safe::complete(interpConfigure) {text start end line pos mod} {
 }
 
 proc safe::complete(interpDelete) {text start end line pos mod} {
-	return [CompleteFromList $text [interp slaves]]
+	return [CompleteFromList ${text} [interp slaves]]
 }
 
 proc safe::complete(interpAddToAccessPath) {text start end line pos mod} {
-	switch -- $pos {
-		1 { return [CompleteFromList $text [interp slaves]] }
+	switch -- ${pos} {
+		1 { return [CompleteFromList ${text} [interp slaves]] }
 	}
 }
 
 proc safe::complete(interpFindInAccessPath) {text start end line pos mod} {
-	switch -- $pos {
-		1 { return [CompleteFromList $text [interp slaves]] }
+	switch -- ${pos} {
+		1 { return [CompleteFromList ${text} [interp slaves]] }
 	}
 }
 
 proc safe::complete(setLogCmd) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [DisplayHints ?cmd?] }
 		default { return [DisplayHints ?arg?] }
+	}
+}
+
+proc safe::complete(loadTk) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [DisplayHints <slave>] }
+		default {
+			switch -- [PreviousWord ${start} ${line}] {
+				-use {
+					return [CompleteFromList ${text} \
+					[::tclreadline::WidgetChildren ${text}]]
+				}
+				-display {
+					return [DisplayHints <display>]
+				}
+				default {
+					return [CompleteFromList ${text} \
+					[RemoveUsedOptions ${line} {-use -display}]]
+				}
+			}
+		}
 	}
 }
 
 # --- END OF SAFE PACKAGE ---
 
 proc complete(scan) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [DisplayHints <string>] }
 		2 { return [DisplayHints <format>] }
 		default { return [VarCompletion ${text}] }
@@ -2982,7 +3044,7 @@ proc complete(scan) {text start end line pos mod} {
 }
 
 proc complete(seek) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [ChannelId ${text}] }
 		2 { return [DisplayHints <offset>] }
 		3 { return [TryFromList ${text} {start current end}] }
@@ -2991,17 +3053,17 @@ proc complete(seek) {text start end line pos mod} {
 }
 
 proc complete(set) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [VarCompletion ${text}] }
 		2 {
-			if {$text == "" || $text == "\"" || $text == "\{"} {
+			if {${text} == "" || ${text} == "\"" || ${text} == "\{"} {
 				# set line [QuoteQuotes $line]
 				if {[catch [list set value [list [uplevel [info level] \
-					set [Lindex $line 1]]]] msg]
+					set [Lindex ${line} 1]]]] msg]
 				} {
 					return ""
 				} else {
-					return [Quote $value ${text}]
+					return [Quote ${value} ${text}]
 				}
 			}
 		}
@@ -3015,10 +3077,10 @@ proc complete(socket) {text start end line pos mod} {
 	if {"-server" == ${cmd}} {
 		# server sockets
 		#
-		switch -- $pos {
+		switch -- ${pos} {
 			2 { return [DisplayHints <command>] }
 			default {
-				if {"-myaddr" == $prev} {
+				if {"-myaddr" == ${prev}} {
 					return [DisplayHints <addr>]
 				} else {
 					return [CompleteFromList ${mod} \
@@ -3036,11 +3098,11 @@ proc complete(socket) {text start end line pos mod} {
 
 		set hosts [HostList]
 		set cmds {-myaddr -myport -async -myaddr -error -sockname -peername}
-		if {$pos <= 1} {
+		if {${pos} <= 1} {
 			lappend cmds -server
 		}
-		set cmds [RemoveUsedOptions $line $cmds]
-		if {-1 != [lsearch $hosts $prev]} {
+		set cmds [RemoveUsedOptions ${line} ${cmds}]
+		if {-1 != [lsearch ${hosts} ${prev}]} {
 			return [DisplayHints <port>]
 		} else {
 			return [CompleteFromList ${mod} [concat ${cmds} ${hosts}]]
@@ -3049,11 +3111,13 @@ proc complete(socket) {text start end line pos mod} {
 	return ""
 }
 
-# proc complete(source) {text start end line pos mod} {
-# }
+proc complete(source) {text start end line pos mod} {
+	# allow file name completion
+	return ""
+}
 
 proc complete(split) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [DisplayHints <string>] }
 		2 { return [DisplayHints ?splitChars?] }
 	}
@@ -3066,12 +3130,12 @@ proc complete(string) {text start end line pos mod} {
 		bytelength compare equal first index is last length map match
 		range repeat replace tolower toupper totitle trim trimleft
 		trimright wordend wordstart}
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
 			return [CompleteFromList ${text} ${cmds}]
 		}
 		2 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				compare -
 				equal {
 					return [CompleteFromList ${text} {
@@ -3109,28 +3173,28 @@ proc complete(string) {text start end line pos mod} {
 			}
 		}
 		3 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				compare -
 				equal {
-					if {"-length" == $prev} {
+					if {"-length" == ${prev}} {
 						return [DisplayHints <int>]
 					}
 					return [CompleteFromList ${text} \
-					[RemoveUsedOptions $line {-nocase -length <string>}]]
+					[RemoveUsedOptions ${line} {-nocase -length <string>}]]
 				}
 
 				first -
 				last { return [DisplayHints <string2>] }
 
 				map {
-					if {"-nocase" == $prev} {
+					if {"-nocase" == ${prev}} {
 						return [DisplayHints <charMap>]
 					} else {
 						return [DisplayHints <string>]
 					}
 				}
 				match {
-					if {"-nocase" == $prev} {
+					if {"-nocase" == ${prev}} {
 						return [DisplayHints <pattern>]
 					} else {
 						return [DisplayHints <string>]
@@ -3139,7 +3203,7 @@ proc complete(string) {text start end line pos mod} {
 
 				is {
 					return [CompleteFromList ${text} \
-					[RemoveUsedOptions $line {-strict -failindex <string>}]]
+					[RemoveUsedOptions ${line} {-strict -failindex <string>}]]
 				}
 
 				bytelength {}
@@ -3158,10 +3222,10 @@ proc complete(string) {text start end line pos mod} {
 			}
 		}
 		4 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				compare -
 				equal {
-					if {"-length" == $prev} {
+					if {"-length" == ${prev}} {
 						return [DisplayHints <int>]
 					}
 					return [CompleteFromList ${text} \
@@ -3175,7 +3239,7 @@ proc complete(string) {text start end line pos mod} {
 				match { return [DisplayHints <string>] }
 
 				is {
-					if {"-failindex" == $prev} {
+					if {"-failindex" == ${prev}} {
 						return [VarCompletion ${text}]
 					}
 					return [CompleteFromList ${text} \
@@ -3199,10 +3263,10 @@ proc complete(string) {text start end line pos mod} {
 			}
 		}
 		default {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				compare -
 				equal {
-					if {"-length" == $prev} {
+					if {"-length" == ${prev}} {
 						return [DisplayHints <int>]
 					}
 					return [CompleteFromList ${text} \
@@ -3210,11 +3274,11 @@ proc complete(string) {text start end line pos mod} {
 				}
 
 				is {
-					if {"-failindex" == $prev} {
+					if {"-failindex" == ${prev}} {
 						return [VarCompletion ${text}]
 					}
 					return [CompleteFromList ${text} \
-					[RemoveUsedOptions $line {-strict -failindex <string>}]]
+					[RemoveUsedOptions ${line} {-strict -failindex <string>}]]
 				}
 
 				replace { return [DisplayHints ?newString?] }
@@ -3225,18 +3289,18 @@ proc complete(string) {text start end line pos mod} {
 }
 
 proc complete(subst) {text start end line pos mod} {
-	return [CompleteFromList ${text} [RemoveUsedOptions $line {
+	return [CompleteFromList ${text} [RemoveUsedOptions ${line} {
 		-nobackslashes -nocommands -novariables <string>}]]
 }
 
 proc complete(switch) {text start end line pos mod} {
 	set prev [PreviousWord ${start} ${line}]
-	if {[llength ${prev}] && "--" != $prev && \
-		("-" == [string index ${prev} 0] || 1 == $pos)} {
+	if {[llength ${prev}] && "--" != ${prev} && \
+		("-" == [string index ${prev} 0] || 1 == ${pos)}} {
 		set cmds [RemoveUsedOptions ${line} {
 			-exact -glob -regexp --} {--}]
 		if {[llength ${cmds}]} {
-			return [string trim [CompleteFromList $text $cmds]]
+			return [string trim [CompleteFromList ${text} ${cmds}]]
 		}
 	} else {
 		set virtual_pos [expr ${pos} - [FirstNonOption ${line}]]
@@ -3245,7 +3309,7 @@ proc complete(switch) {text start end line pos mod} {
 			1 { return [DisplayHints <pattern>] }
 			2 { return [DisplayHints <body>] }
 			default { 
-				switch [expr $virtual_pos % 2] {
+				switch [expr ${virtual_pos} % 2] {
 					0 { return [DisplayHints ?body?] }
 					1 { return [DisplayHints ?pattern?] }
 				}
@@ -3271,14 +3335,14 @@ namespace eval tclreadline {
 }
 
 proc tclreadline::complete(readline) {text start end line pos mod} {
-	set cmd [Lindex $line 1]
-	switch -- $pos {
+	set cmd [Lindex ${line} 1]
+	switch -- ${pos} {
 		1 { return [CompleteFromList ${text} {
 			read initialize write add complete
 			customcompleter builtincompleter eofchar reset-terminal}]
 		}
 		2 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				read {}
 				initialize {}
 				write {}
@@ -3303,15 +3367,17 @@ proc tclreadline::complete(readline) {text start end line pos mod} {
 # --- END OF TCLREADLINE PACKAGE ---
 
 proc complete(tell) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [ChannelId ${text}] }
 	}
 	return ""
 }
 
 proc complete(time) {text start end line pos mod} {
-	switch -- $pos {
-		1 { return [BraceOrCommand $text $start $end $line $pos $mod] }
+	switch -- ${pos} {
+		1 { return [BraceOrCommand \
+			${text} ${start} ${end} ${line} ${pos} ${mod}]
+		}
 		2 { return [DisplayHints ?count?] }
 	}
 	return ""
@@ -3319,7 +3385,7 @@ proc complete(time) {text start end line pos mod} {
 
 proc complete(trace) {text start end line pos mod} {
 	set cmd [Lindex ${line} 1]
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
 			return [CompleteFromList ${mod} {variable vdelete vinfo}]
 		}
@@ -3328,16 +3394,17 @@ proc complete(trace) {text start end line pos mod} {
 			[uplevel [info level] info vars "${mod}*"]]
 		}
 		3 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				variable -
 				vdelete { return [CompleteFromList ${text} {r w u}] }
 			}
 		}
 		4 {
-			switch -- $cmd {
+			switch -- ${cmd} {
 				variable -
 				vdelete {
-					return [CompleteFromList $text [CommandCompletion $text]]
+					return [CompleteFromList ${text} \
+					[CommandCompletion ${text}]]
 				}
 			}
 		}
@@ -3346,9 +3413,9 @@ proc complete(trace) {text start end line pos mod} {
 }
 
 proc complete(unknown) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
-			return [CompleteFromList $text [CommandCompletion $text]]
+			return [CompleteFromList ${text} [CommandCompletion ${text}]]
 		}
 		default { return [DisplayHints ?arg?] }
 	}
@@ -3360,7 +3427,7 @@ proc complete(unset) {text start end line pos mod} {
 }
 
 proc complete(update) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return idletasks }
 	}
 	return ""
@@ -3368,13 +3435,14 @@ proc complete(update) {text start end line pos mod} {
 
 proc complete(uplevel) {text start end line pos mod} {
 	set one [Lindex ${line} 1]
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
-			return [CompleteFromList $text "?level? [CommandCompletion $text]"]
+			return [CompleteFromList \
+			${text} "?level? [CommandCompletion ${text}]"]
 		}
 		2 {
-			if {"#" == [string index $one 0] || [regexp {^[0-9]*$} $one]} {
-				return [CompleteFromList $text [CommandCompletion $text]]
+			if {"#" == [string index ${one} 0] || [regexp {^[0-9]*$} ${one}]} {
+				return [CompleteFromList ${text} [CommandCompletion ${text}]]
 			} else {
 				return [DisplayHints ?arg?]
 			}
@@ -3510,8 +3578,13 @@ proc EventuallyInsertLeadingDot {text fallback} {
 	if {![string length ${text}]} {
 		return [list . {}]
 	} else {
-		return [DisplayHints $fallback]
+		return [DisplayHints ${fallback}]
 	}
+}
+
+# TODO
+proc CompleteColor text {
+	return [DisplayHints <color>]
 }
 
 #**
@@ -3529,24 +3602,124 @@ proc SpecificSwitchCompleter {text start line switch} {
 	# TODO:
 	#   go to the `options' man page and look for possible values
 	switch -- ${switch} {
-		-takefocus -
-		-exportselection { return [CompleteBoolean ${text}] }
-		-xscrollcommand -
-		-yscrollcommand {
-			# return [BraceOrCommand ${text} \
-			# ${start} ${end} ${line} ${pos} ${mod}]
+
+		-activebackground -
+		-activeforeground -
+		-fg -
+		-foreground -
+		-bg -
+		-background -
+		-disabledforeground -
+		-highlightbackground -
+		-highlightcolor -
+		-insertbackground -
+		-troughcolor -
+		-selectbackground -
+		-selectforeground { return [CompleteColor ${text}] }
+
+		-activeborderwidth -
+		-bd -
+		-borderwidth -
+		-insertborderwidth -
+		-insertwidth -
+		-selectborderwidth -
+		-highlightthickness -
+		-padx -
+		-pady -
+		-wraplength {
+			return [DisplayHints <pixels>]
+		}
+
+		-anchor {
+			return [CompleteFromList ${text} {
+				n ne e se s sw w nw center
+			}]
+		}
+
+
+		-bitmap { return [CompleteFromBitmaps ${text}] }
+
+
+		-cursor { return [DisplayHints <cursor>] }
+		-exportselection -
+		-jump -
+		-setgrid -
+		-takefocus { return [CompleteBoolean ${text}] }
+		-font {
+			set names [font names]
+			if {[string length ${names}]} {
+				return [CompleteFromList ${text} ${names}]
+			} else {
+				return [DisplayHints <font>]
+			}
+		}
+
+
+		-image -
+		-selectimage {
+			set images [image names]
+			if {[string length ${images}]} {
+				return [CompleteFromList ${text} ${images}]
+			} else {
+				return [DisplayHints <image>]
+			}
+		}
+
+		-insertofftime -
+		-insertontime -
+		-repeatdelay -
+		-repeatinterval { return [DisplayHints <milliSec>] }
+		-justify {
+			return [CompleteFromList ${text} {
+				left center right
+			}]
+		}
+		-orient {
+			return [CompleteFromList ${text} {
+				vertical horizontal
+			}]
 		}
 		-relief {
 			return [CompleteFromList ${text} {
 				raised sunken flat ridge solid groove
 			}]
 		}
+
+		-text { return [DisplayHints <text>] }
+		-textvariable { return [VarCompletion ${text} #0] }
+		-underline { return [DisplayHints <index>] }
+
+-xscrollcommand -
+-yscrollcommand {
+}
+ 
+        # WIDGET SPECIFIC OPTIONS
+		# ---
+ 
+		-state {
+			return [CompleteFromList ${text} {
+				normal active disabled
+			}]
+		}
+
+		-columnbreak -
+		-hidemargin -
+		-indicatoron {
+			return [CompleteBoolean ${text}]
+		}
+
+		-variable {
+			return [VarCompletion ${text} #0]
+		}
+
 		default {
 			set prev [PreviousWord ${start} ${line}]
 			return [DisplayHints <[String range ${prev} 1 end]>]
 		}
 	}
 }
+			# return [BraceOrCommand ${text} \
+			# ${start}  ${line} ${pos} ${mod}]
 
 #**
 # CompleteWidgetConfigurations
@@ -3620,8 +3793,7 @@ proc complete(bind) {text start end line pos mod} {
 			[concat ${toplevels} ${widgets} ${toplevelClass} $rest]]
 		}
 		2 {
-			set fulltext [Lindex $line 2]
-			return [CompleteSequence ${text} ${fulltext}]
+			return [CompleteSequence ${text} [Lindex ${line} 2]]
 		}
 		default {
 			# return [DisplayHints {<script> <+script>}]
@@ -3640,7 +3812,7 @@ proc complete(bindtags) {text start end line pos mod} {
 			# [RemoveUsedOptions ${line} [bindtags [Lindex ${line} 1]]]
 			set current_tags [bindtags [Lindex ${line} 1]]
 			return [CompleteListFromList ${text} [Lindex ${line} 2] \
-			$current_tags \{ { } \}]
+			${current_tags} \{ { } \}]
 		}
 	}
 	return ""
@@ -3770,6 +3942,327 @@ proc complete(entry) {text start end line pos mod} {
 	return ""
 }
 
+proc complete(event) {text start end line pos mod} {
+	set sub [Lindex ${line} 1]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} { add delete generate info }]
+		}
+		2 {
+			switch -- ${sub} {
+				add { return [DisplayHints <<virtual>>] }
+				info -
+				delete {
+					return [CompleteFromList ${text} [event info] "<"]
+				}
+				generate {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+			}
+		}
+		3 {
+			switch -- ${sub} {
+				add -
+				delete -
+				generate {
+					return [CompleteSequence ${text} [Lindex ${line} 3]]
+				}
+				info {}
+			}
+		}
+		default {
+			switch -- ${sub} {
+				add -
+				delete {
+					return [CompleteSequence ${text} [Lindex ${line} 3]]
+				}
+				info {}
+				generate {
+
+					switch -- [PreviousWord ${start} ${line}] {
+
+						-above -
+						-root -
+						-subwindow {
+							return [TryFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+
+						-borderwidth { return [DisplayHints <size>] }
+
+						-button -
+						-delta -
+						-keycode -
+						-serial -
+						-count { return [DisplayHints <number>] }
+
+						-detail {
+							return [CompleteFromList ${text} { 
+								NotifyAncestor    NotifyNonlinearVirtual
+								NotifyDetailNone  NotifyPointer
+								NotifyInferior    NotifyPointerRoot
+								NotifyNonlinear   NotifyVirtual
+							}]
+						}
+
+						-focus -
+						-override -
+						-sendevent { return [CompleteBoolean ${text}] }
+
+						-height -
+						-width { return [DisplayHints <size>] }
+
+						-keysym { return [DisplayHints <name>] }
+
+						-mode {
+							return [CompleteFromList ${text} { 
+								NotifyNormal NotifyGrab
+								NotifyUngrab NotifyWhileGrabbed
+							}]
+						}
+
+						-place {
+							return [CompleteFromList ${text} { 
+								PlaceOnTop PlaceOnBottom
+							}]
+						}
+
+						-rootx -
+						-rooty -
+						-x -
+						-y { return [DisplayHints <coord>] }
+
+						-state {
+							return [CompleteFromList ${text} { 
+								VisibilityUnobscured
+								VisibilityPartiallyObscured
+								VisibilityFullyObscured
+								<integer>
+							}]
+						}
+
+						-time { return [DisplayHints <integer>] }
+						-when {
+							return [CompleteFromList ${text} { 
+								now tail head mark
+							}]
+						}
+
+						default {
+							return [CompleteFromList ${text} \
+							[RemoveUsedOptions ${line} {
+								-above -borderwidth -button -count -delta
+								-detail -focus -height -keycode -keysym
+								-mode -override -place -root -rootx -rooty
+								-sendevent -serial -state -subwindow -time
+								-width -when -x -y
+							}]]
+
+						}
+					}
+					default { }
+				}
+			}
+		}
+	}
+	return ""
+}
+
+proc complete(focus) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} \
+			[concat [WidgetChildren ${text}] -displayof -force -lastfor]]
+		}
+		default {
+			switch -- [PreviousWord ${start} ${line}] {
+				-displayof -
+				-force -
+				-lastfor {
+					return [CompleteFromList ${text} \
+					[WidgetChildren ${text}]]
+				}
+			}
+		}
+	}
+	return ""
+}
+
+proc FontConfigure {text line prev} {
+	set fontopts {-family -overstrike -size -slant -underline -weight}
+	switch -- ${prev} {
+		-family {
+			return [CompleteFromList ${text} [font families]]
+		}
+		-underline -
+		-overstrike { return [CompleteBoolean ${text}] }
+		-size { return [DisplayHints <size>] }
+		-slant {
+			return [CompleteFromList ${text} { roman italic }]
+		}
+		-weight {
+			return [CompleteFromList ${text} { normal bold }]
+		}
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} ${fontopts}]]
+		}
+	}
+}
+
+proc complete(font) {text start end line pos mod} {
+	set fontopts {-family -overstrike -size -slant -underline -weight}
+	set fontmetrics {-ascent -descent -linespace -fixed}
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} {
+				actual configure create delete families measure metrics names
+			}]
+		}
+		2 {
+			switch -- ${sub} {
+				actual -
+				measure -
+				metrics {
+					return [DisplayHints <font>]
+				}
+				configure -
+				delete {
+					set names [font names]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <fontname>]
+					}
+				}
+				create {
+					return [CompleteFromList ${text} \
+					[concat ?fontname? ${fontopts}]]
+				}
+				families {
+					return [CompleteFromList ${text} -displayof]
+				}
+				names {}
+			}
+		}
+		3 {
+			switch -- ${sub} {
+				actual {
+					return [CompleteFromList ${text} \
+					[concat -displayof ${fontopts}]]
+				}
+				configure -
+				create {
+					return [FontConfigure ${text} ${line} ${prev}]
+				}
+				delete {
+					set names [font names]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <fontname>]
+					}
+				}
+				families {
+					switch -- ${prev} {
+						-displayof {
+							return [CompleteFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+					}
+				}
+				measure {
+					return [CompleteFromList ${text} {-displayof <text>}]
+				}
+				metrics {
+					return [CompleteFromList ${text} \
+					[concat -displayof ${fontmetrics}]]
+				}
+				names {}
+			}
+		}
+		4 {
+			switch -- ${sub} {
+				actual {
+					switch -- ${prev} {
+						-displayof {
+							return [CompleteFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default {
+							return [FontConfigure ${text} ${line} ${prev}]
+						}
+					}
+				}
+				configure -
+				create {
+					return [FontConfigure ${text} ${line} ${prev}]
+				}
+				delete {
+					set names [font names]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <fontname>]
+					}
+				}
+				families {}
+				measure {
+					switch -- ${prev} {
+						-displayof {
+							return [CompleteFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default {
+							return [DisplayHints <text>]
+						}
+					}
+				}
+				metrics {
+					switch -- ${prev} {
+						-displayof {
+							return [CompleteFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default {
+							return [CompleteFromList ${text} ${fontmetrics}]
+						}
+					}
+				}
+				names {}
+			}
+		}
+		default {
+			switch -- ${sub} {
+				actual -
+				configure -
+				create {
+					return [FontConfigure ${text} ${line} ${prev}]
+				}
+				delete {
+					set names [font names]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <fontname>]
+					}
+				}
+				families {}
+				measure {
+					return [DisplayHints <text>]
+				}
+				metrics {
+					return [CompleteFromList ${text} ${fontmetrics}]
+				}
+				names {}
+			}
+		}
+	}
+	return ""
+}
+
 proc complete(frame) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
@@ -3779,6 +4272,177 @@ proc complete(frame) {text start end line pos mod} {
 				-highlightthickness -relief -takefocus -background
 				-class -colormap -container -height -visual -width
 			}]
+		}
+	}
+	return ""
+}
+
+proc complete(grab) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} [concat \
+			current release set status -global [WidgetChildren ${text}]]]
+		}
+		2 {
+			switch -- [Lindex ${line} 1] {
+				-global -
+				current -
+				release -
+				status {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				set {
+					return [CompleteFromList ${text} \
+					[concat -global [WidgetChildren ${text}]]]
+				}
+			}
+		}
+		3 {
+			switch -- [Lindex ${line} 1] {
+				set {
+					switch -- [PreviousWord ${start} ${line}] {
+						-global {
+							return [CompleteFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+					}
+				}
+			}
+		}
+	}
+	return ""
+}
+
+proc GridConfig {text start line prev} {
+	set opts {
+		-column -columnspan -in -ipadx -ipady
+		-padx -pady -row -rowspan -sticky
+	}
+	if {-1 == [string first "-" ${line}]} {
+		set slave [WidgetChildren ${text}]
+	} else {
+		set slave ""
+	}
+	switch -- ${prev} {
+		-column -
+		-columnspan -
+		-row -
+		-rowspan { return [DisplayHints <n>] }
+
+		-ipadx -
+		-ipady -
+		-padx -
+		-pady { return [DisplayHints <amount>] }
+
+		-in { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+		-sticky {
+			set prev [PreviousWordOfIncompletePosition ${start} ${line}]
+			return [CompleteListFromList ${text} \
+			[string trimleft [IncompleteListRemainder ${line}]] \
+			{n e s w} \{ { } \}]
+		}
+
+
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} [concat ${opts} ${slave}]]]
+		}
+	}
+}
+ 
+proc complete(grid) {text start end line pos mod} {
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} \
+			[concat [WidgetChildren ${text}] {
+				bbox columnconfigure configure forget
+				info location propagate rowconfigure
+				remove size slaves
+			}]]
+		}
+		2 {
+			switch -- ${sub} {
+				bbox -
+				columnconfigure -
+				configure -
+				forget -
+				info -
+				location -
+				propagate -
+				rowconfigure -
+				remove -
+				size -
+				slaves {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				default {
+					return [GridConfig ${text} ${start} ${line} ${prev}]
+				}
+			}
+		}
+		default {
+			switch -- ${sub} {
+				bbox {
+					switch [expr ${pos} % 2] {
+						0 { return [DisplayHints ?row?] }
+						1 { return [DisplayHints ?column?] }
+					}
+				}
+				rowconfigure -
+				columnconfigure {
+					switch -- ${pos} {
+						3 { return [DisplayHints <index>] }
+						default {
+							switch -- ${prev} {
+								-minsize { return [DisplayHints <minsize>] }
+								-weight { return [DisplayHints <weight>] }
+								-pad { return [DisplayHints <pad>] }
+								default {
+									return [CompleteFromList ${text} \
+									[RemoveUsedOptions ${line}  {
+										-minsize -weight -pad
+									}]]
+								}
+							}
+						}
+					}
+				}
+				configure {
+					return [GridConfig ${text} ${start} ${line} ${prev}]
+				}
+				forget -
+				remove {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				info {}
+				location {
+					switch -- ${pos} {
+						3 { return [DisplayHints <x>] }
+						4 { return [DisplayHints <y>] }
+					}
+				}
+				propagate {
+					switch -- ${pos} {
+						3 { return [CompleteBoolean ${text}] }
+					}
+				}
+				size {}
+				slaves {
+					switch -- ${prev} {
+						-row { return [DisplayHints <row>] }
+						-column { return [DisplayHints <column>] }
+						default {
+							return [CompleteFromList ${text} \
+							[RemoveUsedOptions ${line}  { -row -column }]]
+						}
+					}
+				}
+				default {
+					return [GridConfig ${text} ${start} ${line} ${prev}]
+				}
+			}
 		}
 	}
 	return ""
@@ -3909,6 +4573,15 @@ proc complete(listbox) {text start end line pos mod} {
 	return ""
 }
 
+proc complete(lower) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 -
+		2 {
+			return [CompleteFromList ${text} [WidgetChildren ${text}]]
+		}
+	}
+}
+
 proc complete(menu) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
@@ -3956,6 +4629,129 @@ proc complete(message) {text start end line pos mod} {
 	return ""
 }
 
+proc OptionPriority text {
+	return [CompleteFromList ${text} {
+		widgetDefault startupFile userDefault interactive
+	}]
+}
+
+proc complete(option) {text start end line pos mod} {
+	set sub [Lindex ${line} 1]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} {
+				add clear get readfile
+			}]
+		}
+		2 {
+			switch -- ${sub} {
+				add { return [DisplayHints <pattern>] }
+				get {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				readfile { return "" }
+			}
+		}
+		3 {
+			switch -- ${sub} {
+				add { return [DisplayHints <value>] }
+				get { return [DisplayHints <name>] }
+				readfile { return [OptionPriority ${text}] }
+			}
+		}
+		4 {
+			switch -- ${sub} {
+				add { return [OptionPriority ${text}] }
+				get {
+					return [CompleteFromList ${text} \
+					[ClassTable [Lindex ${line} 2]]]
+				}
+				readfile {}
+			}
+		}
+	}
+}
+
+proc PackConfig {text line prev} {
+	set opts {
+		-after -anchor -before -expand -fill
+		-in -ipadx -ipady -padx -pady -side
+	}
+	if {-1 == [string first "-" ${line}]} {
+		set slave [WidgetChildren ${text}]
+	} else {
+		set slave ""
+	}
+	switch -- ${prev} {
+		-after -
+		-before  { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+		-anchor { return [CompleteAnchor ${text}] }
+		-expand { return [CompleteBoolean ${text}] }
+		-fill { return [CompleteFromList ${text} { none x y both }] }
+
+		-ipadx -
+		-ipady -
+		-padx -
+		-pady { return [DisplayHints <amount>] }
+
+		-in { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+		-side { return [CompleteFromList ${text} { left right top bottom }] }
+
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} [concat ${opts} ${slave}]]]
+		}
+	}
+}
+
+proc complete(pack) {text start end line pos mod} {
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} \
+			[concat [WidgetChildren ${text}] {
+				configure forget info propagate slaves
+			}]]
+		}
+		2 {
+			switch -- ${sub} {
+				configure -
+				forget -
+				info -
+				propagate -
+				slaves {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				default {
+					return [PackConfig ${text} ${line} ${prev}]
+				}
+			}
+		}
+		default {
+			switch -- ${sub} {
+				configure {
+					return [PackConfig ${text} ${line} ${prev}]
+				}
+				forget {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				info {}
+				propagate {
+					switch -- ${pos} {
+						3 { return [CompleteBoolean ${text}] }
+					}
+				}
+				slaves {}
+				default {
+					return [PackConfig ${text} ${line} ${prev}]
+				}
+			}
+		}
+	}
+	return ""
+}
+
 proc complete(radiobutton) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
@@ -3972,6 +4768,10 @@ proc complete(radiobutton) {text start end line pos mod} {
 		}
 	}
 	return ""
+}
+
+proc complete(raise) {text start end line pos mod} {
+	return [complete(lower) ${text} ${start} ${end} ${line} ${pos} ${mod}]
 }
 
 proc complete(scale) {text start end line pos mod} {
@@ -4297,11 +5097,57 @@ proc CanvasItem {text start end line pos prev type} {
 	}
 }
 
+#**
+# WidgetXviewYview
+# 
+# @param    text  -- the word to complete.
+# @param    line  -- the line gathered so far.
+# @param    pos   -- the current word position.
+# @param    prev  -- the previous word.
+# @return   a std tclreadline formatted completer string.
+# @sa       CanvasObj, EntryObj
+# @date     Sep-18-1999
+#
+proc WidgetXviewYview {text line pos prev} {
+	switch -- ${pos} {
+		2 { return [CompleteFromList ${text} {<index> moveto scroll}] }
+		3 {
+			switch -- ${prev} {
+				moveto { return [DisplayHints <fraction>] }
+				scroll { return [DisplayHints <number>] }
+			}
+		}
+		4 {
+			set subcmd [Lindex ${line} 2]
+			switch -- ${subcmd} {
+				scroll { return [DisplayHints <what>] }
+			}
+		}
+	}
+}
+
+#**
+# WidgetScan
+# 
+# @param    text  -- the word to complete.
+# @param    pos   -- the current word position.
+# @return   a std tclreadline formatted completer string.
+# @sa       CanvasObj, EntryObj
+# @date     Sep-18-1999
+#
+proc WidgetScan {text pos} {
+	switch -- ${pos} {
+		2 { return [CompleteFromList ${text} {mark dragto}] }
+		3 { return [DisplayHints <x>] }
+		4 { return [DisplayHints <y>] }
+	}
+}
+
 proc CanvasObj {text start end line pos} {
 	set sub [Lindex ${line} 1]
 	set prev [PreviousWord ${start} ${line}]
 	if {1 == $pos} {
-		return; # let the fallback routines do the job.
+		return ""; # let the fallback routines do the job.
 	}
 	switch -- ${sub} {
 		addtag {
@@ -4479,13 +5325,7 @@ proc CanvasObj {text start end line pos} {
 				6 { return [DisplayHints <yScale>] }
 			}
 		}
-		scan {
-			switch -- ${pos} {
-				2 { return [CompleteFromList ${text} {mark dragto}] }
-				3 { return [DisplayHints <x>] }
-				4 { return [DisplayHints <y>] }
-			}
-		}
+		scan { return [WidgetScan ${text} ${pos}] }
 		select {
 			switch -- ${pos} {
 				2 {
@@ -4512,23 +5352,7 @@ proc CanvasObj {text start end line pos} {
 			}
 		}
 		xview -
-		yview {
-			switch -- ${pos} {
-				2 { return [CompleteFromList ${text} {moveto scroll}] }
-				3 {
-					switch -- ${prev} {
-						moveto { return [DisplayHints <fraction>] }
-						scroll { return [DisplayHints <number>] }
-					}
-				}
-				4 {
-					set subcmd [Lindex ${line} 2]
-					switch -- ${subcmd} {
-						scroll { return [DisplayHints <what>] }
-					}
-				}
-			}
-		}
+		yview { return [XviewYview ${text} ${line} ${pos} ${prev}] }
 		create {
 			switch -- ${pos} {
 				2 {
@@ -4594,56 +5418,317 @@ proc CanvasObj {text start end line pos} {
 	return ""
 }
 
+proc EntryIndex text {
+	return [CompleteFromList ${text} {
+		<number> <@number> anchor end sel.first sel.last
+	}]
+}
+
 proc EntryObj {text start end line pos} {
 	set sub [Lindex ${line} 1]
 	set prev [PreviousWord ${start} ${line}]
 	if {1 == $pos} {
-		return; # let the fallback routines do the job.
+		return ""; # let the fallback routines do the job.
 	}
 	switch -- ${sub} {
-		bbox {}
+		bbox -
+		icursor -
+		index { return [EntryIndex ${text}] }
 		cget {}
 		configure {}
-		delete {}
 		get {}
-		icursor {}
-		index {}
-		insert {}
-		scan {
+		insert {
 			switch -- ${pos} {
-				2 { return [CompleteFromList ${text} {mark dragto}] }
-				3 { return [DisplayHints <x>] }
-				4 { return [DisplayHints <y>] }
+				2 { return [EntryIndex ${text}] }
+				3 { return [DisplayHints <string>] }
 			}
 		}
-		selection {}
-		xview -
-		yview {
+		scan { return [WidgetScan ${text} ${pos}] }
+		selection {
 			switch -- ${pos} {
-				2 { return [CompleteFromList ${text} {moveto scroll}] }
+				# let the fallback routines do the job.
+				2 { return "" }
 				3 {
 					switch -- ${prev} {
-						moveto { return [DisplayHints <fraction>] }
-						scroll { return [DisplayHints <number>] }
+						adjust -
+						from -
+						to { return [EntryIndex ${text}] }
+						clear -
+						present {}
+						range { return [DisplayHints <start>] }
 					}
 				}
 				4 {
-					set subcmd [Lindex ${line} 2]
-					switch -- ${subcmd} {
-						scroll { return [DisplayHints <what>] }
+					switch -- [Lindex ${line} 2] {
+						range { return [DisplayHints <end>] }
 					}
 				}
 			}
 		}
+		xview -
+		yview { return [WidgetXviewYview ${text} ${line} ${pos} ${prev}] }
 	}
 	return ""
 }
 
 # proc CheckbuttonObj {text start end line pos} {
+# the fallback routines do the job pretty well.
 # }
 
 # proc FrameObj {text start end line pos} {
-# 	return ""
+# the fallback routines do the job pretty well.
 # }
+
+# proc LabelObj {text start end line pos} {
+# the fallback routines do the job pretty well.
+# }
+
+proc ListboxObj {text start end line pos} {
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	if {1 == $pos} {
+		return ""; # let the fallback routines do the job.
+	}
+	switch -- ${sub} {
+		activate -
+		bbox -
+		index -
+		see {
+			switch -- ${pos} {
+				2 {
+					return [DisplayHints <index>]
+				}
+			}
+		}
+		insert {
+			switch -- ${pos} {
+				2 {
+					return [DisplayHints <index>]
+				}
+				default {
+					return [DisplayHints ?element?]
+				}
+			}
+		}
+		cget {}
+		configure {}
+		curselection {}
+		delete -
+		get {
+			switch -- ${pos} {
+				2 {
+					return [DisplayHints <first>]
+				}
+				3 {
+					return [DisplayHints ?last?]
+				}
+			}
+		}
+		nearest {
+			switch -- ${pos} {
+				2 {
+					return [DisplayHints <y>]
+				}
+			}
+		}
+		size {}     
+
+		scan { return [WidgetScan ${text} ${pos}] }
+
+		xview -
+		yview { return [WidgetXviewYview ${text} ${line} ${pos} ${prev}] }
+
+		selection {
+			switch -- ${pos} {
+				2 {
+					return [CompleteFromList ${text} \
+					{anchor clear includes set}]
+				}
+				3 {
+					switch -- ${prev} {
+						anchor -
+						includes {
+							return [CompleteFromList ${text} {
+								active anchor end @x @y <number>
+							}]
+						}
+						clear -
+						set { return [DisplayHints <first>] }
+					}
+				}
+				4 {
+					switch -- [Lindex ${line} 2] {
+						clear -
+						set { return [DisplayHints ?last?] }
+					}
+				}
+			}
+		}
+	}
+}
+
+proc MenuIndex text {
+	return [CompleteFromList ${text} {
+		<number> active end last none <@number> <labelPattern>
+	}]
+}
+
+proc MenuItem {text start end line pos virtualpos} {
+	switch -- ${virtualpos} {
+		2 {
+			return [CompleteFromList ${text} {
+				cascade checkbutton command radiobutton separator
+			}]
+		}
+		default {
+			switch -- [PreviousWord ${start} ${line}] {
+				-activebackground -
+				-activeforeground -
+				-background -
+				-foreground -
+				-selectcolor {
+					return [DisplayHints <color>]
+				}
+
+				-accelerator { return [DisplayHints <accel>] }
+				-bitmap { return [CompleteFromBitmaps ${text}] }
+
+				-columnbreak -
+				-hidemargin -
+				-indicatoron {
+					return [CompleteBoolean ${text}]
+				}
+				-command {
+					return [BraceOrCommand ${text} \
+					${start} ${end} ${line} ${pos} ${text}]
+				}
+				-font {
+					set names [font names]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <fontname>]
+					}
+				}
+				-image -
+				-selectimage {
+					set names [image names]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <image>]
+					}
+				}
+
+				-label { return [DisplayHints <label>] }
+				-menu {
+					set names [WidgetChildren [Lindex ${line} 0]]
+					if {[string length ${names}]} {
+						return [CompleteFromList ${text} ${names}]
+					} else {
+						return [DisplayHints <menu>]
+					}
+				}
+
+				-offvalue -
+				-onvalue { return [DisplayHints <value>] }
+
+				-state {
+					return [CompleteFromList ${text} {
+						normal active disabled
+					}]
+				}
+				-underline { return [DisplayHints <integer>] }
+				-value { return [DisplayHints <value>] }
+				-variable {
+					return [VarCompletion ${text} #0]
+				}
+
+				default {
+					return [CompleteFromList ${text} \
+					[RemoveUsedOptions ${line} {
+						-activebackground -activeforeground
+						-accelerator -background -bitmap -columnbreak
+						-command -font -foreground -hidemargin -image
+						-indicatoron -label -menu -offvalue -onvalue
+						-selectcolor -selectimage -state -underline
+						-value -variable
+					}]]
+				}
+			}
+		}
+	}
+}
+
+proc MenuObj {text start end line pos} {
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	if {1 == $pos} {
+		return ""; # let the fallback routines do the job.
+	}
+	switch -- ${sub} {
+		activate -
+		index -
+		invoke -
+		postcascade -
+		type -
+		yposition {
+			switch -- ${pos} {
+				2 {
+					return [MenuIndex ${text}]
+				}
+			}
+		}
+		configure {}
+		cget {}
+
+		add {
+			return [MenuItem ${text} ${start} ${end} ${line} ${pos} ${pos}]
+		}
+		clone {
+			switch -- ${pos} {
+				2 { return [DisplayHints <newPathname>] }
+				3 {
+					return [CompleteFromList ${text} {
+						normal menubar tearoff
+					}]
+				}
+			}
+		}
+		delete {
+			switch -- ${pos} {
+				2 -
+				3 { return [MenuIndex ${text}] }
+			}
+		}
+		insert {
+			switch -- ${pos} {
+				2 { return [MenuIndex ${text}] }
+				default {
+					return [MenuItem ${text} ${start} ${end} \
+					${line} ${pos} [expr ${pos} - 1]]
+				}
+			}
+		}
+		entrycget -
+		entryconfigure {
+			switch -- ${pos} {
+				2 { return [MenuIndex ${text}] }
+				default {
+					return [MenuItem ${text} ${start} \
+					${end} ${line} ${pos} ${pos}]
+				}
+			}
+		}
+		post {
+			switch -- ${pos} {
+				2 { return [DisplayHints <x>] }
+				3 { return [DisplayHints <y>] }
+			}
+		}
+		# ??? XXX
+		unpost {}
+	}
+}
 
 }; # namespace tclreadline
