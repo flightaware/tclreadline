@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Thu Sep 16 02:47:02 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Thu Sep 16 02:53:18 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -228,7 +228,7 @@ proc Rehash {} {
 		if {[catch [list set files [glob -nocomplain ${dir}/*]]]} { continue }
 		foreach file $files {
 			if {[file executable $file]} {
-				lappend executables [file tail $file]
+				lappend executables [file tail ${file}]
 			}
 		}
 	}
@@ -258,11 +258,11 @@ proc HostList {} {
 						lappend hosts [lindex ${line} 1]
 					}
 				}
-				close $id
+				close ${id} 
 			} 
 		}
 	}
-	return $hosts
+	return ${hosts} 
 }
 
 #**
