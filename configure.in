@@ -1,6 +1,6 @@
 # -*- autoconf -*-
 # FILE: "/disk01/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Sep 20 02:37:03 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep 20 18:16:22 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -363,36 +363,31 @@ TERMLIB_DIR=""
 TERMLIB_VERSION_SUFFIX=""
 for dir in $tlib_library $TCLREADLINE_LPATH $prefix/lib/; do
 	for tlib in ncurses termlib termcap curses; do
-        dnl echo "(ls ${dir}/lib${tlib}${SHLIB_SUFFIX}*) 2>/dev/null"
-        result="`(ls -r ${dir}/lib${tlib}${SHLIB_SUFFIX}*) 2>/dev/null`"
-		dnl echo result = $result
-		if test "x$result" != "x"; then
-			for lib in ${tlib}; do
-				dnl It's possible that a library is found but it doesn't work
-				dnl e.g., shared library that cannot be found
-				dnl compile and run a test program to be sure
-				LIBS=-l${lib}
-				AC_TRY_RUN([
+		dnl It's possible that a library is found but it doesn't work
+		dnl e.g., shared library that cannot be found
+		dnl compile and run a test program to be sure
+		dnl echo ""
+		dnl echo ""
+		LIBS="-L${dir} -l${tlib}"
+		AC_TRY_RUN([
 #ifdef HAVE_TERMCAP_H
 # include <termcap.h>
 #endif
 main() {char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(0); }],
-			res="OK", res="FAIL", res="FAIL")
-				if test "$res" = "OK"; then
-					TERMLIB_DIR=-L${dir}
-					if test "`(uname) 2>/dev/null`" = SunOS &&
-						uname -r | grep '^5' >/dev/null; then
-						TERMLIB_DIR_R="${TERMLIB_DIR} -R${dir}"
-					fi
-					TERMLIB=-l${tlib}
-					break
-				fi
-			done
-			if test "x${TERMLIB_DIR}" = "x"; then
-				AC_MSG_RESULT(none of $libname is usable)
-	        else
-				break
+	res="OK", res="FAIL", res="FAIL")
+		if test "$res" = "OK"; then
+			TERMLIB_DIR=-L${dir}
+			if test "`(uname) 2>/dev/null`" = SunOS &&
+				uname -r | grep '^5' >/dev/null; then
+				TERMLIB_DIR_R="${TERMLIB_DIR} -R${dir}"
 			fi
+			TERMLIB=-l${tlib}
+			break
+		fi
+		if test "x${TERMLIB_DIR}" = "x"; then
+			AC_MSG_RESULT($LIBS is unusable)
+		else
+			break
 		fi
 	done
 	if test "x${TERMLIB_DIR}" != "x"; then
@@ -461,8 +456,6 @@ int main () {
     AC_MSG_RESULT(failed),
     AC_MSG_RESULT(no cross compiling))
 
-
-LIBS=$LIBS
 
 
 
