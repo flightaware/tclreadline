@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Tue Sep 14 00:57:33 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Tue Sep 14 11:57:42 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -36,9 +36,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define READLINE_LIBRARY
-#include <readline.h>
-#include <history.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 /**
  * this prototype is missing

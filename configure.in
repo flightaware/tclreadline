@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Sep 13 17:51:49 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Tue Sep 14 11:23:46 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -286,7 +286,7 @@ AC_ARG_WITH(readline-includes,
 
 AC_MSG_CHECKING([where to look for readline.h])
 READLINE_INCLUDE_DIR=""
-for dir in $rl_includes $prefix/include/readline /usr/include/readline /usr/include; do
+for dir in $rl_includes $prefix/include/readline /usr/include/readline /usr/include /usr/local/include/readline /usr/local/include; do
     if test -r $dir/readline.h; then
         READLINE_INCLUDE_DIR=$dir
         break

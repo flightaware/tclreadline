@@ -1,6 +1,6 @@
-#!/usr/locanl/bin/tclsh
-# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Tue Sep 14 01:55:17 1999 (joze)"
+# -*- tclsh -*-
+# FILE: "/diska/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Tue Sep 14 16:17:25 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -963,7 +963,7 @@ proc ScriptCompleter {part start end line} {
         if {[string length [uplevel [info level] info proc $alias]]} {
             set args [uplevel [info level] info args $alias]
             set arg [lindex $args [expr $pos - 1]]
-            if {"" != $arg} {
+            if {"" != $arg && "args" != $arg} {
                 if {[uplevel [info level] info default $alias $arg junk]} {
                     return [DisplayHints ?$arg?]
                 } else {
@@ -975,12 +975,24 @@ proc ScriptCompleter {part start end line} {
 
         # Ok, also no proc. Try to do the same as for widgets now:
         # try to get at least the first option from an error output.
+        # if the subcommand is configure or cget, try to get the
+        # option table.
         #
         switch -- $pos {
             1 {
                 set cmds [TrySubCmds ${alias}]
                 if {[llength ${cmds}]} {
                     return [TryFromList ${part} ${cmds}]
+                }
+            }
+            default {
+                set sub [Lindex $line 1]
+                switch -- $sub {
+                    configure -
+                    cget {
+                        if {[OptionTable ${widget} options]} {
+                        }
+                    }
                 }
             }
         }
@@ -1849,12 +1861,12 @@ proc complete(interp) {text start end line pos mod} {
                 hidden -
                 invokehidden -
                 marktrusted -
-                target { return [DisplayHints [interp slaves]] }
+                target { return [CompleteFromList ${text} [interp slaves]] }
 
                 aliases -
                 delete -
                 issafe -
-                slaves { return [DisplayHints [interp slaves]] }
+                slaves { return [CompleteFromList ${text} [interp slaves]] }
 
                 alias -
                 share -
@@ -1876,7 +1888,7 @@ proc complete(interp) {text start end line pos mod} {
                 }
 
                 eval { return [DisplayHints <arg>] }
-                delete { return [DisplayHints [interp slaves]] }
+                delete { return [CompleteFromList ${text} [interp slaves]] }
 
                 expose { return [DisplayHints <hiddenName>] }
                 hide { return [DisplayHints <exposedCmdName>] }
@@ -1922,7 +1934,7 @@ proc complete(interp) {text start end line pos mod} {
                 hide { return [DisplayHints ?hiddenCmdName?] }
 
                 share -
-                transfer { return [DisplayHints [interp slaves]] }
+                transfer { return [CompleteFromList ${text} [interp slaves]] }
             }
         }
         5 {
@@ -1936,7 +1948,7 @@ proc complete(interp) {text start end line pos mod} {
                 hide { return [DisplayHints ?hiddenCmdName?] }
 
                 share -
-                transfer { return [DisplayHints [interp slaves]] }
+                transfer { return [CompleteFromList ${text} [interp slaves]] }
             }
         }
     }
@@ -3092,14 +3104,32 @@ proc WidgetDescendants {pattern} {
     return $tree
 }
 
-proc complete(WIDGET) {text start end line pos mod} {
-    set widget [lindex ${line} 0]
-    set cmd [lindex ${line} 1]
+proc ToplevelWindows {} {
+    set children [WidgetChildren ""]
+    set toplevels ""
+    foreach widget $children {
+        set toplevel [winfo toplevel $widget]
+        if {-1 == [lsearch $toplevels $toplevel]} {
+            lappend toplevels $toplevel
+        }
+    }
+    return $toplevels
+}
 
+#**
+# try to get options for commands which
+# allow `configure' (cget).
+# @param command.
+# @param optionsT where the table will be stored.
+# @return number of options
+# @date Sep-14-1999
+#
+proc OptionTable {cmd optionsT} {
+    upvar $optionsT options
     # first we build an option table
     #
     if {[catch [list set option_table [${widget} configure]] msg]} {
-        return ""
+        return 0
     }
     foreach optline ${option_table} {
         if {5 != [llength ${optline}]} continue else {
@@ -3107,6 +3137,38 @@ proc complete(WIDGET) {text start end line pos mod} {
             lappend options(value)    [lindex ${optline} 4]
         }
     }
+    return [llength ${option_table}
+}
+
+#**
+# :xa
+# @param
+# @return
+# @warning
+# @sa
+# @author Johannes Zellner
+# @date Sep-14-1999
+#
+proc CompleteFromOptions {text start line cmd} {
+    OptionTable ${widget} options
+    set prev [PreviousWord ${start} ${line}]
+    #puts \nprev=|$prev|
+    #puts switches=|$options(switches)|
+    #puts found=[lsearch -exact ${prev} $options(switches)]
+    if {-1 != [set found \
+        [lsearch -exact $options(switches) ${prev}]]
+    } {
+        if {![llength ${text}]} {
+            return [list "[lindex $options(value) ${found}]"]
+        }
+    } else {
+        return [TryFromList ${text} $options(switches)]
+    }
+}
+
+proc complete(WIDGET) {text start end line pos mod} {
+    set widget [lindex ${line} 0]
+    set cmd [lindex ${line} 1]
 
     switch -- $pos {
         1 {
@@ -3119,19 +3181,7 @@ proc complete(WIDGET) {text start end line pos mod} {
             if {([string match ${cmd}* cget] || \
                 [string match ${cmd}* configure])
             } {
-                set prev [PreviousWord ${start} ${line}]
-                #puts \nprev=|$prev|
-                #puts switches=|$options(switches)|
-                #puts found=[lsearch -exact ${prev} $options(switches)]
-                if {-1 != [set found \
-                    [lsearch -exact $options(switches) ${prev}]]
-                } {
-                    if {![llength ${mod}]} {
-                        return [list "[lindex $options(value) ${found}]"]
-                    }
-                } else {
-                    return [TryFromList ${mod} $options(switches)]
-                }
+                return [CompleteFromOptions ${text} ${start} ${line} ${widget}]
             }
         }
     }
@@ -3145,7 +3195,81 @@ proc complete(bell) {text start end line pos mod} {
         1 { return [CompleteFromList ${text} -displayof] }
         2 {
             if {"-displayof" == [PreviousWord ${start} ${line}]} {
-                return [CompleteFromList ${text} [WidgetDescendants ${text}]]
+                return [CompleteFromList ${text} [ToplevelWindows]]
+            }
+        }
+    }
+}
+
+# proc complete(bind) {text start end line pos mod} {
+#     TODO
+#     return ""
+# }
+
+proc complete(image) {text start end line pos mod} {
+    set sub [Lindex $line 1]
+    switch -- $pos {
+        1 { return [CompleteFromList ${text} [TrySubCmds image]] }
+        2 {
+            switch -- $sub {
+                create { return [CompleteFromList ${text} [image types]] }
+                delete -
+                height -
+                type -
+                width { return [CompleteFromList ${text} [image names]] }
+                names {}
+                types {}
+            }
+        }
+        3 {
+            switch -- $sub {
+                create {
+                    set type [Lindex $line 2]
+                    switch -- $type {
+                        bitmap {
+                            return [CompleteFromList ${text} {
+                                ?name? -background -data -file
+                                -foreground -maskdata -maskfile
+                            }]
+                        }
+                        photo {
+                            # TODO
+                        }
+                        default {}
+                    }
+                }
+                default {}
+            }
+        }
+        default {
+            switch -- $sub {
+                create {
+                    set type [Lindex $line 2]
+                    set prev [PreviousWord $start $line]
+                    # puts stderr prev=$prev
+                    switch -- $type {
+                        bitmap {
+                            switch -- $prev {
+                                -background -
+                                -foreground { return [DisplayHints <color>] }
+                                -data -
+                                -maskdata { return [DisplayHints <string>] }
+                                -file -
+                                -maskfile { return "" }
+                                default {
+                                    return [CompleteFromList ${text} \
+                                    [RemoveUsedOptions ${line} {
+                                        -background -data -file
+                                        -foreground -maskdata -maskfile
+                                    }]]
+                                }
+                            }
+                        }
+                        photo {
+                            # TODO
+                        }
+                    }
+                }
             }
         }
     }
