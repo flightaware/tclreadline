@@ -2,7 +2,7 @@
 
 .\" (C) 1999 by Johannes Zellner
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Sat Aug 21 00:33:01 1999 (joze)"
+.\" LAST MODIFICATION: "Sun Aug 22 23:24:34 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -98,6 +98,50 @@ will complete to "button pathName".  ...
 .TP 5
 \fB::tclreadline::readline complete\fP \fIstring\fP
 returns 1 if \fIstring\fP is a complete tcl command and 0 otherwise.
+
+.TP 5
+\fB::tclreadline::readline customcompleter\fP [\fIstring\fP]
+Register the proc \fIstring\fP as custom completer. This proc is called
+with exactly four arguments each time completion takes place:
+the word to complete ("text"), the "start" and "end" positions of this word
+in the line entered so far, and this line ("line"). The custom completion
+script should return an array of strings which is a list of completions
+for "text".  If there are no completions, it should return an empty
+string "".  The first entry in the returned list is the substitution
+for "text". The remaining entries are the possible completions. If
+the custom completion script returns an empty string and builtin
+completion is enabled (see \fBtclreadline::readline builtincompleter\fP),
+the builtin completer is called.
+\fBtclreadline::readline customcompleter\fP simply returns the current
+custom completer if called w/o \fIstring\fP. To turn of custom
+completion, call \fBtclreadline::readline customcompleter\fP with
+an empty \fIstring\fP.
+
+Example: \fB% puts $b<TAB>\fP will call the custom completer
+with the four arguments \fI"$b"\fP, \fI"5"\fP, \fI"8"\fP and \fI"puts $b"\fP.
+The custom completer could return a string like "$bl $black $blue", which
+will complete "$b" to "$bl" (the longest match) and offer a list of two
+further matches "$black" and "$blue".
+
+For further reference, see the proc tclreadline::script_completer in
+the file tclreadlineSetup.tcl.
+
+.TP 5
+\fB::tclreadline::readline builtincompleter\fP [\fIbool\fP]
+enable or disable the builtin completer. If the builtin completer
+is enabled, it will be invoked either if there is no custom completer,
+or the custom completer returned an empty  string. The builtin
+completer is on by default.
+\fBtclreadline::readline builtincompleter\fP returns the current
+custom completer (also, if called w/o the \fIbool\fP argument).
+
+.TP 5
+\fB::tclreadline::readline eofchar\fP [\fIscript\fP]
+set a script which will be called, if readline returns the eof character
+(this is typically the case if CTRL-D is entered at the very beginning
+of the line). The default for this script is "puts {}; exit". Setting
+this to an empty value disables any action on eof.
+\fBtclreadline::readline eof\fP returns the current eof script.
 
 .TP 5
 \fB::tclreadline::readline initialize\fP \fIhistoryfile\fP
@@ -242,5 +286,3 @@ Pretty a lot of features and ideas are not implemented yet. The
 reason for this is the lack of time and manpower.
 So you are welcome to modify and contribute to the code.
 If you have suggestions, please let me know.
-
-

@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Sat Aug 21 00:19:39 1999 (joze)"
+# LAST MODIFICATION: "Sun Aug 22 22:30:43 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -138,15 +138,99 @@ namespace eval tclreadline:: {
     namespace export Setup Glob Loop InitCmds InitTclCmds InitTkCmds Print
 }
 
+# get the longest common completion
+# e.g. str == {tcl_version tclreadline_version tclreadline_library}
+# --> [tclreadline::GetCommon ${str}] == "tcl"
+#
+proc tclreadline::GetCommon {str} {
+    set match0 [lindex ${str} 0]
+    set len0 [string length $match0]
+    set no_matches [llength ${str}]
+    set part ""
+    for {set i 0} {$i < $len0} {incr i} {
+        set char [string index $match0 $i]
+        for {set j 1} {$j < $no_matches} {incr j} {
+            if {$char != [string index [lindex ${str} $j] $i]} {
+                break
+            }
+        }
+        if {$j < $no_matches} {
+            break
+        } else {
+            append part $char
+        }
+    }
+    return ${part}
+}
+
+proc tclreadline::vars_cmds_completer {part start end line} {
+    if {{$} == [string index $part 0]} {
+        # variable completion. Check first, if the
+        # variable starts with a plain `$' or should
+        # be enclosed in braces.
+        #
+        if {"\{" == [string index $part 1]} {
+            set var [string range $part 2 end]
+            set left "\$\{"
+            set right "\}"
+        } else {
+            set left "\$"
+            set right ""
+            set var [string range $part 1 end]
+        }
+        # check if $var is an array name, which
+        # already has already a "(" somewhere inside.
+        #
+        if {[regexp {([^(]*)\((.*)} $var all array name]} {
+            set matches [uplevel array names ${array} ${name}*]
+            if {1 == [llength $matches]} { ; # unique match
+                return "\$${array}(${matches})"
+            } elseif {"" != ${matches}} {
+                return \
+                    "\$${array}([tclreadline::GetCommon ${matches}] ${matches}"
+            } else {
+                return ""; # nothing to complete
+            }
+        }
+        set matches [uplevel info vars "${var}*"]
+        if {1 == [llength $matches]} { ; # unique match
+            # check if this unique match is an
+            # array name, (whith no "(" yet).
+            #
+            if {[uplevel array exists $matches]} {
+                return "\$${matches}( [uplevel array names $matches]"
+            } else {
+                return [join [list $left $matches $right] ""]
+            }
+        } elseif {"" != $matches} { ; # more than one matches
+            return "${left}[tclreadline::GetCommon ${matches}] ${matches}"
+        } else {
+            return ""; # nothing to complete
+        }
+    } elseif {{[} == [string index $part 0]} {
+        set cmd [string range $part 1 end]
+        set matches [info commands "${cmd}*"]
+        if {1 == [llength $matches]} { ; # unique match
+            return [join [list "\[" $matches] ""]
+        } elseif {"" != $matches} {
+            return "${part} ${matches}"
+        } else {
+            return ""; # nothing to complete
+        }
+    } else {
+        return ""
+    }
+    return "NOTREACHED (this is probably an error)"
+}
 
 proc ::tclreadline::Setup {} {
-
 
     uplevel #0 {
 
         if {[info commands ::tclreadline::readline] == ""} {
             ::tclreadline::Init
         }
+        tclreadline::readline customcompleter tclreadline::vars_cmds_completer
 
         if {[catch {set a [::tclreadline::prompt1]}] \
             && [info nameofexecutable] != ""} {

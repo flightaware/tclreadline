@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Sun Aug 22 18:34:26 1999 (joze)"
+    LAST MODIFICATION: "Sun Aug 22 23:24:34 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -72,3 +72,27 @@ like wish, you should copy the file sample.tclshrc to $HOME/.wishrc
 installed tclreadline properly, you are just ready to start:
 start your favorite interpreter. The tclreadlineSetup.tcl script
 does the rest.
+
+
+4. History and Changes.
+-----------------------
+
+tclreadline-0.9: (Aug 1999)
+
+    changes:
+        - tclreadline::readline customcompleter
+        - tclreadline::readline builtincompleter
+        - tclreadline::readline eofchar
+        - variable, array and '[' command completion.
+
+    bug fixes:
+        - history entries.
+        - macro mappings didn't work. (only on hitting
+          mapped characters more than once.)
+        - minor fixes in configure.in
+
+tclreadline-0.8:
+    minor bug fixes.
+
+tclreadline-0.7:
+    first `public release'.

@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sun Aug 22 19:06:26 1999 (joze)"
+    LAST MODIFICATION: "Sun Aug 22 21:26:05 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -331,9 +331,9 @@ TclReadlineInitialize(char* historyfile)
     using_history();
     /**
      * default is " \t\n\"\\'`@$><=;|&{("
-     * removed '{'.
+     * removed "{(.
      */
-    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&(";
+    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&";
     if (!tclrl_eof_string)
         tclrl_eof_string = strdup("puts {}; exit");
 
