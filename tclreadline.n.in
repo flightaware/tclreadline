@@ -1,13 +1,13 @@
 .TH tclreadline 1 "@TCLREADLINE_VERSION@" "Johannes Zellner"
 
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFIED: "Sun Feb 28 17:46:54 1999 (joze)"
+.\" LAST MODIFIED: "Sun Feb 28 18:25:37 1999 (joze)"
 .\" (C) 1999 by Johannes Zellner
 .\" Johannes.Zellner@physik.uni-karlsruhe.de
 .\" $Id$
 .\" ---
 .\"
-.\" tclreadline -- display 2-D data of arbitrary format
+.\" tclreadline -- gnu readline for the tcl scripting language
 .\" Copyright (C) 1999  Johannes Zellner
 .\"
 .\" This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ The \fBtclreadline\fP package makes the gnu readline available
 to the scripting language tcl. The package is thought primarily
 for developers, who want to use the line editing and history expansion
 capabilities of the gnu readline while interactively developing
-tcl scripts. The tclreadline can also be used for tcl scripts
+tcl scripts. tclreadline can also be used for tcl scripts
 which want to use a shell like input interface. In this case the
 \fB::tclreadline::read\fP command has to be called explicitly. This 
 command will print a prompt and return the line which was typed
@@ -160,13 +160,16 @@ some lines in your .inputrc:
     $endif
 .EN
 
-For further documentation pleas refer to the gnu readline documentation.
+For further documentation please refer to the gnu readline documentation.
 
 .SH BUGS
 probably.
 
 
 .SH "SEE ALSO"
+
+
+.PP
 The official \fBtclreadline\fP web site at:
 
 .PP
