@@ -1,0 +1,39 @@
+#!/usr/local/bin/tclsh
+# FILE: "/home/joze/bin/script/tcltags"
+# LAST MODIFIED: "Mon Sep 28 10:09:29 1998 (joze)"
+# $Id$
+# ---
+
+set tags [open "tags" a+]
+#set tags stdout
+#_BoxHandle	Z_Box.c	/^int _BoxHandle (Box *boxPtr, Tcl_Interp *interp, int argc, char **argv)$/;"	f
+
+foreach file "$argv" {
+
+    if {[file exists $file]} {
+
+        set source [open $file r]
+        if {$source == 0} {
+            continue
+        }
+
+        while {"[gets $source line]" != -1} {
+            if [regexp \
+                "^\(proc|class|body|configbody\)\[ \t\]*\(\[^ \t\]*\)\[ \t\]"\
+                "$line" all junk proc] {
+
+                set tail [namespace tail $proc]
+                puts $tags "$proc\t$file\t/^$line$/;\"\tf"
+                puts $tags "$tail\t$file\t/^$line$/;\"\tf"
+            }
+        }
+
+        close $source
+
+    }
+
+}
+
+close $tags
+
+
