@@ -1,0 +1,9 @@
+    Makefile.in
+    configure.in
+    tclreadline.c
+    tclreadline.h.in
+    tclreadlineConfig.sh.in
+    tclreadlineInit.tcl.in
+    tclreadlineSetup.tcl.in
+    tclreadline.n.in
+    sample.tclshrc
