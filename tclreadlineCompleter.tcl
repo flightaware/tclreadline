@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Tue Sep 28 23:04:09 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Wed Sep 29 18:00:58 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -618,7 +618,7 @@ proc ObjectClassCompleter {text start end line pos resultT} {
 		if {![catch [list set class [winfo class [Lindex ${line} 0]]]]} {
 			if {[string length [info proc ${class}Obj]]} {
 				set result [${class}Obj ${text} ${start} ${end} ${line} ${pos}]
-				return 1
+				return 0
 			} else {
 				return 0
 			}
@@ -2010,7 +2010,7 @@ proc complete(file) {text start end line pos mod} {
 	switch -- $pos {
 		1 {
 			set cmds {
-				atime attributes copy delete dirname executable exists
+				atime attributes channels copy delete dirname executable exists
 				extension isdirectory isfile join lstat mkdir mtime
 				nativename owned pathtype readable readlink rename
 				rootname size split stat tail type volumes writable
@@ -2022,6 +2022,7 @@ proc complete(file) {text start end line pos mod} {
 			switch -- $cmd {
 				atime -
 				attributes -
+				channels -
 				dirname -
 				executable -
 				exists -

@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon Sep 20 02:18:01 1999 (joze)"
+# LAST MODIFICATION: "Wed Sep 29 10:57:20 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -81,7 +81,8 @@ LIB_INSTALL_DIR = $(INSTALL_ROOT)$(exec_prefix)/lib
 LIB_RUNTIME_DIR = $(exec_prefix)/lib
 
 # Top-level directory for manual entries:
-MAN_INSTALL_DIR = $(INSTALL_ROOT)$(prefix)/man
+# MAN_INSTALL_DIR = $(INSTALL_ROOT)$(prefix)/man
+MAN_INSTALL_DIR = $(INSTALL_ROOT)@mandir@
 
 # Directory in which to install manual entries for the built-in
 # Tcl commands implemented by Tk:
@@ -247,9 +248,9 @@ clean:
 
 distclean: clean
 	rm -f \
-	Makefile *.so *.sl pkgIndex.tcl tclreadlineInit.tcl \
-        tclreadlineSetup.tcl config.h tclreadline.h tclreadline.n \
- 	tclreadlineConfig.sh config.status config.log config.cache
+	Makefile *.so.* *.sl pkgIndex.tcl tclreadlineInit.tcl \
+	tclreadlineSetup.tcl config.h tclreadline.h tclreadline.n \
+	tclreadlineConfig.sh config.status config.log config.cache
 
 depend:
 	makedepend -- $(CC_SWITCHES) -- $(CSRCS)
@@ -286,6 +287,8 @@ distribution: $(SOURCES) configure $(AUXILIARY) tclreadline.n.html
 	- cp $(SOURCES) configure tclreadline.n.html dist/tclreadline-$(PATCHLEVEL)
 	- cp $(AUXILIARY) dist/tclreadline-$(PATCHLEVEL)/aux
 	(cd dist; tar zcvf tclreadline-$(PATCHLEVEL).tar.gz tclreadline-$(PATCHLEVEL); rm -rf tclreadline-$(PATCHLEVEL))
+	- cp README dist/tclreadline-$(PATCHLEVEL).README
+	- echo AddDescription '"<font size=+2 color=red><b>most recent version</b></font>"' tclreadline-$(PATCHLEVEL).tar.gz > dist/.htaccess
 
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
