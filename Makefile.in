@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Fri Aug 20 15:03:54 1999 (joze)"
+# LAST MODIFICATION: "Fri Aug 20 15:51:56 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -157,16 +157,20 @@ CSRCS = $(TOP_DIR)/tclreadline.c
 TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl
 
 SOURCES = \
+    GPL \
     Makefile.in \
+    README \
+    TODO \
     configure.in \
+    pkgIndex.tcl.in \
+    sample.tclshrc \
+    sources \
     tclreadline.c \
     tclreadline.h.in \
+    tclreadline.n.in \
     tclreadlineConfig.sh.in \
     tclreadlineInit.tcl.in \
-    tclreadlineSetup.tcl.in \
-    tclreadline.n.in \
-    pkgIndex.tcl \
-    sample.tclshrc
+    tclreadlineSetup.tcl.in
 
 AUXILIARY = \
     aux/config.guess \
