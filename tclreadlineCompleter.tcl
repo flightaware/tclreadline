@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Wed Sep 15 18:18:13 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Thu Sep 16 02:47:02 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -30,7 +30,11 @@
 
 # TODO:
 #
-#     - tcltest is missing
+#	- tcltest is missing
+#	- better completion for CompleteListFromList:
+#	  RemoveUsedOptions ...
+#	- namespace eval fred {... <-- continue with a 
+#								   substitution in fred.
 #
 #
 
@@ -43,6 +47,84 @@ TryFromList CompleteFromList DisplayHints Rehash \
 PreviousWord CommandCompletion RemoveUsedOptions \
 HostList ChannelId InChannelId OutChannelId \
 Lindex Llength CompleteBoolean
+
+# set tclreadline::trace to 1, if you
+# want to enable explicit trace calls.
+#
+variable trace
+
+# set tclreadline::trace_procs to 1, if you
+# want to enable tracing every entry to a proc.
+#
+variable trace_procs
+
+if {[info exists trace_procs] && $trace_procs} {
+	::proc proc {name arguments body} {
+		::proc $name $arguments [subst -nocommands {
+			TraceText [lrange [info level 0] 1 end]
+			$body
+		}]
+	}
+} else { ;# !$trace_procs
+	catch {rename ::tclreadline::proc ""}
+}
+
+if {[info exists trace] && $trace} {
+
+	::proc TraceReconf {args} {
+		eval .tclreadline_trace.scroll set $args
+		.tclreadline_trace.text see end
+	}
+
+	::proc AssureTraceWindow {} {
+		variable trace
+		if {![info exists trace]} {
+			return 0
+		}
+		if {!$trace} {
+			return 0
+		}
+		if {![winfo exists .tclreadline_trace.text]} {
+			toplevel .tclreadline_trace
+			text .tclreadline_trace.text \
+			-yscrollcommand { tclreadline::TraceReconf }
+			scrollbar .tclreadline_trace.scroll \
+			-orient vertical \
+			-command { .tclreadline_trace.text yview }
+			pack .tclreadline_trace.text -side left -expand yes -fill both
+			pack .tclreadline_trace.scroll -side right -expand yes -fill y
+		} else {
+			raise .tclreadline_trace
+		}
+		return 1
+	}
+
+	::proc TraceVar vT {
+		if {![AssureTraceWindow]} {
+			return
+		}
+		upvar $vT v
+		if {[info exists v]} {
+			.tclreadline_trace.text insert end \
+			"([lindex [info level -1] 0]) $vT=|$v|\n"
+		}
+		# silently ignore unset variables.
+	}
+
+	::proc TraceText txt {
+		if {![AssureTraceWindow]} {
+			return
+		}
+		.tclreadline_trace.text insert end \
+		[format {%32s %s} ([lindex [info level -1] 0]) $txt\n]
+	}
+
+} else {
+	::proc TraceReconf args {}
+	::proc AssureTraceWindow args {}
+	::proc TraceVar args {}
+	::proc TraceText args {}
+}
 
 #**
 # TryFromList will return an empty string, if
@@ -429,17 +511,6 @@ proc QuoteQuotes {line} {
 	regsub -all -- \" $line {\"} line
 	regsub -all -- \{ $line {\{} line; # \}\} (keep the editor happy)
 	return $line
-}
-
-proc Trace {varT} {
-	if {![info exists ::tclreadline::Debug]} {return}
-	upvar $varT var
-	if {![info exists var]} {
-		puts $varT=<notdefined>
-	} else {
-		puts $varT=|$var|
-	}
-	# puts $var
 }
 
 #**
@@ -2404,7 +2475,8 @@ proc complete(proc) {text start end line pos mod} {
 			if {![string length [Lindex $line $pos]]} {
 				return [list \{ {}]; # \}
 			} else {
-				return [DisplayHints <body>]
+				# return [DisplayHints <body>]
+				return [BraceOrCommand $text $start $end $line $pos $mod]
 			}
 		}
 	}
@@ -3225,6 +3297,14 @@ proc complete(bell) {text start end line pos mod} {
 	}
 }
 
+proc EventuallyInsertLeadingDot {text fallback} {
+	if {![string length ${text}]} {
+		return [list . {}]
+	} else {
+		return [DisplayHints $fallback]
+	}
+}
+
 #**
 # TODO: shit. make this better!
 # @param text, a std completer argument (current word).
@@ -3254,7 +3334,7 @@ proc CompleteListFromList {text fullpart lst pre sep post} {
 
 	} elseif {[regexp ${post} ${text}]} {
 
-		# finalize
+		# finalize, append the post and a space.
 		#
 		set diff \
 		[expr [CountChar ${fullpart} ${pre}] - [CountChar ${fullpart} ${post}]]
@@ -3270,6 +3350,9 @@ proc CompleteListFromList {text fullpart lst pre sep post} {
 		set left {}
 		set right ${text}
 	}
+
+	# TraceVar left
+	# TraceVar right
 
 	# puts stderr \nleft=|$left|
 	# puts stderr \nright=|$right|
@@ -3295,7 +3378,7 @@ proc CompleteListFromList {text fullpart lst pre sep post} {
 }
 
 proc complete(bind) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
 			set widgets [WidgetChildren ${text}]
 			set toplevels [ToplevelWindows]
@@ -3309,7 +3392,7 @@ proc complete(bind) {text start end line pos mod} {
 				all
 			}
 			return [CompleteFromList ${text} \
-			[concat $toplevels $widgets $toplevelClass $rest]]
+			[concat ${toplevels} ${widgets} ${toplevelClass} $rest]]
 		}
 		2 {
 			set modifiers {
@@ -3325,35 +3408,51 @@ proc complete(bind) {text start end line pos mod} {
 				Key KeyPress KeyRelease Leave Map Motion
 				MouseWheel Property Reparent Unmap Visibility
 			}
-			set sequence [concat $modifiers $events]
+			set sequence [concat ${modifiers} ${events}]
 			return [CompleteListFromList ${text} \
 			[Lindex $line 2] ${sequence} < - >]
 		}
 		3 {
 			# return [DisplayHints {<script> <+script>}]
-			return [BraceOrCommand $text $start $end $line $pos $mod]
+			return [BraceOrCommand ${text} \
+			${start} ${end} ${line} ${pos} ${mod}]
 		}
 	}
 	return ""
 }
 
 proc complete(bindtags) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
 		2 {
-			return [CompleteListFromList ${text} [Lindex $line 2] \
-			[bindtags [Lindex $line 1]] \{ { } \}]
+			return [CompleteListFromList ${text} [Lindex ${line} 2] \
+			[bindtags [Lindex ${line} 1]] \{ { } \}]
+		}
+	}
+	return ""
+}
+
+proc CompleteWidgetConfigurations {text start line lst} {
+	prev [PreviousWord ${start} ${line}]
+}
+
+proc complete(button) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} {
+			}]
 		}
 	}
 	return ""
 }
 
 proc complete(image) {text start end line pos mod} {
-	set sub [Lindex $line 1]
-	switch -- $pos {
+	set sub [Lindex ${line} 1]
+	switch -- ${pos} {
 		1 { return [CompleteFromList ${text} [TrySubCmds image]] }
 		2 {
-			switch -- $sub {
+			switch -- ${sub} {
 				create { return [CompleteFromList ${text} [image types]] }
 				delete -
 				height -
@@ -3364,10 +3463,10 @@ proc complete(image) {text start end line pos mod} {
 			}
 		}
 		3 {
-			switch -- $sub {
+			switch -- ${sub} {
 				create {
-					set type [Lindex $line 2]
-					switch -- $type {
+					set type [Lindex ${line} 2]
+					switch -- ${type} {
 						bitmap {
 							return [CompleteFromList ${text} {
 								?name? -background -data -file
@@ -3384,14 +3483,14 @@ proc complete(image) {text start end line pos mod} {
 			}
 		}
 		default {
-			switch -- $sub {
+			switch -- ${sub} {
 				create {
-					set type [Lindex $line 2]
-					set prev [PreviousWord $start $line]
+					set type [Lindex ${line} 2]
+					set prev [PreviousWord ${start} ${line}]
 					# puts stderr prev=$prev
-					switch -- $type {
+					switch -- ${type} {
 						bitmap {
-							switch -- $prev {
+							switch -- ${prev} {
 								-background -
 								-foreground { return [DisplayHints <color>] }
 								-data -
@@ -3419,7 +3518,7 @@ proc complete(image) {text start end line pos mod} {
 
 proc complete(winfo) {text start end line pos mod} {
 	set cmd [lindex ${line} 1]
-	switch -- $pos {
+	switch -- ${pos} {
 		1 {
 			set cmds [TrySubCmds winfo]
 			if {[llength ${cmds}]} {
