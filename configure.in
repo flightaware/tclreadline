@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/krispc6/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Fri May 14 14:47:38 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Fri Aug 20 15:35:10 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -46,11 +46,7 @@ AC_CONFIG_AUX_DIR(./aux)
 AC_CANONICAL_HOST
 
 
-TCLREADLINE_LPATH=""
-for path in $LD_LIBRARY_PATH $LD_RUN_PATH $LPATH; do
-    nocolon_path=`echo $path | sed 's/:/ /g'`
-    TCLREADLINE_LPATH="$TCLREADLINE_LPATH $nocolon_path"
-done
+TCLREADLINE_LPATH=`echo $LD_LIBRARY_PATH $LD_RUN_PATH $LPATH | sed 's/:/ /g'`
 TCLREADLINE_LPATH="$TCLREADLINE_LPATH /lib /usr/lib /usr/local/lib"
 
 
@@ -59,12 +55,16 @@ TCLREADLINE_LPATH="$TCLREADLINE_LPATH /lib /usr/lib /usr/local/lib"
 #   not, search for Tcl.
 #--------------------------------------------------------------------
 
-AC_ARG_WITH(tcl, [  --with-tcl=DIR          use Tcl 8.x binaries from DIR],
-        tcl_search=$withval, tcl_search=/usr/local/lib)
+AC_ARG_WITH(
+    tcl,
+    [  --with-tcl=DIR          use Tcl 8.x binaries from DIR],
+    tcl_search=$withval,
+    tcl_search=""
+)
 
 AC_MSG_CHECKING([which tclConfig.sh to use])
 TCL_LIB_DIR=""
-for dir in $tcl_search $exec_prefix/lib /usr/local/lib/unix /usr/lib; do
+for dir in $tcl_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix; do
     if test -r $dir/tclConfig.sh; then
         TCL_LIB_DIR=$dir
         break
@@ -112,7 +112,7 @@ fi
 #   Set up a new default --prefix.
 # -----------------------------------------------------------------------
 
-AC_PREFIX_DEFAULT(/usr/local)
+# AC_PREFIX_DEFAULT(/usr/local)
 
 if test "${prefix}" = "NONE"; then
     prefix=$TCL_PREFIX
@@ -472,7 +472,7 @@ AC_SUBST(TCLREADLINE_PACKAGE_PATH)
 AC_SUBST(TCLREADLINE_LIBRARY)
 
 
-AC_OUTPUT(Makefile tclreadline.h tclreadlineInit.tcl tclreadlineSetup.tcl tclreadlineConfig.sh tclreadline.n)
+AC_OUTPUT(Makefile tclreadline.h tclreadlineInit.tcl tclreadlineSetup.tcl tclreadlineConfig.sh tclreadline.n pkgIndex.tcl)
 
 
 #TCL_CC='cc'

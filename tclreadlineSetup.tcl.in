@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Thu May 27 14:26:19 1999 (joze)"
+# LAST MODIFICATION: "Fri Aug 20 15:23:15 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -169,7 +169,9 @@ proc ::tclreadline::Setup {} {
             proc ::tclreadline::prompt1 {} {
                 variable prompt_string
                 global env
-                set pwd [pwd]
+                if {[catch {set pwd [pwd]} tmp]} {
+                    set pwd "unable to get pwd"
+                }
 
                 if [info exists env(HOME)] {
                     regsub $env(HOME) $pwd "~" pwd

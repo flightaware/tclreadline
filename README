@@ -1,6 +1,6 @@
 
-    FILE: "/krispc6/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Sat May  8 14:05:41 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/README"
+    LAST MODIFICATION: "Fri Aug 20 15:01:56 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -33,7 +33,7 @@ tclreadline
 
 This directory contains the sources and documentation for tclreadline,
 which builds a connection between tcl and the gnu readline.
-The information here corresponds to release 0.7 (initial developers release).
+The information here corresponds to release 0.9 (still a developers release).
 
 2. Documentation
 ----------------
@@ -72,5 +72,3 @@ like wish, you should copy the file sample.tclshrc to $HOME/.wishrc
 installed tclreadline properly, you are just ready to start:
 start your favorite interpreter. The tclreadlineSetup.tcl script
 does the rest.
-
-

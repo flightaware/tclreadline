@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/krispc6/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon May 10 13:10:22 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Fri Aug 20 15:03:54 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -106,6 +106,7 @@ SHELL = /bin/sh
 # with the distribution, which is slower but guaranteed to work.
 
 INSTALL         = $(TOP_DIR)/aux/install-sh -c
+# INSTALL         = @INSTALL@
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA    = ${INSTALL} -m 644
 MKINSTALLDIRS   = $(TOP_DIR)/aux/mkinstalldirs

@@ -2,7 +2,7 @@
 
 .\" (C) 1999 by Johannes Zellner
 .\" FILE: "/diska/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Fri Aug 20 11:09:26 1999 (joze)"
+.\" LAST MODIFICATION: "Fri Aug 20 15:01:22 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -74,7 +74,7 @@ this section.
 
 .PP
 The following list will give all commands, which are currently
-implemented in the shared lib (e.g. libtclreadline0.7.so).
+implemented in the shared lib (e.g. libtclreadline@TCLREADLINE_VERSION@.so).
 Additional commands were introduced in a startup script
 \fBtclreadlineSetup.tcl\fP, which lives in the tclreadline
 installation directory.

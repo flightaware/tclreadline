@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
-# LAST MODIFICATION: "Fri Aug 20 15:37:08 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/pkgIndex.tcl"
+# LAST MODIFICATION: "Fri Aug 20 15:33:25 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -27,27 +27,5 @@
 #
 # ================================================================== 
 
-package provide tclreadline @TCLREADLINE_VERSION@
-
-namespace eval tclreadline:: {
-    namespace export Init
-}
-
-proc ::tclreadline::Init {} {
-    
-    global tclreadline_version
-    global tclreadline_library
-    
-    set tclreadline_version @TCLREADLINE_VERSION@
-    set tclreadline_library @TCLREADLINE_LIBRARY@
-
-    if [catch {load @TCLREADLINE_LIBRARY@/@TCLREADLINE_LIB_FILE@} msg] {
-        puts stderr $msg
-        exit 2
-    }
-}
-
-tclreadline::Init
-
-source [file join [file dirname [info script]] tclreadlineSetup.tcl]
-
+package ifneeded tclreadline @TCLREADLINE_VERSION@ \
+    [list source [file join $dir tclreadlineInit.tcl]]
