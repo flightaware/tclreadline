@@ -1,7 +1,7 @@
 # -*- make -*-
 #
 # FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFIED: "Sun Feb 28 18:19:55 1999 (joze)"
+# LAST MODIFIED: "Sun Feb 28 19:44:53 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner
 # Johannes.Zellner@physik.uni-karlsruhe.de
 # $Id$
@@ -155,7 +155,6 @@ TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl
 
 SOURCES = \
     Makefile.in \
-    tclreadline.n.in \
     configure.in \
     tclreadline.c \
     tclreadline.h.in \
