@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Tue Aug 24 03:11:24 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Wed Aug 25 16:53:28 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -494,10 +494,11 @@ TclReadlineKnownCommands(char* text, int state, int mode)
 
             local_line = strdup(rl_line_buffer);
             sub = TclReadlineParse(args, sizeof(args), local_line);
-            // fprintf (stderr, "(TclReadlineKnownCommands) state=%d\n", state);
+            /*
+             * fprintf (stderr, "(TclReadlineKnownCommands) state=%d\n", state);
+             */
 
             if (0 == sub || (1 == sub && '\0' != text[0])) {
-            // if (0 == state) {
                 if (!state) {
                     new = cmds;
                     len = strlen(text);
@@ -527,10 +528,8 @@ TclReadlineKnownCommands(char* text, int state, int mode)
                     if (len != strlen(local_line)) {
 #endif
 #if 0
-                        // fprintf (stderr, "(TclReadlineKnownCommands) len !=\n");
                     } else {
                         sub = TclReadlineParse(args, sizeof(args), local_line) - 1;
-                        // fprintf (stderr, "(TclReadlineKnownCommands) len ==\n");
                     }
 #endif
 #if 0
