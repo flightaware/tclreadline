@@ -1,0 +1,40 @@
+
+# ==================================================================
+# FILE: "/home/joze/tmp/tclreadline/tclreadlineConfig.sh.in"
+# LAST MODIFIED: "Sat Oct 03 00:01:19 1998 (joze)"
+# (c) 1998 by Johannes Zellner
+# Johannes.Zellner@physik.uni-karlsruhe.de
+# $Id$
+# ==================================================================
+# 
+# This shell script (for sh) is generated automatically by tclreadline's
+# configure script.  It will create shell variables for most of
+# the configuration options discovered by the configure script.
+# This script is intended to be included by the configure scripts
+# for tclreadline extensions so that they don't have to figure this all
+# out for themselves.  This file does not duplicate information
+# already provided by tclConfig.sh, so you may need to use that
+# file in addition to this one.
+#
+# The information in this file is specific to a single platform.
+
+# tclreadline's version number.
+TCLREADLINE_VERSION='@TCLREADLINE_VERSION@'
+TCLREADLINE_MAJOR_VERSION='@TCLREADLINE_MAJOR_VERSION@'
+TCLREADLINE_MINOR_VERSION='@TCLREADLINE_MINOR_VERSION@'
+
+# The name of the tclreadline library
+# (may be either a .a file or a shared library):
+TCLREADLINE_LIB_FILE=@TCLREADLINE_LIB_FILE@
+
+# String to pass to linker to pick up the tclreadline library from its
+# build directory.
+TCLREADLINE_BUILD_LIB_SPEC='@TCLREADLINE_BUILD_LIB_SPEC@'
+
+# String to pass to linker to pick up the tclreadline library from its
+# installed directory.
+TCLREADLINE_LIB_SPEC='@TCLREADLINE_LIB_SPEC@'
+
+# Location of the top-level source directories from which tclreadline
+# was built.
+TCLREADLINE_SRC_DIR='@srcdir@'

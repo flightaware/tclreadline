@@ -1,0 +1,23 @@
+#!/usr/local/bin/tclsh
+# ==================================================================
+# FILE: "/home/joze/tmp/tclreadline/tclreadlineInit.tcl.in"
+# LAST MODIFIED: "Sat Oct 03 02:31:48 1998 (joze)"
+# (c) 1998 by Johannes Zellner
+# Johannes.Zellner@physik.uni-karlsruhe.de
+# $Id$
+# ==================================================================
+
+package provide tclreadline @TCLREADLINE_VERSION@
+
+namespace eval tclreadline:: {
+
+    proc Init {} {
+        catch {load @TERMCAP_LOAD_PATH@}
+        catch {load @READLINE_LOAD_PATH@}
+        if {[catch {load @TCLREADLINE_LIB_FILE@} msg]} {
+            puts stderr $msg
+            exit 2
+        }
+    }
+
+}
