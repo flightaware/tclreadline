@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Wed Sep  8 17:47:13 1999 (joze)"
+    LAST MODIFICATION: "Wed Sep  8 20:53:23 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -338,6 +338,7 @@ int TclReadlineEventHook(void)
         TCL_IDLE_EVENTS
         TCL_ALL_EVENTS
     */
+    return TCL_OK;
 }
 void
 TclReadlineReadHandler(ClientData clientData, int mask)
