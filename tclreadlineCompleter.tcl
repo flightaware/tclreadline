@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Wed Sep 29 21:25:15 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Thu Sep 30 16:43:34 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -618,7 +618,13 @@ proc ObjectClassCompleter {text start end line pos resultT} {
 		if {![catch [list set class [winfo class [Lindex ${line} 0]]]]} {
 			if {[string length [info proc ${class}Obj]]} {
 				set result [${class}Obj ${text} ${start} ${end} ${line} ${pos}]
-				return 0
+				# puts stderr result=|$result|
+				# joze, Thu Sep 30 16:43:17 1999
+				if {[string length $result]} {
+					return 1
+				} else {
+					return 0
+				}
 			} else {
 				return 0
 			}
@@ -4029,6 +4035,11 @@ proc SpecificSwitchCompleter {text start line switch {always 1}} {
 
 		-image -
 		-selectimage { return [CompleteFromImages ${text} ${always}] }
+		-selectmode {
+			return [CompleteFromList ${text} {
+				single browse multiple extended
+			}]
+		}
 
 		-insertofftime -
 		-insertontime -
@@ -6471,8 +6482,9 @@ proc ListboxObj {text start end line pos} {
 		selection {
 			switch -- ${pos} {
 				2 {
-					return [CompleteFromList ${text} \
-					{anchor clear includes set}]
+					return [CompleteFromList ${text} {
+						anchor clear includes set
+					}]
 				}
 				3 {
 					switch -- ${prev} {
