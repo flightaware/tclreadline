@@ -1,6 +1,6 @@
 #!/bin/sh
 # FILE: "/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Mon Aug 23 00:00:23 1999 (joze)"
+# LAST MODIFICATION: "Mon Aug 23 00:55:51 1999 (joze)"
 # (C) 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ft=tcl: \
@@ -22,7 +22,7 @@ if {$tcl_interactive} {
     #         if {[catch {eval ::tclreadline::Cd $args} message]} {
     #             puts stderr "$message"
     #         }
-    #         ls
+    #         tclreadline::ls
     #     }
     # }
 
