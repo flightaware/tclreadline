@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon Sep 13 18:09:41 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Mon Sep 20 00:50:49 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -141,7 +141,8 @@ READLINE_INCLUDE_DIR = @READLINE_INCLUDE_DIR@
 TCLREADLINE_LIB_FILE = @TCLREADLINE_LIB_FILE@
 
 READLINE_LIB         = -L@READLINE_LIB_DIR@ -lreadline
-TERM_LIB             = @TERM_LIB@
+TERMLIB              = @TERMLIB@
+TERMLIB_DIR          = @TERMLIB_DIR@
 
 #----------------------------------------------------------------
 # The information below should be usable as is.  The configure
@@ -201,7 +202,7 @@ all: $(TCLREADLINE_LIB_FILE)
 
 @TCLREADLINE_LIB_FILE@: ${OBJS}
 	rm -f $(TCLREADLINE_LIB_FILE)
-	@MAKE_LIB@ $(TERM_LIB) $(READLINE_LIB)
+	@MAKE_LIB@ $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB)
 	$(RANLIB) $(TCLREADLINE_LIB_FILE)
 
 install: install-binaries install-libraries install-man

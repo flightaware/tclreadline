@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Sun Sep 19 22:44:24 1999 (joze)"
+    LAST MODIFICATION: "Mon Sep 20 00:59:50 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -83,6 +83,9 @@ tclreadline-1.0.0: (Sep 1999)
 	    - the script completer procs are written.
 		  this is `sort of a first usable release'.
 
+    fixes:
+	    - some minor configure.in fixes.
+
 
 tclreadline-0.9.3: (Sep 1999)
 
@@ -94,6 +97,8 @@ tclreadline-0.9.3: (Sep 1999)
 
     fixes:
 	    - another revision of procession events and macros.
+		  includes a hack using a readline's internal
+		  variable _rl_executing_macro.
 
 
 tclreadline-0.9.2: (Aug 1999)

@@ -1,6 +1,6 @@
 # -*- autoconf -*-
 # FILE: "/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Sun Sep 19 23:15:53 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep 20 00:55:51 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -50,7 +50,7 @@ AC_CANONICAL_HOST
 
 
 TCLREADLINE_LPATH=`echo $LD_LIBRARY_PATH $LD_RUN_PATH $LPATH | sed 's/:/ /g'`
-TCLREADLINE_LPATH="$TCLREADLINE_LPATH /lib /usr/lib /usr/local/lib"
+TCLREADLINE_LPATH="$TCLREADLINE_LPATH /usr/local/lib /lib /usr/lib"
 
 
 #--------------------------------------------------------------------
@@ -321,13 +321,13 @@ for dir in $rl_library $TCLREADLINE_LPATH $prefix/lib/readline; do
         READLINE_LIB_DIR=$dir
         break
     fi
-    if test -r $dir/libreadline$SHLIB_SUFFIX.3.0; then
-        READLINE_VERSION_SUFFIX=".3.0"
+    if test -r $dir/libreadline$SHLIB_SUFFIX.4.0; then
+        READLINE_VERSION_SUFFIX=".4.0"
         READLINE_LIB_DIR=$dir
         break
     fi
-    if test -r $dir/libreadline$SHLIB_SUFFIX.4.0; then
-        READLINE_VERSION_SUFFIX=".4.0"
+    if test -r $dir/libreadline$SHLIB_SUFFIX.3.0; then
+        READLINE_VERSION_SUFFIX=".3.0"
         READLINE_LIB_DIR=$dir
         break
     fi
@@ -346,106 +346,62 @@ fi
 
 # ---
 # check for the terminal library.
-# This part was shamelessly stolen from
-# the vim-5.5 configure.in.
 # ---
 
-olibs="$LIBS"
-AC_MSG_CHECKING(--with-tlib argument)
-AC_ARG_WITH(tlib, [  --with-tlib=library     terminal library to be used ],)
-if test -n "$with_tlib"; then
-	AC_MSG_RESULT($with_tlib)
-	LIBS="$LIBS -l$with_tlib"
-else
-	AC_MSG_RESULT([automatic terminal library selection])
-	dnl  Newer versions of ncurses are preferred over anything.
-	dnl  Older versions of ncurses have bugs, get a new one!
-	dnl  Digital Unix (OSF1) should use curses (Ronald Schild).
-	case "`uname -s 2>/dev/null`" in
-		OSF1) tlibs="ncurses curses termlib termcap";;
-		*)    tlibs="ncurses termlib termcap curses";;
-	esac
-	for libname in $tlibs; do
-		AC_CHECK_LIB($libname, tgetent,,)
-		if test "x$olibs" != "x$LIBS"; then
-			dnl It's possible that a library is found but it doesn't work
-			dnl e.g., shared library that cannot be found
-			dnl compile and run a test program to be sure
-			AC_TRY_RUN([
+olibs=${LIBS}
+AC_ARG_WITH(tlib-library,
+            [  --with-tlib-library=DIR
+                          where to search for curses / termcap],
+            tlib_library=$withval, tlib_library=$exec_prefix/lib)
+
+AC_MSG_CHECKING([where to look for the terminal library])
+TERMLIB_DIR=""
+TERMLIB_VERSION_SUFFIX=""
+for dir in $tlib_library $TCLREADLINE_LPATH $prefix/lib/; do
+	for tlib in ncurses termlib termcap curses; do
+        dnl echo "(ls ${dir}/lib${tlib}${SHLIB_SUFFIX}*) 2>/dev/null"
+        result="`(ls -r ${dir}/lib${tlib}${SHLIB_SUFFIX}*) 2>/dev/null`"
+		dnl echo result = $result
+		if test "x$result" != "x"; then
+			for lib in ${tlib}; do
+				dnl It's possible that a library is found but it doesn't work
+				dnl e.g., shared library that cannot be found
+				dnl compile and run a test program to be sure
+				LIBS=-l${lib}
+				AC_TRY_RUN([
 #ifdef HAVE_TERMCAP_H
 # include <termcap.h>
 #endif
 main() {char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(0); }],
 			res="OK", res="FAIL", res="FAIL")
-			if test "$res" = "OK"; then
-			  break
+				if test "$res" = "OK"; then
+					TERMLIB_DIR=-L${dir}
+					if test "`(uname) 2>/dev/null`" = SunOS &&
+						uname -r | grep '^5' >/dev/null; then
+						TERMLIB_DIR="$TERMLIB_DIR -R ${dir}"
+					fi
+					TERMLIB=-l${tlib}
+					break
+				fi
+			done
+			if test "x${TERMLIB_DIR}" = "x"; then
+				AC_MSG_RESULT(none of $libname is usable)
+	        else
+				break
 			fi
-			AC_MSG_RESULT($libname library is not usable)
-			LIBS="$olibs"
 		fi
 	done
-fi
-if test "x$olibs" != "x$LIBS"; then
-	AC_MSG_CHECKING(whether we talk terminfo)
-	AC_TRY_RUN([
-#ifdef HAVE_TERMCAP_H
-# include <termcap.h>
-#endif
-main()
-{char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(!strcmp(s==0 ? "" : s, "1")); }],
-	AC_MSG_RESULT([no -- we are in termcap land]),
-	AC_MSG_RESULT([yes -- terminfo spoken here]); AC_DEFINE(TERMINFO),
-	AC_MSG_ERROR(failed to compile test program.))
+	if test "x${TERMLIB_DIR}" != "x"; then
+		break
+	fi
+done
+
+if test "x$TERMLIB_DIR" = "x"; then
+	AC_MSG_ERROR([
+no terminal library found. Please retry with the --with-tlib argument.])
 else
-	AC_MSG_ERROR(none found. Please retry with the --with-tlib argument)
+	AC_MSG_RESULT(${TERMLIB_DIR} ${TERMLIB})
 fi
-
-AC_MSG_CHECKING(whether termcap.h contains ospeed)
-AC_TRY_LINK([
-#ifdef HAVE_TERMCAP_H
-# include <termcap.h>
-#endif
-			], [ospeed = 20000],
-	AC_MSG_RESULT(yes); AC_DEFINE(HAVE_OSPEED),
-	[AC_MSG_RESULT(no)
-	AC_MSG_CHECKING(whether ospeed can be extern)
-	AC_TRY_LINK([
-#ifdef HAVE_TERMCAP_H
-# include <termcap.h>
-#endif
-extern short ospeed;
-			], [ospeed = 20000],
-		AC_MSG_RESULT(yes); AC_DEFINE(OSPEED_EXTERN),
-		AC_MSG_RESULT(no))]
-)
-
-AC_MSG_CHECKING([whether termcap.h contains UP, BC and PC])
-AC_TRY_LINK([
-#ifdef HAVE_TERMCAP_H
-# include <termcap.h>
-#endif
-			], [if (UP == 0 && BC == 0) PC = 1],
-	AC_MSG_RESULT(yes); AC_DEFINE(HAVE_UP_BC_PC),
-	[AC_MSG_RESULT(no)
-	AC_MSG_CHECKING([whether UP, BC and PC can be extern])
-	AC_TRY_LINK([
-#ifdef HAVE_TERMCAP_H
-# include <termcap.h>
-#endif
-extern char *UP, *BC, PC;
-			], [if (UP == 0 && BC == 0) PC = 1],
-		AC_MSG_RESULT(yes); AC_DEFINE(UP_BC_PC_EXTERN),
-		AC_MSG_RESULT(no))]
-	)
-
-AC_MSG_CHECKING(whether tputs() uses outfuntype)
-AC_TRY_COMPILE([
-#ifdef HAVE_TERMCAP_H
-# include <termcap.h>
-#endif
-			], [extern int xx(); tputs("test", 1, (outfuntype)xx)],
-	AC_MSG_RESULT(yes); AC_DEFINE(HAVE_OUTFUNTYPE),
-	AC_MSG_RESULT(no))
 
 
 #--------------------------------------------------------------------
@@ -454,8 +410,7 @@ AC_TRY_COMPILE([
 #    rl_callback_read_char ()).
 #--------------------------------------------------------------------
 
-save=$LIBS
-LIBS="-L$READLINE_LIB_DIR -lreadline $TERM_LIB"
+LIBS="-L$READLINE_LIB_DIR ${TERMLIB_DIR} -lreadline $TERMLIB $olibs"
 alternate=no
 AC_CHECK_FUNC(
     rl_callback_read_char, alternate=yes, alternate=no
@@ -530,7 +485,8 @@ AC_SUBST(SHLIB_LD_LIBS)
 
 AC_SUBST(SHLIB_SUFFIX)
 
-AC_SUBST(TERM_LIB)
+AC_SUBST(TERMLIB)
+AC_SUBST(TERMLIB_DIR)
 AC_SUBST(READLINE_LIB_DIR)
 
 AC_SUBST(TCLREADLINE_LIB_FILE)
