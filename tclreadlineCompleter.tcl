@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Sun Sep 19 01:02:44 1999 (joze)"
+# LAST MODIFICATION: "Sun Sep 19 22:09:08 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -35,14 +35,79 @@
 #	  RemoveUsedOptions ...
 #	- namespace eval fred {... <-- continue with a 
 #								   substitution in fred.
-#	- set tclreadline::pro<tab> geht *nicht*
-#	  set ::tclreadline::pro<tab> geht
+#	- set tclreadline::pro<tab> doesn't work
+#	  set ::tclreadline::pro<tab> does
 #
+#   - TextObj ...
 #
 
 
 
 namespace eval tclreadline {
+
+	# the following three are from the icccm
+	# and used in complete(selection) and
+	# descendants.
+	#
+	variable selection-selections {
+		PRIMARY SECONDARY CLIPBOARD
+	}
+	variable selection-types {
+		ADOBE_PORTABLE_DOCUMENT_FORMAT
+		APPLE_PICT
+		BACKGROUND
+		BITMAP
+		CHARACTER_POSITION
+		CLASS
+		CLIENT_WINDOW
+		COLORMAP
+		COLUMN_NUMBER
+		COMPOUND_TEXT
+		DELETE
+		DRAWABLE
+		ENCAPSULATED_POSTSCRIPT
+		ENCAPSULATED_POSTSCRIPT_INTERCHANGE
+		FILE_NAME
+		FOREGROUND
+		HOST_NAME
+		INSERT_PROPERTY
+		INSERT_SELECTION
+		LENGTH
+		LINE_NUMBER
+		LIST_LENGTH
+		MODULE
+		MULTIPLE
+		NAME
+		ODIF
+		OWNER_OS
+		PIXMAP
+		POSTSCRIPT
+		PROCEDURE
+		PROCESS
+		STRING
+		TARGETS
+		TASK
+		TEXT
+		TIMESTAMP
+		USER
+	}
+	variable selection-formats {
+		APPLE_PICT
+		ATOM
+		ATOM_PAIR
+		BITMAP
+		COLORMAP
+		COMPOUND_TEXT
+		DRAWABLE
+		INTEGER
+		NULL
+		PIXEL
+		PIXMAP7
+		SPAN
+		STRING
+		TEXT
+		WINDOW
+	}
 
 namespace export \
 TryFromList CompleteFromList DisplayHints Rehash \
@@ -323,7 +388,6 @@ proc MatchesFromList {text lst {allow ""}} {
 proc TrySubCmds {text cmd} {
 
 	set trystring ----
-	set bla 0
 
 	# try the command with and w/o trystring.
 	# Some commands, e.g.
@@ -455,10 +519,14 @@ proc OptionTable {cmd optionsT} {
 #**
 # try to complete a `cmd configure|cget ..' from the command's options.
 # @param   text start line cmd, standard tclreadlineCompleter arguments.
-# @return  a tclreadline completer formatted string.
+# @return  -- a flag indicating, if (cget|configure) was found.
+# @return  resultT -- a tclreadline completer formatted string.
 # @date    Sep-14-1999
 #
-proc CompleteFromOptions {text start line} {
+proc CompleteFromOptions {text start line resultT} {
+
+	upvar ${resultT} result
+	set result ""
 
 	# check if either `configure' or `cget' is present.
 	#
@@ -470,14 +538,15 @@ proc CompleteFromOptions {text start line} {
 		}
 	}
 	if {-1 == ${idx}} {
-		return
+		return 0
 	}
 
 	if {[regexp {(cget|configure)$} ${line}]} {
 		# we are at the end of (configure|cget)
 		# but there's no space yet.
 		#
-		return ${text}
+		set result ${text}
+		return 1
 	}
 
 	# separate the command, but exclude (cget|configure)
@@ -487,7 +556,7 @@ proc CompleteFromOptions {text start line} {
 	#
 	set cmd [lrange ${lst} 0 [expr ${idx} - 1]]
 
-	TraceText $cmd
+	TraceText ${cmd}
 	if {0 < [OptionTable ${cmd} options]} {
 
 		set prev [PreviousWord ${start} ${line}]
@@ -497,39 +566,83 @@ proc CompleteFromOptions {text start line} {
 			# already entered something here.
 			#
 			if {![llength ${text}]} {
-				# use this double list to quote option
-				# values which have to be quoted.
+
+				# check first, if the SpecificSwitchCompleter
+				# knows something about this switch. (note that
+				# `prev' contains the switch). The `0' as last
+				# argument makes the SpecificSwitchCompleter
+				# returning "" if it knows nothing specific
+				# about this switch.
 				#
-				return [list [list [lindex $options(value) ${found}]]]
+				set values [SpecificSwitchCompleter \
+				${text} ${start} ${line} ${prev} 0]
+
+				if [string length ${values}] {
+					set result ${values}
+					return 1
+				} else {
+					set val [lindex $options(value) ${found}]
+					if [string length ${val}] {
+						# return the old value only, if it's non-empty.
+						# Use this double list to quote option
+						# values which have to be quoted.
+						#
+						set result [list [list ${val}]]
+						return 1
+					} else {
+						set result ""
+						return 1
+					}
+				}
+			} else {
+				set result [SpecificSwitchCompleter \
+				${text} ${start} ${line} ${prev} 1]
+				return 1
 			}
 
 		} else {
-			return [CompleteFromList ${text} \
+			set result [CompleteFromList ${text} \
 			[RemoveUsedOptions ${line} $options(switches)]]
+			return 1
 		}
 	}
-	return ""
+	return 1
 }
 
-proc ObjectClassCompleter {text start end line pos} {
+proc ObjectClassCompleter {text start end line pos resultT} {
+	upvar ${resultT} result
 	set cmd [Lindex ${line} 0]
 	if {"." == [string index ${line} 0]} {
 		# it's a widget. Try to get it's class name.
 		#
 		if {![catch [list set class [winfo class [Lindex ${line} 0]]]]} {
 			if {[string length [info proc ${class}Obj]]} {
-				return [${class}Obj ${text} ${start} ${end} ${line} ${pos}]
+				set result [${class}Obj ${text} ${start} ${end} ${line} ${pos}]
+				return 0
 			}
 		}
 	}
-	if {![catch [list image type ${cmd}]]} {
-		return [ImageObj ${text} ${start} ${end} ${line} ${pos}]
+	if {![catch [list set type [image type ${cmd}]]]} {
+		switch -- ${type} {
+			photo {
+				set result [PhotoObj ${text} ${start} ${end} ${line} ${pos}]
+				return 1
+			}
+			default {
+				# let the fallback completers do the job.
+				return 0
+			}
+		}
 	}
+	return 0
 }
 
 proc CompleteFromOptionsOrSubCmds {text start end line pos} {
-	set from_opts [CompleteFromOptions ${text} ${start} ${line}]
-	if {[string length ${from_opts}]} {
+	if [CompleteFromOptions ${text} ${start} ${line} from_opts] {
+		# always return, if CompleteFromOptions returns non-zero,
+		# that means (configure|cget) were present. This ensures
+		# that TrySubCmds will not configure something by chance.
+		#
 		return ${from_opts}
 	} else {
 		# puts stderr \n\n[lrange [ProperList ${line}] 0 [expr $pos - 1]]\n
@@ -627,7 +740,6 @@ proc RemoveUsedOptions {line opts {terminate {}}} {
 	if {[llength ${terminate}]} {
 		if {[regexp -- ${terminate} ${line}]} {
 			return ""
-			# return ${terminate}
 		}
 	}
 	set new ""
@@ -907,27 +1019,61 @@ proc IncompleteListRemainder {line} {
 # if the index is `end' or == [Llength $line].
 #
 proc Lindex {line pos} {
-	if {[catch [list set sub [lindex $line $pos]]]} {
-		if {"end" == $pos || [Llength $line] == $pos} {
-			return [IncompleteListRemainder $line]
+	if {[catch [list set sub [lindex ${line} ${pos}]]]} {
+		if {"end" == ${pos} || [Llength ${line}] == ${pos}} {
+			return [IncompleteListRemainder ${line}]
 		}
-		set line [ProperList $line]
+		set line [ProperList ${line}]
 		# puts stderr \nproper_line=|$proper_line|
-		if {[catch [list set sub [lindex $line $pos]]]} { return {} }
+		if {[catch [list set sub [lindex ${line} ${pos}]]]} { return {} }
 	}
-	return $sub
+	return ${sub}
 }
 
 #**
 # save `llength' (see above).
 #
 proc Llength {line} {
-	if {[catch [list set len [llength $line]]]} {
-		set line [ProperList $line]
-		if {[catch [list set len [llength $line]]]} { return {} }
+	if {[catch [list set len [llength ${line}]]]} {
+		set line [ProperList ${line}]
+		if {[catch [list set len [llength ${line}]]]} { return {} }
 	}
 	# puts stderr \nline=$line
-	return $len
+	return ${len}
+}
+
+#**
+# save `lrange' (see above).
+#
+proc Lrange {line first last} {
+	if {[catch [list set range [lrange ${line} ${first} ${last}]]]} {
+		set rest [IncompleteListRemainder ${line}]
+		set proper [ProperList ${line}]
+		if {[catch [list set range [lindex ${proper} ${first} ${last}]]]} {
+			return {}
+		}
+		if {"end" == ${last} || [Llength ${line}] == ${last}} {
+			append sub " ${rest}"
+		}
+	}
+	return ${range}
+}
+
+#**
+# Lunique -- remove duplicate entries from a sorted list
+# @param   list
+# @return  unique list
+# @author  Johannes Zellner
+# @date    Sep-19-1999
+#
+proc Lunique lst {
+	set unique ""
+	foreach element ${lst} {
+		if {${element} != [lindex ${unique} end]} {
+			lappend unique ${element}
+		}
+	}
+	return ${unique}
 }
 
 #**
@@ -1398,8 +1544,7 @@ proc ScriptCompleter {part start end line} {
 
 		# check if the command is an object of known class.
 		# 
-		set res [ObjectClassCompleter $part $start $end $line $pos]
-		if {[string length ${res}]} {
+		if [ObjectClassCompleter ${part} ${start} ${end} ${line} ${pos} res] {
 			return ${res}
 		}
 
@@ -1408,7 +1553,8 @@ proc ScriptCompleter {part start end line} {
 		# is `configure' or `cget' otherwise try to get further
 		# subcommands.
 		#
-		return [CompleteFromOptionsOrSubCmds $part $start $end $line $pos]
+		return [CompleteFromOptionsOrSubCmds \
+		${part} ${start} ${end} ${line} ${pos}]
 	}
 	error "{NOTREACHED (this is probably an error)}"
 }
@@ -3583,8 +3729,157 @@ proc EventuallyInsertLeadingDot {text fallback} {
 }
 
 # TODO
-proc CompleteColor text {
-	return [DisplayHints <color>]
+proc CompleteColor {text {add ""}} {
+
+	# we set the variable only once to speed up.
+	#
+	variable colors
+	variable numberless_colors
+
+	if ![info exists colors] {
+		# from .. X11R6/lib/X11/rgb.txt
+		# 
+		set colors {
+			snow GhostWhite WhiteSmoke gainsboro FloralWhite OldLace linen
+			AntiqueWhite PapayaWhip BlanchedAlmond bisque PeachPuff NavajoWhite
+			moccasin cornsilk ivory LemonChiffon seashell honeydew MintCream
+			azure AliceBlue lavender LavenderBlush MistyRose white black
+			DarkSlateGray DarkSlateGrey DimGray DimGrey SlateGray SlateGrey
+			LightSlateGray LightSlateGrey gray grey LightGrey LightGray
+			MidnightBlue navy NavyBlue CornflowerBlue DarkSlateBlue SlateBlue
+			MediumSlateBlue LightSlateBlue MediumBlue RoyalBlue blue DodgerBlue
+			DeepSkyBlue SkyBlue LightSkyBlue SteelBlue LightSteelBlue LightBlue
+			PowderBlue PaleTurquoise DarkTurquoise MediumTurquoise turquoise
+			cyan LightCyan CadetBlue MediumAquamarine aquamarine DarkGreen
+			DarkOliveGreen DarkSeaGreen SeaGreen MediumSeaGreen LightSeaGreen
+			PaleGreen SpringGreen LawnGreen green chartreuse MediumSpringGreen
+			GreenYellow LimeGreen YellowGreen ForestGreen OliveDrab DarkKhaki
+			khaki PaleGoldenrod LightGoldenrodYellow LightYellow yellow
+			gold LightGoldenrod goldenrod DarkGoldenrod RosyBrown IndianRed
+			SaddleBrown sienna peru burlywood beige wheat SandyBrown tan
+			chocolate firebrick brown DarkSalmon salmon LightSalmon orange
+			DarkOrange coral LightCoral tomato OrangeRed red HotPink DeepPink
+			pink LightPink PaleVioletRed maroon MediumVioletRed VioletRed
+			magenta violet plum orchid MediumOrchid DarkOrchid DarkViolet
+			BlueViolet purple MediumPurple thistle snow1 snow2 snow3 snow4
+			seashell1 seashell2 seashell3 seashell4 AntiqueWhite1 AntiqueWhite2
+			AntiqueWhite3 AntiqueWhite4 bisque1 bisque2 bisque3 bisque4
+			PeachPuff1 PeachPuff2 PeachPuff3 PeachPuff4 NavajoWhite1
+			NavajoWhite2 NavajoWhite3 NavajoWhite4 LemonChiffon1 LemonChiffon2
+			LemonChiffon3 LemonChiffon4 cornsilk1 cornsilk2 cornsilk3 cornsilk4
+			ivory1 ivory2 ivory3 ivory4 honeydew1 honeydew2 honeydew3 honeydew4
+			LavenderBlush1 LavenderBlush2 LavenderBlush3 LavenderBlush4
+			MistyRose1 MistyRose2 MistyRose3 MistyRose4 azure1 azure2 azure3
+			azure4 SlateBlue1 SlateBlue2 SlateBlue3 SlateBlue4 RoyalBlue1
+			RoyalBlue2 RoyalBlue3 RoyalBlue4 blue1 blue2 blue3 blue4
+			DodgerBlue1 DodgerBlue2 DodgerBlue3 DodgerBlue4 SteelBlue1
+			SteelBlue2 SteelBlue3 SteelBlue4 DeepSkyBlue1 DeepSkyBlue2
+			DeepSkyBlue3 DeepSkyBlue4 SkyBlue1 SkyBlue2 SkyBlue3 SkyBlue4
+			LightSkyBlue1 LightSkyBlue2 LightSkyBlue3 LightSkyBlue4 SlateGray1
+			SlateGray2 SlateGray3 SlateGray4 LightSteelBlue1 LightSteelBlue2
+			LightSteelBlue3 LightSteelBlue4 LightBlue1 LightBlue2 LightBlue3
+			LightBlue4 LightCyan1 LightCyan2 LightCyan3 LightCyan4
+			PaleTurquoise1 PaleTurquoise2 PaleTurquoise3 PaleTurquoise4
+			CadetBlue1 CadetBlue2 CadetBlue3 CadetBlue4 turquoise1
+			turquoise2 turquoise3 turquoise4 cyan1 cyan2 cyan3 cyan4
+			DarkSlateGray1 DarkSlateGray2 DarkSlateGray3 DarkSlateGray4
+			aquamarine1 aquamarine2 aquamarine3 aquamarine4 DarkSeaGreen1
+			DarkSeaGreen2 DarkSeaGreen3 DarkSeaGreen4 SeaGreen1 SeaGreen2
+			SeaGreen3 SeaGreen4 PaleGreen1 PaleGreen2 PaleGreen3 PaleGreen4
+			SpringGreen1 SpringGreen2 SpringGreen3 SpringGreen4 green1 green2
+			green3 green4 chartreuse1 chartreuse2 chartreuse3 chartreuse4
+			OliveDrab1 OliveDrab2 OliveDrab3 OliveDrab4 DarkOliveGreen1
+			DarkOliveGreen2 DarkOliveGreen3 DarkOliveGreen4 khaki1 khaki2
+			khaki3 khaki4 LightGoldenrod1 LightGoldenrod2 LightGoldenrod3
+			LightGoldenrod4 LightYellow1 LightYellow2 LightYellow3 LightYellow4
+			yellow1 yellow2 yellow3 yellow4 gold1 gold2 gold3 gold4 goldenrod1
+			goldenrod2 goldenrod3 goldenrod4 DarkGoldenrod1 DarkGoldenrod2
+			DarkGoldenrod3 DarkGoldenrod4 RosyBrown1 RosyBrown2 RosyBrown3
+			RosyBrown4 IndianRed1 IndianRed2 IndianRed3 IndianRed4 sienna1
+			sienna2 sienna3 sienna4 burlywood1 burlywood2 burlywood3 burlywood4
+			wheat1 wheat2 wheat3 wheat4 tan1 tan2 tan3 tan4 chocolate1
+			chocolate2 chocolate3 chocolate4 firebrick1 firebrick2 firebrick3
+			firebrick4 brown1 brown2 brown3 brown4 salmon1 salmon2 salmon3
+			salmon4 LightSalmon1 LightSalmon2 LightSalmon3 LightSalmon4 orange1
+			orange2 orange3 orange4 DarkOrange1 DarkOrange2 DarkOrange3
+			DarkOrange4 coral1 coral2 coral3 coral4 tomato1 tomato2 tomato3
+			tomato4 OrangeRed1 OrangeRed2 OrangeRed3 OrangeRed4 red1 red2
+			red3 red4 DeepPink1 DeepPink2 DeepPink3 DeepPink4 HotPink1
+			HotPink2 HotPink3 HotPink4 pink1 pink2 pink3 pink4 LightPink1
+			LightPink2 LightPink3 LightPink4 PaleVioletRed1 PaleVioletRed2
+			PaleVioletRed3 PaleVioletRed4 maroon1 maroon2 maroon3 maroon4
+			VioletRed1 VioletRed2 VioletRed3 VioletRed4 magenta1 magenta2
+			magenta3 magenta4 orchid1 orchid2 orchid3 orchid4 plum1 plum2
+			plum3 plum4 MediumOrchid1 MediumOrchid2 MediumOrchid3
+			MediumOrchid4 DarkOrchid1 DarkOrchid2 DarkOrchid3 DarkOrchid4
+			purple1 purple2 purple3 purple4 MediumPurple1 MediumPurple2
+			MediumPurple3 MediumPurple4 thistle1 thistle2 thistle3 thistle4
+			gray0 grey0 gray1 grey1 gray2 grey2 gray3 grey3 gray4 grey4 gray5
+			grey5 gray6 grey6 gray7 grey7 gray8 grey8 gray9 grey9 gray10 grey10
+			gray11 grey11 gray12 grey12 gray13 grey13 gray14 grey14 gray15
+			grey15 gray16 grey16 gray17 grey17 gray18 grey18 gray19 grey19
+			gray20 grey20 gray21 grey21 gray22 grey22 gray23 grey23 gray24
+			grey24 gray25 grey25 gray26 grey26 gray27 grey27 gray28 grey28
+			gray29 grey29 gray30 grey30 gray31 grey31 gray32 grey32 gray33
+			grey33 gray34 grey34 gray35 grey35 gray36 grey36 gray37 grey37
+			gray38 grey38 gray39 grey39 gray40 grey40 gray41 grey41 gray42
+			grey42 gray43 grey43 gray44 grey44 gray45 grey45 gray46 grey46
+			gray47 grey47 gray48 grey48 gray49 grey49 gray50 grey50 gray51
+			grey51 gray52 grey52 gray53 grey53 gray54 grey54 gray55 grey55
+			gray56 grey56 gray57 grey57 gray58 grey58 gray59 grey59 gray60
+			grey60 gray61 grey61 gray62 grey62 gray63 grey63 gray64 grey64
+			gray65 grey65 gray66 grey66 gray67 grey67 gray68 grey68 gray69
+			grey69 gray70 grey70 gray71 grey71 gray72 grey72 gray73 grey73
+			gray74 grey74 gray75 grey75 gray76 grey76 gray77 grey77 gray78
+			grey78 gray79 grey79 gray80 grey80 gray81 grey81 gray82 grey82
+			gray83 grey83 gray84 grey84 gray85 grey85 gray86 grey86 gray87
+			grey87 gray88 grey88 gray89 grey89 gray90 grey90 gray91 grey91
+			gray92 grey92 gray93 grey93 gray94 grey94 gray95 grey95 gray96
+			grey96 gray97 grey97 gray98 grey98 gray99 grey99 gray100 grey100
+			DarkGrey DarkGray DarkBlue DarkCyan DarkMagenta DarkRed LightGreen
+		}
+	}
+	if ![info exists numberless_colors] {
+		set numberless_colors ""
+		foreach color ${colors} {
+			regsub -all {[0-9]*} ${color} "" color
+			lappend numberless_colors ${color}
+		}
+		set numberless_colors [Lunique [lsort ${numberless_colors}]]
+	}
+	set matches [MatchesFromList ${text} ${numberless_colors}]
+	if {[llength ${matches}] < 5} {
+		set matches [MatchesFromList ${text} ${colors}]
+		if {[llength ${matches}]} {
+			return [CompleteFromList ${text} [concat ${colors} ${add}]]
+		} else {
+			return [CompleteFromList ${text} \
+			[concat ${numberless_colors} ${add}]]
+		}
+	} else {
+		return [CompleteFromList ${text} [concat ${numberless_colors} ${add}]]
+	}
+}
+
+proc CompleteCursor text {
+	# from <X11/cursorfont.h>
+	# 
+	return [CompleteFromList ${text} {
+		num_glyphs x_cursor arrow based_arrow_down based_arrow_up
+		boat bogosity bottom_left_corner bottom_right_corner
+		bottom_side bottom_tee box_spiral center_ptr circle clock
+		coffee_mug cross cross_reverse crosshair diamond_cross dot
+		dotbox double_arrow draft_large draft_small draped_box
+		exchange fleur gobbler gumby hand1 hand2 heart icon iron_cross
+		left_ptr left_side left_tee leftbutton ll_angle lr_angle
+		man middlebutton mouse pencil pirate plus question_arrow
+		right_ptr right_side right_tee rightbutton rtl_logo sailboat
+		sb_down_arrow sb_h_double_arrow sb_left_arrow sb_right_arrow
+		sb_up_arrow sb_v_double_arrow shuttle sizing spider spraycan
+		star target tcross top_left_arrow top_left_corner
+		top_right_corner top_side top_tee trek ul_angle umbrella
+		ur_angle watch xterm
+	}]
 }
 
 #**
@@ -3598,9 +3893,8 @@ proc CompleteColor text {
 # @sa       CompleteWidgetConfigurations
 # @date     Sep-17-1999
 #
-proc SpecificSwitchCompleter {text start line switch} {
-	# TODO:
-	#   go to the `options' man page and look for possible values
+proc SpecificSwitchCompleter {text start line switch {always 1}} {
+
 	switch -- ${switch} {
 
 		-activebackground -
@@ -3627,7 +3921,11 @@ proc SpecificSwitchCompleter {text start line switch} {
 		-padx -
 		-pady -
 		-wraplength {
-			return [DisplayHints <pixels>]
+			if ${always} {
+				return [DisplayHints <pixels>]
+			} else {
+				return ""
+			}
 		}
 
 		-anchor {
@@ -3637,10 +3935,13 @@ proc SpecificSwitchCompleter {text start line switch} {
 		}
 
 
-		-bitmap { return [CompleteFromBitmaps ${text}] }
+		-bitmap { return [CompleteFromBitmaps ${text} ${always}] }
 
 
-		-cursor { return [DisplayHints <cursor>] }
+		-cursor {
+			return [CompleteCursor ${text}]
+			# return [DisplayHints <cursor>]
+		}
 		-exportselection -
 		-jump -
 		-setgrid -
@@ -3650,25 +3951,28 @@ proc SpecificSwitchCompleter {text start line switch} {
 			if {[string length ${names}]} {
 				return [CompleteFromList ${text} ${names}]
 			} else {
-				return [DisplayHints <font>]
+				if ${always} {
+					return [DisplayHints <font>]
+				} else {
+					return ""
+				}
 			}
 		}
 
 
 		-image -
-		-selectimage {
-			set images [image names]
-			if {[string length ${images}]} {
-				return [CompleteFromList ${text} ${images}]
-			} else {
-				return [DisplayHints <image>]
-			}
-		}
+		-selectimage { return [CompleteFromImages ${text} ${always}] }
 
 		-insertofftime -
 		-insertontime -
 		-repeatdelay -
-		-repeatinterval { return [DisplayHints <milliSec>] }
+		-repeatinterval {
+			if ${always} {
+				return [DisplayHints <milliSec>]
+			} else {
+				return ""
+			}
+		}
 		-justify {
 			return [CompleteFromList ${text} {
 				left center right
@@ -3685,9 +3989,21 @@ proc SpecificSwitchCompleter {text start line switch} {
 			}]
 		}
 
-		-text { return [DisplayHints <text>] }
+		-text {
+			if ${always} {
+				return [DisplayHints <text>]
+			} else {
+				return ""
+			}
+		}
 		-textvariable { return [VarCompletion ${text} #0] }
-		-underline { return [DisplayHints <index>] }
+		-underline {
+			if ${always} {
+				return [DisplayHints <index>]
+			} else {
+				return ""
+			}
+		}
 
 -xscrollcommand -
 -yscrollcommand {
@@ -3713,8 +4029,12 @@ proc SpecificSwitchCompleter {text start line switch} {
 		}
 
 		default {
-			set prev [PreviousWord ${start} ${line}]
-			return [DisplayHints <[String range ${prev} 1 end]>]
+			# if ${always} {
+			#	set prev [PreviousWord ${start} ${line}]
+			#	return [DisplayHints <[String range ${prev} 1 end]>]
+			#} else {
+				return ""
+			#}
 		}
 	}
 }
@@ -4752,6 +5072,78 @@ proc complete(pack) {text start end line pos mod} {
 	return ""
 }
 
+proc PlaceConfig {text line prev} {
+	set opts {
+		-in -x -relx -y -rely -anchor -width
+		-relwidth -height -relheight -bordermode
+	}
+	switch -- ${prev} {
+
+		-in { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+
+		-x -
+		-relx -
+		-y -
+		-rely { return [DisplayHints <location>] }
+
+		-anchor { return [CompleteAnchor ${text}] }
+
+		-width -
+		-relwidth -
+		-height -
+		-relheight { return [DisplayHints <size>] }
+
+		-bordermode {
+			return [CompleteFromList ${text} {ignore inside outside}]
+		}
+
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} ${opts}]]
+		}
+	}
+}
+
+proc complete(place) {text start end line pos mod} {
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} \
+			[concat [WidgetChildren ${text}] {
+				configure forget info slaves
+			}]]
+		}
+		2 {
+			switch -- ${sub} {
+				configure -
+				forget -
+				info -
+				slaves {
+					return [CompleteFromList ${text} [WidgetChildren ${text}]]
+				}
+				default {
+					return [PlaceConfig ${text} ${line} ${prev}]
+				}
+			}
+		}
+		default {
+			switch -- ${sub} {
+				configure {
+					return [PlaceConfig ${text} ${line} ${prev}]
+				}
+				forget {}
+				info {}
+				slaves {}
+				default {
+					return [PlaceConfig ${text} ${line} ${prev}]
+				}
+			}
+		}
+	}
+	return ""
+}
+
 proc complete(radiobutton) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
@@ -4808,6 +5200,97 @@ proc complete(scrollbar) {text start end line pos mod} {
 	return ""
 }
 
+proc SelectionOpts {text start end line pos mod lst} {
+	set prev [PreviousWord ${start} ${line}]
+	if {-1 == [lsearch ${lst} ${prev}]} {
+		set prev "" ;# force the default arm
+	}
+	switch -- ${prev} {
+		-displayof {
+			return [CompleteFromList ${text} \
+			[WidgetChildren ${text}]]
+		}
+		-selection {
+			variable selection-selections
+			return [CompleteFromList ${text} ${selection-selections}]
+		}
+		-type {
+			variable selection-types
+			return [CompleteFromList ${text} ${selection-types}]
+		}
+		-command {
+			return [BraceOrCommand ${text} \
+			${start} ${end} ${line} ${pos} ${mod}]
+		}
+		-format {
+			variable selection-formats
+			return [CompleteFromList ${text} ${selection-formats}]
+		}
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} ${lst}]]
+		}
+	}
+}
+
+proc complete(selection) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 {
+			return [TrySubCmds ${text} [Lindex ${line} 0]]
+		}
+		default {
+			set sub [Lindex ${line} 1]
+			set widgets [WidgetChildren ${text}]
+			switch -- ${sub} {
+				clear {
+					return [SelectionOpts \
+					${text} ${start} ${end} ${line} ${pos} ${mod} {
+						-displayof -selection
+					}]
+				}
+				get {
+					return [SelectionOpts \
+					${text} ${start} ${end} ${line} ${pos} ${mod} {
+						-displayof -selection -type
+					}]
+				}
+				handle {
+					return [SelectionOpts \
+					${text} ${start} ${end} ${line} ${pos} ${mod} \
+					[concat {-selection -type -format} ${widgets}]]
+				}
+				own {
+					return [SelectionOpts \
+					${text} ${start} ${end} ${line} ${pos} ${mod} \
+					[concat {-command -selection} ${widgets}]]
+				}
+			}
+		}
+	}
+}
+
+proc complete(send) {text start end line pos mod} {
+	set prev [PreviousWord ${start} ${line}]
+	if {"-displayof" == ${prev}} {
+		return [TryFromList ${text} [WidgetChildren ${text}]]
+	}
+	set cmds [RemoveUsedOptions ${line} {
+		-async -displayof --
+	} {--}]
+	if {[llength ${cmds}]} {
+		return [string trim [CompleteFromList ${text} \
+		[concat ${cmds} <app>]]]
+	} else {
+		if {[regexp -- --$ ${line}]} {
+			return [list {--}]; # append a blank
+		} else {
+			# TODO make this better!
+			return [DisplayHints [list {<app cmd ?arg ...?>}]]
+		}
+	}
+	return ""
+}
+
 proc complete(text) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
@@ -4827,6 +5310,213 @@ proc complete(text) {text start end line pos mod} {
 	return ""
 }
 
+proc complete(tk) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 {
+			return [TrySubCmds ${text} [Lindex ${line} 0]]
+		}
+		default {
+			switch -- [Lindex ${line} 1] {
+				appname { return [DisplayHints ?newName?]  }
+				scaling {
+					switch -- [PreviousWord ${start} ${line}] {
+						-displayof {
+							return [TryFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default {
+							return [CompleteFromList ${text} \
+							[RemoveUsedOptions ${line} {-displayof ?number?}]]
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# proc complete(tk_bisque) {text start end line pos mod} {
+# }
+
+proc complete(tk_chooseColor) {text start end line pos mod} {
+	switch -- [PreviousWord ${start} ${line}] {
+		-initialcolor { return [CompleteColor ${text}] }
+		-parent { return [TryFromList ${text} [WidgetChildren ${text}]] }
+		-title { return [DisplayHints <string>] }
+		default {
+			return [TryFromList ${text} \
+			[RemoveUsedOptions ${line} {-initialcolor -parent -title}]]
+		}
+	}
+}
+
+proc complete(tk_dialog) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [CompleteFromList ${text} [ToplevelWindows]] }
+		2 { return [DisplayHints <title>] }
+		3 { return [DisplayHints <text>] }
+		4 { return [CompleteFromBitmaps ${text}] }
+		5 { return [DisplayHints <defaultIndex>] }
+		default { return [DisplayHints ?buttonName?] }
+	}
+}
+
+proc complete(tk_focusNext) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+	}
+}
+
+proc complete(tk_focusPrev) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+	}
+}
+
+# proc complete(tk_focusFollowsMouse) {text start end line pos mod} {
+# }
+
+proc GetOpenSaveFile {text start end line pos mod {add ""}} {
+	# enable filename completion for the first four switches.
+	switch -- [PreviousWord ${start} ${line}] {
+		-defaultextension {}
+		-filetypes {}
+		-initialdir {}
+		-initialfile {}
+		-parent {
+			return [CompleteFromList ${text} [WidgetChildren ${text}]]
+		}
+		-title { return [DisplayHints <titleString>] }
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} [concat {
+				-defaultextension -filetypes -initialdir -parent -title
+			} ${add}]]]
+		}
+	}
+}
+
+proc complete(tk_getOpenFile) {text start end line pos mod} {
+	return [GetOpenSaveFile \
+	${text} ${start} ${end} ${line} ${pos} ${mod}]
+}
+
+proc complete(tk_getSaveFile) {text start end line pos mod} {
+	return [GetOpenSaveFile \
+	${text} ${start} ${end} ${line} ${pos} ${mod} -initialfile]
+}
+
+proc complete(tk_messageBox) {text start end line pos mod} {
+	switch -- [PreviousWord ${start} ${line}] {
+		-default {
+			return [CompleteFromList ${text} {
+				abort cancel ignore no ok retry yes
+			}]
+		}
+		-icon {
+			return [CompleteFromList ${text} {
+				error info question warning
+			}]
+		}
+		-message { return [DisplayHints <string>] }
+		-parent {
+			return [CompleteFromList ${text} [WidgetChildren ${text}]]
+		}
+		-title { return [DisplayHints <titleString>] }
+		-type {
+			return [CompleteFromList ${text} {
+				abortretryignore ok okcancel retrycancel yesno yesnocancel
+			}]
+		}
+		default {
+			return [CompleteFromList ${text} \
+			[RemoveUsedOptions ${line} {
+				-default -icon -message -parent -title -type
+			}]]
+		}
+	}
+}
+
+proc complete(tk_optionMenu) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		2 { return [VarCompletion ${text} #0] }
+		3 { return [DisplayHints <value>] }
+		default { return [DisplayHints ?value?] }
+	}
+}
+
+proc complete(tk_popup) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 {
+			# display only menu widgets
+			#
+			set widgets [WidgetChildren ${text}]
+			set menu_widgets ""
+			foreach widget ${widgets} {
+				if {"Menu" == [winfo class ${widget}]} {
+					lappend menu_widgets ${widget}
+				}
+			}
+			if {[llength ${menu_widgets}]} {
+				return [TryFromList ${text} ${menu_widgets}]
+			} else {
+				return [DisplayHints <menu>]
+			}
+		}
+		2 { return [DisplayHints <x>] }
+		3 { return [DisplayHints <y>] }
+		4 { return [DisplayHints ?entryIndex?] }
+	}
+}
+
+# TODO: the name - value construct didn't work in my wish.
+#
+proc complete(tk_setPalette) {text start end line pos mod} {
+	set database {
+		activeBackground        foreground              selectColor
+		activeForeground        highlightBackground     selectBackground
+		background              highlightColor          selectForeground
+		disabledForeground      insertBackground        troughColor
+	}
+	switch -- ${pos} {
+		1 {
+			return [CompleteColor ${text} ${database}]
+		}
+		default {
+			switch [expr ${pos} % 2] {
+				1 {
+					return [CompleteFromList ${text} ${database}]
+				}
+				0 {
+					return [CompleteColor ${text}]
+				}
+			}
+		}
+	}
+}
+
+proc complete(tkwait) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} {
+				variable visibility window
+			}]
+		}
+		2 {
+			switch [Lindex ${line} 1] {
+				variable {
+					return [VarCompletion ${text} #0]
+				}
+				visibility -
+				window {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+			}
+		}
+	}
+}
+
 proc complete(toplevel) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
@@ -4843,13 +5533,179 @@ proc complete(toplevel) {text start end line pos mod} {
 }
 
 proc complete(winfo) {text start end line pos mod} {
-	set cmd [lindex ${line} 1]
+	set sub [Lindex ${line} 1]
 	switch -- ${pos} {
 		1 {
 			return [TrySubCmds ${text} winfo]
 		}
 		2 {
-			return [TryFromList ${text} [WidgetChildren ${text}]]
+			switch -- ${sub} {
+				atom {
+					return [TryFromList ${text} {-displayof <name>}]
+				}
+				containing {
+					return [TryFromList ${text} {-displayof <rootX>}]
+				}
+				interps {
+					return [TryFromList ${text} -displayof]
+				}
+				atomname -
+				pathname {
+					return [TryFromList ${text} {-displayof <id>}]
+				}
+				default {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+			}
+		}
+		default {
+			switch -- ${sub} {
+				atom {
+					switch -- [PreviousWord ${start} ${line}] {
+						-displayof {
+							return [TryFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default { return [DisplayHints <name>] }
+					}
+				}
+				containing {
+					switch -- [Lindex ${line} 2] {
+						-displayof {
+							switch -- ${pos} {
+								3 {
+									return [TryFromList ${text} \
+									[WidgetChildren ${text}]]
+								}
+								4 {
+									return [DisplayHints <rootX>]
+								}
+								5 {
+									return [DisplayHints <rootY>]
+								}
+							}
+						}
+						default { return [DisplayHints <rootY>] }
+					}
+				}
+				interps {
+					switch -- [PreviousWord ${start} ${line}] {
+						-displayof {
+							return [TryFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default {}
+					}
+				}
+				atomname -
+				pathname {
+					switch -- [PreviousWord ${start} ${line}] {
+						-displayof {
+							return [TryFromList ${text} \
+							[WidgetChildren ${text}]]
+						}
+						default { return [DisplayHints <id>] }
+					}
+				}
+				visualsavailable { return [DisplayHints ?includeids?] }
+				default {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+			}
+		}
+	}
+	return ""
+}
+
+proc complete(wm) {text start end line pos mod} {
+	set sub [Lindex ${line} 1]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} {
+				aspect client colormapwindows command deiconify focusmodel
+				frame geometry grid group iconbitmap iconify iconmask iconname
+				iconposition iconwindow maxsize minsize overrideredirect
+				positionfrom protocol resizable sizefrom state title transient
+				withdraw
+			}]
+		}
+		2 {
+			return [TryFromList ${text} [ToplevelWindows]]
+		}
+		3 {
+			switch -- ${sub} {
+				aspect { return [DisplayHints ?minNumer?] }
+				client { return [DisplayHints ?name?] }
+				colormapwindows {
+					return [CompleteListFromList ${text} \
+					[string trimleft [IncompleteListRemainder ${line}]] \
+					[WidgetChildren .] \{ { } \}]
+				}
+				command { return [DisplayHints ?value?] }
+				focusmodel {
+					return [CompleteListFromList ${text} {active passive}]
+				}
+				geometry {
+					return [DisplayHints ?<width>x<height>+-<x>+-<y>?]
+				}
+				grid { return [DisplayHints ?baseWidth?] }
+				group {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+				iconbitmap -
+				iconmask { return [CompleteFromBitmaps ${text}] }
+				iconname { return [DisplayHints ?newName?] }
+				iconposition { return [DisplayHints ?x?] }
+				iconwindow {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+				maxsize -
+				minsize { return [DisplayHints ?width?] }
+				overrideredirect { return [CompleteBoolean ${text}] }
+				positionfrom -
+				sizefrom {
+					return [CompleteFromList ${text} {position user}]
+				}
+				protocol {
+					return [CompleteFromList ${text} {
+						WM_TAKE_FOCUS WM_SAVE_YOURSELF WM_DELETE_WINDOW
+					}]
+				}
+				resizable { return [DisplayHints ?width?] }
+				title { return [DisplayHints ?string?] }
+				transient {
+					return [TryFromList ${text} [WidgetChildren ${text}]]
+				}
+				default {
+					return [TryFromList ${text} [ToplevelWindows]]
+				}
+			}
+		}
+		4 {
+			switch -- ${sub} {
+				aspect { return [DisplayHints ?minDenom?] }
+				grid { return [DisplayHints ?baseHeight?] }
+				iconposition { return [DisplayHints ?y?] }
+				maxsize -
+				minsize { return [DisplayHints ?height?] }
+				protocol {
+					return [BraceOrCommand ${text} \
+					${start} ${end} ${line} ${pos} ${mod}]
+				}
+				resizable { return [DisplayHints ?height?] }
+			}
+		}
+		5 {
+			switch -- ${sub} {
+				aspect { return [DisplayHints ?maxNumer?] }
+				grid { return [DisplayHints ?widthInc?] }
+			}
+		}
+		6 {
+			switch -- ${sub} {
+				aspect { return [DisplayHints ?maxDenom?] }
+				grid { return [DisplayHints ?heightInc?] }
+			}
 		}
 	}
 	return ""
@@ -4863,20 +5719,11 @@ proc complete(winfo) {text start end line pos mod} {
 # =================================================
 
 
-# proc ImageObj {text start end line pos} {
-# 	set type [image type [Lindex ${line} 0]]
-# 	switch -- ${type} {
-# 		bitmap {}
-# 		photo {}
-# 	}
-# 	return ""
-# }
-
 # proc ButtonObj {text start end line pos} {
 # 	return ""
 # }
 
-proc CompleteFromBitmaps text {
+proc CompleteFromBitmaps {text {always 1}} {
 	set inames [image names]
 	set bitmaps ""
 	foreach name $inames {
@@ -4888,7 +5735,24 @@ proc CompleteFromBitmaps text {
 		return [CompleteFromList \
 		${text} ${bitmaps}]
 	} else {
-		return [DisplayHints <bitmaps>]
+		if ${always} {
+			return [DisplayHints <bitmaps>]
+		} else {
+			return ""
+		}
+	}
+}
+
+proc CompleteFromImages {text {always 1}} {
+	set inames [image names]
+	if {[string length ${inames}]} {
+		return [CompleteFromList ${text} ${inames}]
+	} else {
+		if ${always} {
+			return [DisplayHints <image>]
+		} else {
+			return ""
+		}
 	}
 }
 
@@ -4960,14 +5824,7 @@ proc CanvasItem {text start end line pos prev type} {
 		image {
 			switch -- ${prev} {
 				-anchor { return [CompleteAnchor ${text}] }
-				-image {
-					set images [image names]
-					if {[string length ${images}]} {
-						return [CompleteFromList ${text} ${images}]
-					} else {
-						return [DisplayHints <image>]
-					}
-				}
+				-image { return [CompleteFromImages ${text}] }
 				-tags { return [DisplayHints <tagList>] }
 				default {
 					return [CompleteFromList ${text} \
@@ -5147,7 +6004,7 @@ proc CanvasObj {text start end line pos} {
 	set sub [Lindex ${line} 1]
 	set prev [PreviousWord ${start} ${line}]
 	if {1 == $pos} {
-		return ""; # let the fallback routines do the job.
+		return [TrySubCmds ${text} [Lindex ${line} 0]]
 	}
 	switch -- ${sub} {
 		addtag {
@@ -5245,7 +6102,12 @@ proc CanvasObj {text start end line pos} {
 			}
 		}
 		find {
-			# let the fallback routines do the job.
+			switch -- ${pos} {
+				2 {
+					return [TrySubCmds ${text} [Lrange ${line} 0 1]]
+				}
+				default { return [DisplayHints ?arg?] }
+			}
 		}
 		focus {
 			switch -- ${pos} {
@@ -5428,7 +6290,7 @@ proc EntryObj {text start end line pos} {
 	set sub [Lindex ${line} 1]
 	set prev [PreviousWord ${start} ${line}]
 	if {1 == $pos} {
-		return ""; # let the fallback routines do the job.
+		return [TrySubCmds ${text} [Lindex ${line} 0]]
 	}
 	switch -- ${sub} {
 		bbox -
@@ -5446,8 +6308,9 @@ proc EntryObj {text start end line pos} {
 		scan { return [WidgetScan ${text} ${pos}] }
 		selection {
 			switch -- ${pos} {
-				# let the fallback routines do the job.
-				2 { return "" }
+				2 {
+					return [TrySubCmds ${text} [Lrange ${line} 0 1]]
+				}
 				3 {
 					switch -- ${prev} {
 						adjust -
@@ -5487,7 +6350,7 @@ proc ListboxObj {text start end line pos} {
 	set sub [Lindex ${line} 1]
 	set prev [PreviousWord ${start} ${line}]
 	if {1 == $pos} {
-		return ""; # let the fallback routines do the job.
+		return [TrySubCmds ${text} [Lindex ${line} 0]]
 	}
 	switch -- ${sub} {
 		activate -
@@ -5611,14 +6474,7 @@ proc MenuItem {text start end line pos virtualpos} {
 					}
 				}
 				-image -
-				-selectimage {
-					set names [image names]
-					if {[string length ${names}]} {
-						return [CompleteFromList ${text} ${names}]
-					} else {
-						return [DisplayHints <image>]
-					}
-				}
+				-selectimage { return [CompleteFromImages ${text}] }
 
 				-label { return [DisplayHints <label>] }
 				-menu {
@@ -5664,7 +6520,7 @@ proc MenuObj {text start end line pos} {
 	set sub [Lindex ${line} 1]
 	set prev [PreviousWord ${start} ${line}]
 	if {1 == $pos} {
-		return ""; # let the fallback routines do the job.
+		return [TrySubCmds ${text} [Lindex ${line} 0]]
 	}
 	switch -- ${sub} {
 		activate -
@@ -5729,6 +6585,170 @@ proc MenuObj {text start end line pos} {
 		# ??? XXX
 		unpost {}
 	}
+}
+
+proc PhotoObj {text start end line pos} {
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+	set copy_opts { -from -to -shrink -zoom -subsample }
+	set read_opts { -from -to -shrink -format }
+	set write_opts { -from -format }
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} {
+				blank cget configure copy get put read redither write  
+			}]
+		}
+		2 {
+			switch -- ${sub} {
+				blank {}
+				cget {}
+				configure {}
+				redither {}
+				copy { return [CompleteFromImages ${text}] }
+				get { return [DisplayHints <x>] }
+				put { return [DisplayHints <data>] }
+				read {}
+				write {}
+			}
+		}
+		3 {
+			switch -- ${sub} {
+				blank {}
+				cget {}
+				configure {}
+				redither {}
+				copy { return [CompleteFromList ${text} ${copy_opts}] }
+				get { return [DisplayHints <y>] }
+				put { return [CompleteFromList ${text} -to] }
+				read { return [CompleteFromList ${text} ${read_opts}] }
+				write { return [CompleteFromList ${text} ${write_opts}] }
+			}
+		}
+		default {
+			switch -- ${sub} {
+				blank {}
+				cget {}
+				configure {}
+				redither {}
+				get {}
+				copy {
+					switch -- ${prev} {
+						-from -
+						-to { return [DisplayHints [list <x1 y1 x2 y2>]] }
+						-zoom -
+						-subsample { return [DisplayHints [list <x y>]] }
+						default {
+							return [CompleteFromList ${text} \
+							[RemoveUsedOptions ${line} ${copy_opts}]]
+						}
+					}
+				}
+				put {
+					switch -- ${prev} {
+						-to {
+							return [DisplayHints [list <x1 y1 x2 y2>]]
+						}
+					}
+				}
+				read {
+					switch -- ${prev} {
+						-from { return [DisplayHints [list <x1 y1 x2 y2>]] }
+						-to { return [DisplayHints [list <x y>]] }
+						-format { return [DisplayHints <formatName>] }
+						default {
+							return [CompleteFromList ${text} \
+							[RemoveUsedOptions ${line} ${read_opts}]]
+						}
+					}
+				}
+				write {
+					switch -- ${prev} {
+						-from { return [DisplayHints [list <x1 y1 x2 y2>]] }
+						-format { return [DisplayHints <formatName>] }
+						default {
+							return [CompleteFromList ${text} \
+							[RemoveUsedOptions ${line} ${write_opts}]]
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# proc RadiobuttonObj {text start end line pos} {
+# the fallback routines do the job pretty well.
+# }
+
+proc ScaleObj {text start end line pos} {
+
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+
+	switch -- ${pos} {
+		1 {
+			return [TrySubCmds ${text} [Lindex ${line} 0]]
+		}
+		2 {
+			switch -- ${sub} {
+				coords { return [DisplayHints ?value?] }
+				get { return [DisplayHints ?x?] }
+				identify { return [DisplayHints <x>] }
+				set { return [DisplayHints <value>] }
+			}
+		}
+		3 {
+			switch -- ${sub} {
+				get { return [DisplayHints ?y?] }
+				identify { return [DisplayHints <y>] }
+			}
+		}
+	}
+}
+
+proc ScrollbarObj {text start end line pos} {
+
+	set sub [Lindex ${line} 1]
+	set prev [PreviousWord ${start} ${line}]
+
+	# note that the `prefix moveto|scroll'
+	# construct is hard to complete.
+	#
+	switch -- ${pos} {
+		1 {
+			return [TrySubCmds ${text} [Lindex ${line} 0]]
+		}
+		2 {
+			switch -- ${sub} {
+				activate {
+					return [CompleteFromList ${text} {
+						arrow1 slider arrow2
+					}]
+				}
+
+				fraction -
+				identify { return [DisplayHints <x>] }
+				delta { return [DisplayHints <deltaX>] }
+				set { return [DisplayHints <first>] }
+			}
+		}
+		3 {
+			switch -- ${sub} {
+
+				fraction -
+				identify { return [DisplayHints <y>] }
+				delta { return [DisplayHints <deltaY>] }
+				set { return [DisplayHints <last>] }
+			}
+		}
+	}
+}
+
+proc TextObj {text start end line pos} {
+	# TODO ...
+	return [CompleteFromOptionsOrSubCmds \
+	${text} ${start} ${end} ${line} ${pos}]
 }
 
 }; # namespace tclreadline

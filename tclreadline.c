@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Fri Sep 17 23:34:52 1999 (joze)"
+    LAST MODIFICATION: "Sun Sep 19 22:41:52 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -378,7 +378,13 @@ TclReadlineCmd(
                 Tcl_WrongNumArgs(interp, 2, objv, "?terminal-name?");
                 return TCL_ERROR;
             } else if (3 == argc) {
-				rl_reset_terminal(Tcl_GetString(objv[2]));
+				/*
+				 * - tcl8.0 doesn't have Tcl_GetString()
+				 * - rl_reset_terminal() might be defined
+				 *   to take no arguments. This might produce
+				 *   a compiler warning.
+				 */
+				rl_reset_terminal(Tcl_GetStringFromObj(objv[2], -1));
             } else {
 				rl_cleanup_after_signal();
 			}

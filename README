@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Thu Sep 16 20:02:57 1999 (joze)"
+    LAST MODIFICATION: "Sun Sep 19 22:44:24 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -76,6 +76,12 @@ does the rest.
 
 4. History and Changes.
 -----------------------
+
+tclreadline-1.0.0: (Sep 1999)
+
+	note:
+	    - the script completer procs are written.
+		  this is `sort of a first usable release'.
 
 
 tclreadline-0.9.3: (Sep 1999)

@@ -1,8 +1,8 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" (C) 1999 by Johannes Zellner
-.\" FILE: "/disk01/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Thu Sep 16 18:10:41 1999 (joze)"
+.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Sun Sep 19 21:24:19 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -302,7 +302,7 @@ some lines in your .inputrc:
 For further documentation please refer to the gnu readline documentation.
 
 .SH "BUGS"
-probably.
+citing the readline manual:  It's too big and too slow.
 
 
 .SH "SEE ALSO"

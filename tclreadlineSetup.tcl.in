@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Thu Sep 16 20:36:37 1999 (joze)"
+# LAST MODIFICATION: "Sun Sep 19 22:42:13 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -28,8 +28,7 @@
 # ================================================================== 
 
 
-# package provide tclreadline @TCLREADLINE_VERSION@
-package provide tclreadline 0.9
+package provide tclreadline @TCLREADLINE_VERSION@
 
 proc unknown args {
 

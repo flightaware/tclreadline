@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/disk01/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Tue Sep 14 11:23:46 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Sun Sep 19 23:15:53 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -36,9 +36,9 @@ AC_REVISION($Revision$)
 AC_INIT(tclreadline.c)
 AC_CONFIG_HEADER(config.h)
 
-TCLREADLINE_MAJOR_VERSION=0
-TCLREADLINE_MINOR_VERSION=9
-TCLREADLINE_PATCHLEVEL=3
+TCLREADLINE_MAJOR_VERSION=1
+TCLREADLINE_MINOR_VERSION=0
+TCLREADLINE_PATCHLEVEL=0
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 TCLREADLINE_PATCHLEVEL_STR=${TCLREADLINE_VERSION}.${TCLREADLINE_PATCHLEVEL}
 VERSION=$TCLREADLINE_VERSION
@@ -345,34 +345,107 @@ fi
 
 
 # ---
-# check, if curses or termcap is already
-# linked with libreadline. (on newer Linux
-# systems it is.)
+# check for the terminal library.
+# This part was shamelessly stolen from
+# the vim-5.5 configure.in.
 # ---
 
-# TERM_LIB=""
-# AC_CHECK_LIB(readline, tputs, termcaps=yes, termcaps=no)
-termcaps=no
-if test "$termcaps" = "no"; then
-
-    # ---
-    # nope. tputs() is unresolved in libreadline, so
-    # check if we want libcurses or libtermcap.
-    # ---
-
-    AC_ARG_WITH(
-        termcap, 
-        [  --with-termcap          use termcap library instead of curses.],
-        TERM_LIB="termcap",
-        TERM_LIB="curses"
-    )
-    AC_CHECK_LIB($TERM_LIB, tputs, tputs_ok=yes, tputs_ok=no)
-    if test "$tputs_ok" = "no"; then
-        AC_MSG_ERROR(tputs() not found in lib$TERM_LIB.)
-    else
-        TERM_LIB=-l$TERM_LIB
-    fi
+olibs="$LIBS"
+AC_MSG_CHECKING(--with-tlib argument)
+AC_ARG_WITH(tlib, [  --with-tlib=library     terminal library to be used ],)
+if test -n "$with_tlib"; then
+	AC_MSG_RESULT($with_tlib)
+	LIBS="$LIBS -l$with_tlib"
+else
+	AC_MSG_RESULT([automatic terminal library selection])
+	dnl  Newer versions of ncurses are preferred over anything.
+	dnl  Older versions of ncurses have bugs, get a new one!
+	dnl  Digital Unix (OSF1) should use curses (Ronald Schild).
+	case "`uname -s 2>/dev/null`" in
+		OSF1) tlibs="ncurses curses termlib termcap";;
+		*)    tlibs="ncurses termlib termcap curses";;
+	esac
+	for libname in $tlibs; do
+		AC_CHECK_LIB($libname, tgetent,,)
+		if test "x$olibs" != "x$LIBS"; then
+			dnl It's possible that a library is found but it doesn't work
+			dnl e.g., shared library that cannot be found
+			dnl compile and run a test program to be sure
+			AC_TRY_RUN([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+main() {char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(0); }],
+			res="OK", res="FAIL", res="FAIL")
+			if test "$res" = "OK"; then
+			  break
+			fi
+			AC_MSG_RESULT($libname library is not usable)
+			LIBS="$olibs"
+		fi
+	done
 fi
+if test "x$olibs" != "x$LIBS"; then
+	AC_MSG_CHECKING(whether we talk terminfo)
+	AC_TRY_RUN([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+main()
+{char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(!strcmp(s==0 ? "" : s, "1")); }],
+	AC_MSG_RESULT([no -- we are in termcap land]),
+	AC_MSG_RESULT([yes -- terminfo spoken here]); AC_DEFINE(TERMINFO),
+	AC_MSG_ERROR(failed to compile test program.))
+else
+	AC_MSG_ERROR(none found. Please retry with the --with-tlib argument)
+fi
+
+AC_MSG_CHECKING(whether termcap.h contains ospeed)
+AC_TRY_LINK([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+			], [ospeed = 20000],
+	AC_MSG_RESULT(yes); AC_DEFINE(HAVE_OSPEED),
+	[AC_MSG_RESULT(no)
+	AC_MSG_CHECKING(whether ospeed can be extern)
+	AC_TRY_LINK([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+extern short ospeed;
+			], [ospeed = 20000],
+		AC_MSG_RESULT(yes); AC_DEFINE(OSPEED_EXTERN),
+		AC_MSG_RESULT(no))]
+)
+
+AC_MSG_CHECKING([whether termcap.h contains UP, BC and PC])
+AC_TRY_LINK([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+			], [if (UP == 0 && BC == 0) PC = 1],
+	AC_MSG_RESULT(yes); AC_DEFINE(HAVE_UP_BC_PC),
+	[AC_MSG_RESULT(no)
+	AC_MSG_CHECKING([whether UP, BC and PC can be extern])
+	AC_TRY_LINK([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+extern char *UP, *BC, PC;
+			], [if (UP == 0 && BC == 0) PC = 1],
+		AC_MSG_RESULT(yes); AC_DEFINE(UP_BC_PC_EXTERN),
+		AC_MSG_RESULT(no))]
+	)
+
+AC_MSG_CHECKING(whether tputs() uses outfuntype)
+AC_TRY_COMPILE([
+#ifdef HAVE_TERMCAP_H
+# include <termcap.h>
+#endif
+			], [extern int xx(); tputs("test", 1, (outfuntype)xx)],
+	AC_MSG_RESULT(yes); AC_DEFINE(HAVE_OUTFUNTYPE),
+	AC_MSG_RESULT(no))
 
 
 #--------------------------------------------------------------------
