@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Wed Sep 29 18:00:58 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Wed Sep 29 21:25:15 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -250,7 +250,7 @@ proc TryFromList {text lst {allow ""} {inhibit 0}} {
 # a space after a complete (single) match.
 #
 proc CompleteFromList {text lst {allow ""} {inhibit 0}} {
-	set result [TryFromList ${text} ${lst} ${allow} $inhibit]
+	set result [TryFromList ${text} ${lst} ${allow} ${inhibit}]
 	if {![llength ${result}]} {
 		Alert
 		# return [string trim [list ${text}] ${lst}"]
@@ -3591,15 +3591,33 @@ proc complete(trace) {text start end line pos mod} {
 		3 {
 			switch -- ${cmd} {
 				variable -
-				vdelete { return [CompleteFromList ${text} {r w u}] }
+				variable { return [CompleteFromList ${text} {r w u}] }
+				vdelete {
+					set var [PreviousWord ${start} ${line}]
+					set modes ""
+					foreach info [uplevel [info level] trace vinfo ${var}] {
+						lappend modes [lindex ${info} 0]
+					}
+					return [CompleteFromList ${text} ${modes}]
+				}
 			}
 		}
 		4 {
 			switch -- ${cmd} {
-				variable -
-				vdelete {
+				variable {
 					return [CompleteFromList ${text} \
 					[CommandCompletion ${text}]]
+				}
+				vdelete {
+					set var [Lindex ${line} 2]
+					set mode [PreviousWord ${start} ${line}]
+					set scripts ""
+					foreach info [uplevel [info level] trace vinfo ${var}] {
+						if {${mode} == [lindex ${info} 0]} {
+							lappend scripts [list [lindex ${info} 1]]
+						}
+					}
+					return [DisplayHints ${scripts}]
 				}
 			}
 		}
