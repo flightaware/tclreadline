@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Wed Sep  8 20:52:40 1999 (joze)"
+# LAST MODIFICATION: "Wed Sep  8 20:55:22 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -223,7 +223,7 @@ install-libraries: tclreadlineInit.tcl tclreadlineSetup.tcl \
             pkgIndex.tcl \
             tclreadlineConfig.sh\
         ; do \
-            $(INSTALL_DATA) $f $(LIBRARY_INSTALL_DIR) \
+            $(INSTALL_DATA) $$f $(LIBRARY_INSTALL_DIR) \
         ; done
 
 FORCE:
