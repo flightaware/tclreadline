@@ -1,7 +1,7 @@
-.TH tclreadline 1 "@TCLREADLINE_VERSION@" "Johannes Zellner"
+.TH tclreadline n "@TCLREADLINE_VERSION@" "Johannes Zellner"
 
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFIED: "Sun Feb 28 19:43:29 1999 (joze)"
+.\" LAST MODIFIED: "Mon Mar  1 09:49:08 1999 (joze)"
 .\" (C) 1999 by Johannes Zellner
 .\" Johannes.Zellner@physik.uni-karlsruhe.de
 .\" $Id$
@@ -112,6 +112,19 @@ loop. Both readline and X events are processed. Returns the
 writes the history to the \fIhistoryfile\fP. This command is called
 automatically from the internal routine ::tclreadline::Exit.
 
+.TP 5
+\fB::tclreadline::Print\fP [\fIyes / no\fP]
+turns on or off the default behavior of tclsh to print the result of
+every command. This is turned on by default, so it will just behave
+as the tclsh w/o tclreadline. Turning off might be useful, when reading
+binary data for example. If \fB::tclreadline::Print\fP is called w/o
+arguments, it just returns the current setting.
+
+.TP 5
+\fB::tclreadline::Loop\fP
+enter the tclreadline main loop. This command is typically called from
+the startup resource file (something .tclshrc, depending on the interpreter
+you use). \fB::tclreadline::Loop\fP will normally not return.
 
 .\".SH "EXAMPLES"
 
