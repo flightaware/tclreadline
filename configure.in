@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Sep 20 01:44:59 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Mon Sep 20 01:54:59 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -282,11 +282,11 @@ fi
 AC_ARG_WITH(readline-includes,
             [  --with-readline-includes=DIR
                           readline include files in DIR],
-            rl_includes=$withval, rl_includes=$prefix/include)
+            rl_includes=$withval, rl_includes="")
 
 AC_MSG_CHECKING([where to look for readline.h])
 READLINE_INCLUDE_DIR=""
-for dir in $rl_includes $prefix/include/readline /usr/include/readline /usr/include /usr/local/include/readline /usr/local/include; do
+for dir in $rl_includes /usr/local/include/readline /usr/local/include /usr/include/readline /usr/include ; do
     if test -r $dir/readline.h; then
         READLINE_INCLUDE_DIR=$dir
         break
@@ -311,7 +311,7 @@ fi
 AC_ARG_WITH(readline-library,
             [  --with-readline-library=DIR
                           readline library files in DIR],
-            rl_library=$withval, rl_library=$exec_prefix/lib)
+            rl_library=$withval, rl_library="")
 
 AC_MSG_CHECKING([where to look for libreadline$SHLIB_SUFFIX])
 READLINE_LIB_DIR=""
@@ -352,7 +352,7 @@ olibs=${LIBS}
 AC_ARG_WITH(tlib-library,
             [  --with-tlib-library=DIR
                           where to search for curses / termcap],
-            tlib_library=$withval, tlib_library=$exec_prefix/lib)
+            tlib_library=$withval, tlib_library="")
 
 AC_MSG_CHECKING([where to look for the terminal library])
 TERMLIB_DIR=""
