@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Mit, 20 Sep 2000 17:25:06 +0200 (joze)"
+dnl LAST MODIFICATION: "Mit, 27 Sep 2000 20:44:53 +0200 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
@@ -27,7 +27,7 @@ AC_SUBST(PATCHLEVEL)
 AC_SUBST(VERSION)
 AC_SUBST(PATCHLEVEL_STR)
 
-AM_INIT_AUTOMAKE(tclreadline, $VERSION)
+AM_INIT_AUTOMAKE(tclreadline, $PATCHLEVEL_STR)
 
 
 AC_PROG_MAKE_SET
@@ -40,13 +40,6 @@ AC_EXEEXT
 dnl AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
-
-if ${CONFIG_SHELL} ./libtool --features | grep "enable static" >/dev/null; then
-  STATIC=-static
-else
-  STATIC=
-fi
-AC_SUBST(STATIC)
 
 AC_C_CONST
 AC_PROG_INSTALL
