@@ -1,20 +1,38 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
 
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
+ /* ==================================================================
+   
+    FILE: "/home/joze/src/tclreadline/config.h.in.bak"
+    LAST MODIFICATION: "Thu, 23 Mar 2000 20:53:11 +0100 (joze)"
+    (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
+    $Id$
+    vim:set ft=c:
+    ---
 
-/* Name of package */
-#undef PACKAGE
+    tclreadline -- gnu readline for tcl
+    Copyright (C) 1998 - 2000 Johannes Zellner
 
-/* Version number of package */
-#undef VERSION
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-/*  Define if we have libreadline.  */
-#undef READLINE_LIBRARY
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-/*  Define if _rl_executing_macro is resolved in libreadline.  */
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+    johannes@zellner.org
+    http://www.zellner.org/tclreadline/
+
+    ================================================================== */  
+
+
 #undef EXECUTING_MACRO_HACK
 
-/*  Define if rl_cleanup_after_signal is resolved in libreadline.  */
 #undef CLEANUP_AFER_SIGNAL
 
+#undef READLINE_LIBRARY
