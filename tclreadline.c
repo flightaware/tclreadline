@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/disk01/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Thu Sep 16 15:43:29 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Fri Sep 17 23:34:52 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
