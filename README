@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Sat Aug 28 23:30:56 1999 (joze)"
+    LAST MODIFICATION: "Sun Aug 29 01:00:01 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -90,6 +90,10 @@ tclreadline-0.9.2: (Aug 1999)
     fixes:
         - after having at least one character typed, X events
           were not processed any more until pressing <return>.
+        - catching `tclreadline::readline read' errors
+          in tclreadline::Loop. This was necessary, because
+          the evaluation of the script completer can return
+          an error.
 
 
 tclreadline-0.9.1: (Aug 1999)

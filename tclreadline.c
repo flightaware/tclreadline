@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sat Aug 28 23:56:10 1999 (joze)"
+    LAST MODIFICATION: "Sun Aug 29 15:04:07 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -28,7 +28,6 @@
 
     ================================================================== */  
 
-
 #include <tcl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +36,7 @@
 #include <readline.h>
 #include <history.h>
 
-#include <tclreadline.h>
+#include "tclreadline.h"
 
 #define MALLOC(size) Tcl_Alloc((int) size)
 #define FREE(ptr) if (ptr) { Tcl_Free((char*) ptr); ptr = 0; }
@@ -70,6 +69,8 @@ void TclReadlineDataAvailableHandler(ClientData clientData, int mask);
 void TclReadlineLineCompleteHandler(char* ptr);
 int Tclreadline_SafeInit(Tcl_Interp* interp);
 int Tclreadline_Init(Tcl_Interp* interp);
+char *TclReadlineFilenameQuotingFunction(
+    char *text, int match_type, char* quote_ptr);
 int TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
 int blank_line(char* str);
 char** TclReadlineCompletion(char* text, int start, int end);
@@ -175,6 +176,13 @@ TclReadlineCmd(
         Tcl_CreateFileHandler(0, TCL_READABLE,
                 TclReadlineDataAvailableHandler, (ClientData) NULL);
 
+        /**
+         * Main Loop.
+         * XXX each modification of the global variables
+         *     which terminates the main loop must call
+         *     rl_callback_handler_remove() to leave
+         *     readline in a defined state.          XXX
+         */
         while (LINE_PENDING == tclrl_line_complete
             && TCL_OK == tclrl_state && !rl_done) {
             Tcl_DoOneEvent(0);
@@ -182,8 +190,10 @@ TclReadlineCmd(
             rl_inhibit_completion = 0;
             */
         }
-
         Tcl_DeleteFileHandler(0);
+
+        if (TCL_OK != tclrl_state)
+            return tclrl_state; /* !! */
 
 	if ((LINE_EOF == tclrl_line_complete) && tclrl_eof_string) {
 	    Tcl_Eval(interp, tclrl_eof_string);
@@ -205,7 +215,7 @@ TclReadlineCmd(
         else if (status == -1) {
             Tcl_AppendResult
                 (interp, "error in history expansion\n", (char*) NULL);
-            return TCL_ERROR;
+            return tclrl_state;
         }
         /**
          * TODO: status == 2 ...
@@ -324,7 +334,7 @@ TclReadlineLineCompleteHandler(char* ptr)
 #else
     if (ptr && *ptr) {
         tclrl_line_complete = 1;
-        rl_callback_handler_remove ();
+        rl_callback_handler_remove();
         tclrl_line = ptr;
     }
 #endif
@@ -343,27 +353,85 @@ Tclreadline_Init(Tcl_Interp *interp)
     Tcl_CreateCommand(interp, "::tclreadline::readline", TclReadlineCmd,
 	    (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
     tclrl_interp = interp;
-    status = Tcl_LinkVar
-        (interp, "::tclreadline::historyLength",
-         (char*) &tclrl_history_length, TCL_LINK_INT);
-    if (TCL_OK != status)
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::historyLength",
+                (char*) &tclrl_history_length, TCL_LINK_INT)))
         return status;
-    return Tcl_PkgProvide(interp, "tclreadline", TCLREADLINE_VERSION);
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::library",
+         (char*) &TCLRL_LIBRARY, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+        return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::version",
+         (char*) &TCLRL_VERSION, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+        return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::patchLevel",
+         (char*) &TCLRL_PATCHLEVEL, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+        return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_library",
+         (char*) &TCLRL_LIBRARY, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+        return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_version",
+         (char*) &TCLRL_VERSION, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+        return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_patchLevel",
+         (char*) &TCLRL_PATCHLEVEL, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+        return status;
+    return Tcl_PkgProvide(interp, "tclreadline", TCLRL_VERSION);
 }
+
+#if 0
+char *
+TclReadlineFilenameQuotingFunction
+(char *filename, int match_type, char* quote_ptr)
+{
+    char *res = (char*) malloc(sizeof(char) * (strlen(filename) + 2));
+    int i = 0;
+    fprintf (stderr, "(TclReadlineFilenameQuotingFunction) \n");
+    if (quote_ptr && *quote_ptr) {
+        *res = *quote_ptr;                     /* leading quote */
+        i++;
+    }
+    strcpy (res + i, filename);              /* name          */
+#if 0
+    fprintf (stderr, "(Tclreadline_Init) filename=|%s|\n", filename);
+    fprintf (stderr, "(Tclreadline_Init) *quote_ptr=|%c|\n", *quote_ptr);
+#endif
+    if (quote_ptr && '{' == *quote_ptr) {
+        *quote_ptr = '}';
+    }
+    return res;
+
+#if 0
+    switch (match_type) {
+        case SINGLE_MATCH:
+            break;
+        default:
+    }
+#endif
+}
+#endif
 
 int
 TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 {
     rl_readline_name = "tclreadline";
-    /* rl_special_prefixes = "${\""; */
-    rl_special_prefixes = "${";
+    rl_special_prefixes = "${\"";
     /**
      * default is " \t\n\"\\'`@$><=;|&{("
-     * removed "{("
-     * added "[]}"
+     * removed "(" <-- arrays
+     * removed "{" <-- `${' variables 
+     * added "[]"
      */
-    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&[]}";
-    /* rl_completer_quote_characters = "\""; */
+    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&[]";
+    rl_completer_quote_characters = "\"";
+    /*
+    rl_filename_quote_characters
+    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    rl_filename_quoting_function
+        = (CPFunction*) TclReadlineFilenameQuotingFunction;
+    */
+    /*
+    rl_filename_quoting_desired = 1;
+    */
 
     using_history();
     if (!tclrl_eof_string)
@@ -470,11 +538,12 @@ TclReadlineCompletion(char* text, int start, int end)
         FREE(quoted_text);
         FREE(quoted_rl_line_buffer);
         if (TCL_OK != tclrl_state) {
-            fprintf(stderr, "%s\n", Tcl_GetStringResult(tclrl_interp));
+            rl_callback_handler_remove();
+            Tcl_AppendResult (tclrl_interp, " `", tclrl_custom_completer,
+                " \"", quoted_text, "\" ", start_s, " ", end_s,
+                " \"", quoted_rl_line_buffer, "\"' failed.", (char*) NULL);
 #if 0
-            Tcl_AppendResult (tclrl_interp, "`", tclrl_custom_completer,
-                " {", text, "} ", start_s, " ", end_s,
-                " {", rl_line_buffer, "}' failed.", (char*) NULL);
+            fprintf(stderr, "\n|%s|\n", Tcl_GetStringResult(tclrl_interp));
 #endif
             return matches;
         }

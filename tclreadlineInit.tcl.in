@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
-# LAST MODIFICATION: "Sun Aug 29 00:03:22 1999 (joze)"
+# LAST MODIFICATION: "Sun Aug 29 08:11:24 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -35,23 +35,6 @@ namespace eval tclreadline:: {
 
 proc ::tclreadline::Init {} {
     
-    global tclreadline_version
-    global tclreadline_library
-    global tclreadline_patchLevel
-
-    variable version
-    variable library
-    variable patchLevel
-    
-    set tclreadline_version @TCLREADLINE_VERSION@
-    set version @TCLREADLINE_VERSION@
-    set tclreadline_library @TCLREADLINE_LIBRARY@
-    set library @TCLREADLINE_LIBRARY@
-    # NOTE, that tclreadline_patchLevel is the complete patchlevel string.
-    #
-    set tclreadline_patchLevel @TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@
-    set patchLevel @TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@
-
     if [catch {load @TCLREADLINE_LIBRARY@/@TCLREADLINE_LIB_FILE@} msg] {
         puts stderr $msg
         exit 2

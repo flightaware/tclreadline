@@ -2,7 +2,7 @@
 
 .\" (C) 1999 by Johannes Zellner
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Sat Aug 28 23:38:44 1999 (joze)"
+.\" LAST MODIFICATION: "Sun Aug 29 01:14:06 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -169,6 +169,8 @@ This command has to be called before any other tclreadline commands.
 prints the \fIprompt\fP to stdout and enters the tclreadline event
 loop. Both readline and X events are processed. Returns the
 (eventually history-expanded) input string.
+\fBtclreadline::readline read\fP rises an error, if an
+error occurs while evaluating a script completer.
 
 .TP 5
 \fB::tclreadline::readline write\fP \fIhistoryfile\fP

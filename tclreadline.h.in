@@ -1,10 +1,11 @@
 
  /* ==================================================================
    
-    FILE: "/diska/home/joze/src/tclreadline/tclreadline.h.in"
-    LAST MODIFICATION: "Wed Aug 25 16:25:25 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.h.in"
+    LAST MODIFICATION: "Sun Aug 29 08:07:04 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
+    vim:set ft=c:
     ---
 
     tclreadline -- gnu readline for tcl
@@ -29,12 +30,12 @@
 
     ================================================================== */  
 
-static char *TCLREADLINE_VERSION = "@TCLREADLINE_VERSION@";
+static char *TCLRL_VERSION = "@TCLREADLINE_VERSION@";
+
+static char *TCLRL_LIBRARY = "@TCLREADLINE_LIBRARY@";
 
 /**
  * NOTE, that PATCHLEVEL is the complete version string.
- * (PATCHLEVEL is not really used here).
  */
-static char *TCLREADLINE_PATCHLEVEL
-    = "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@";
+static char *TCLRL_PATCHLEVEL = "@TCLREADLINE_PATCHLEVEL_STR@";
 

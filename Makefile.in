@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/krispc6/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Wed Aug 25 17:03:17 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Sun Aug 29 08:23:45 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -256,8 +256,8 @@ tclreadline.o:	$(TOP_DIR)/tclreadline.c Makefile
 ctags:
 	ctags -R
 
-tcltags: ctags $(TCLFILES)
-	tcltags -a $(TCLFILES)
+tcltags: ctags tclreadlineInit.tcl.in tclreadlineSetup.tcl.in
+	tcltags -a tclreadlineInit.tcl.in tclreadlineSetup.tcl.in
 
 vimtags: tcltags
 	vimtags
