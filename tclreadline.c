@@ -1,7 +1,7 @@
 
  /* ==================================================================
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sat, 08 Jul 2000 21:25:15 +0200 (joze)"
+    LAST MODIFICATION: "Son, 27 Aug 2000 16:11:02 +0200 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -201,7 +201,7 @@ TclReadlineQuote(char* text, char* quotechars)
 static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 			  Tcl_Obj *CONST objv[])
 {
-    int i, obj_idx, status;
+    int obj_idx, status;
 
     static char *subCmds[] = {
 	"read", "initialize", "write", "add", "complete",

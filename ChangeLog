@@ -1,4 +1,17 @@
 
+2000-08-27  Johannes Zellner <johannes@zellner.org>
+
+    * added Mark to AUTHORS :)
+
+2000-08-27  Mark Patton <mpatton@jhu.edu>
+
+    * converted tclreadline::readline to be an object
+    command. This was the simplest way to fix the
+    Tcl_Obj mem leak.
+
+    * added the command readline text and readline update
+    that retrieve the current input and redraw it respecively.
+
 2000-07-27  Johannes Zellner <johannes@zellner.org>
 
      * configure.in: changed a == to = in a sh test
