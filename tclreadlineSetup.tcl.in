@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Mon Sep  6 08:50:52 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep  6 11:21:53 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -1023,7 +1023,6 @@ proc InitTclCmds {} {
         "append varName ?value value ...?"
         "array option arrayName ?arg ...?"
         "bgerror"
-        "binary option ?arg arg ...?"
         "break"
         "catch command ?varName?"
         "cd"
@@ -1137,10 +1136,10 @@ proc InitTkCmds {} {
 # -------------------------------------
 
 proc complete(append) {text start end line pos mod} {
-    if {1 == $pos} {
-        return [VarCompletion ${text}]
+    switch -- $pos {
+        1 { return [VarCompletion ${text}] }
+        default { return [Menu ?value?] }
     }
-    return ""
 }
 
 proc complete(if) {text start end line pos mod} {
@@ -1229,21 +1228,30 @@ proc complete(array) {text start end line pos mod} {
 }
 
 proc complete(binary) {text start end line pos mod} {
-    if {1 == $pos} {
-        set cmds {
-            format scan
+    set cmd [lindex $line 1]
+    switch -- $pos {
+        1 {
+            return [AttemptFromList $text {format scan}]
         }
-        return [AttemptFromList $text $cmds]
-# 
-#     } elseif {2 == $pos} {
-#         set cmd [lindex $line 1]
-#         switch -- $cmd {
-#             format -
-#             scan -
-#         }
-# 
+        2 {
+            switch -- $cmd {
+                format - { return [Menu formatString] }
+                scan - { return [Menu string] }
+            }
+        }
+        3 {
+            switch -- $cmd {
+                format - { return [Menu ?arg?] }
+                scan - { return [Menu formatString] }
+            }
+        }
+        default {
+            switch -- $cmd {
+                format - { return [Menu ?arg?] }
+                scan - { return [Menu ?varName?] }
+            }
+        }
     }
-    return ""
 }
 
 proc complete(clock) {text start end line pos mod} {
