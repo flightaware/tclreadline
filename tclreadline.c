@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/disk01/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Mon Sep 20 01:23:39 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Mon Sep 20 01:35:18 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -377,7 +377,8 @@ TclReadlineCmd(
             if (argc > 3) {
                 Tcl_WrongNumArgs(interp, 2, objv, "?terminal-name?");
                 return TCL_ERROR;
-            } else if (3 == argc) {
+			}
+            if (3 == argc) {
 				/*
 				 * - tcl8.0 doesn't have Tcl_GetString()
 				 * - rl_reset_terminal() might be defined
@@ -385,8 +386,10 @@ TclReadlineCmd(
 				 *   a compiler warning.
 				 */
 				rl_reset_terminal(Tcl_GetStringFromObj(objv[2], (int*) NULL));
+#ifdef CLEANUP_AFER_SIGNAL
             } else {
 				rl_cleanup_after_signal();
+#endif
 			}
             break;
 

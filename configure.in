@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/disk01/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Sep 20 01:20:59 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Mon Sep 20 01:44:59 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -378,7 +378,7 @@ main() {char *s; s=(char *)tgoto("%p1%d", 0, 1); exit(0); }],
 					TERMLIB_DIR=-L${dir}
 					if test "`(uname) 2>/dev/null`" = SunOS &&
 						uname -r | grep '^5' >/dev/null; then
-						TERMLIB_DIR="$TERMLIB_DIR -R ${dir}"
+						TERMLIB_DIR_R="${TERMLIB_DIR} -R${dir}"
 					fi
 					TERMLIB=-l${tlib}
 					break
@@ -431,6 +431,18 @@ int main () {
     return 0;
 }],
     AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(EXECUTING_MACRO_HACK, 1),
+    AC_MSG_RESULT(no))
+
+# check for readline's rl_cleanup_after_signal
+
+AC_MSG_CHECKING([for rl_cleanup_after_signal() in -lreadline])
+AC_TRY_LINK(,[
+extern void rl_cleanup_after_signal();
+int main () {
+    rl_cleanup_after_signal();
+    return 0;
+}],
+    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(CLEANUP_AFER_SIGNAL, 1),
     AC_MSG_RESULT(no))
 
 

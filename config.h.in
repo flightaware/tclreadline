@@ -1,8 +1,8 @@
 
  /* ==================================================================
    
-    FILE: "/diska/home/joze/src/tclreadline/config.h.in"
-    LAST MODIFICATION: "Mon Sep 13 17:51:29 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/config.h.in"
+    LAST MODIFICATION: "Mon Sep 20 01:31:18 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     vim:set ft=c:
@@ -32,3 +32,5 @@
 
 
 #undef EXECUTING_MACRO_HACK
+
+#undef CLEANUP_AFER_SIGNAL
