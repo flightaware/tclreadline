@@ -1,6 +1,6 @@
 #!/bin/sh
-# FILE: "/home/joze/src/tclreadline/autogen.sh"
-# LAST MODIFICATION: "Sat, 01 Jul 2000 17:31:39 +0200 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/autogen.sh"
+# LAST MODIFICATION: "Sun, 02 Jul 2000 00:20:33 +0200 (joze)"
 # (C) 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 
@@ -11,7 +11,7 @@ ORIGDIR=`pwd`
 cd $srcdir
 PROJECT=tclreadline
 TEST_TYPE=-f
-FILE=tclreadline.h
+FILE=tclreadline.c
 
 DIE=0
 
