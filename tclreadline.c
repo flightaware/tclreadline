@@ -1,7 +1,7 @@
 
  /* ==================================================================
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sat, 01 Jul 2000 23:47:30 +0200 (joze)"
+    LAST MODIFICATION: "Sat, 08 Jul 2000 21:25:15 +0200 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -665,8 +665,7 @@ TclReadlineCompletion(char* text, int start, int end)
 	int objc;
 	int state;
 	char* quoted_text = TclReadlineQuote(text, "$[]{}\"");
-	char* quoted_rl_line_buffer
-	= TclReadlineQuote(rl_line_buffer, "$[]{}\"");
+	char* quoted_rl_line_buffer = TclReadlineQuote(rl_line_buffer, "$[]{}\"");
 	sprintf(start_s, "%d", start);
 	sprintf(end_s, "%d", end);
 	Tcl_ResetResult(tclrl_interp); /* clear result space */
