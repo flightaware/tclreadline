@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Tue Aug 24 03:04:10 1999 (joze)"
+# LAST MODIFICATION: "Wed Aug 25 02:00:47 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -281,7 +281,9 @@ proc tclreadline::ScriptCompleter {part start end line} {
             [tclreadline::ScriptCompleter $part $new_start $new_end $new_line]
     } elseif {0 == [set pos [tclreadline::PartPosition $part $start $end $line]]} {
         # puts stderr "(PartPosition) $part $start $end $line"
-        set matches [array names known_cmds "[string trim ${part}]*"]
+        # set matches [array names known_cmds "[string trim ${part}]*"]
+        set cmd "[string trim ${part}]*"
+        set matches "[info commands $cmd] [info proc $cmd]"
         # puts matches=|$matches|
         if {1 == [llength $matches]} { ; # unique match
             return $matches
