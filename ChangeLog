@@ -1,3 +1,6 @@
+2001-01-10  Johannes Zellner  <johannes@zellner.org>
+
+	* configure.in: changed the check for readline/readline.h / readline.h
 
 2000-12-08  Johannes Zellner  <johannes@zellner.org>
 

@@ -1,7 +1,7 @@
 #!/bin/sh
-# FILE: "/disk01/home/joze/src/tclreadline/autogen.sh"
-# LAST MODIFICATION: "Sun, 02 Jul 2000 00:20:33 +0200 (joze)"
-# (C) 2000 by Johannes Zellner, <johannes@zellner.org>
+# FILE: "/home/joze/src/tclreadline/autogen.sh"
+# LAST MODIFICATION: "Mit, 10 Jan 2001 06:28:43 +0100 (joze)"
+# (C) 2000 - 2001 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 
 srcdir=`dirname $0`
