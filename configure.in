@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Aug 23 16:45:33 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Mon Aug 23 21:54:31 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -340,27 +340,13 @@ fi
 
 
 
-#--------------------------------------------------------------------
-#   Check for appropriate version of gnu readline
-#   (older versions of gnu readline don't have
-#    rl_callback_read_char ()).
-#--------------------------------------------------------------------
-
-save=$LIBS
-LIBS="-L$READLINE_LIB_DIR -lreadline"
-alternate=no
-AC_CHECK_LIB(readline, rl_callback_read_char, alternate=yes, alternate=no)
-if test "$alternate" = "no"; then
-    AC_MSG_ERROR(alternate interface not supported by this readline version.)
-fi
-
-
 # ---
 # check, if curses or termcap is already
 # linked with libreadline. (on newer Linux
 # systems it is.)
 # ---
 
+TERM_LIB=""
 AC_CHECK_LIB(readline, tputs, termcaps=yes, termcaps=no)
 if test "$termcaps" = "no"; then
 
@@ -382,7 +368,24 @@ if test "$termcaps" = "no"; then
         TERM_LIB=-l$TERM_LIB
     fi
 fi
-# ===========================================
+
+
+#--------------------------------------------------------------------
+#   Check for appropriate version of gnu readline
+#   (older versions of gnu readline don't have
+#    rl_callback_read_char ()).
+#--------------------------------------------------------------------
+
+save=$LIBS
+LIBS="-L$READLINE_LIB_DIR -lreadline"
+alternate=no
+AC_CHECK_LIB(
+    readline, rl_callback_read_char, alternate=yes, alternate=no, $TERM_LIB
+)
+if test "$alternate" = "no"; then
+    AC_MSG_ERROR(alternate interface not supported by this readline version.)
+fi
+
 
 AC_MSG_CHECKING([for the readline version number])
 AC_TRY_RUN([
