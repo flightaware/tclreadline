@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/krispc6/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Sat May  8 14:03:47 1999 (joze)"
+# LAST MODIFICATION: "Mon May 10 13:01:16 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -262,7 +262,9 @@ proc ::tclreadline::Glob {string} {
             lappend commandstring $replace
         }
     }
-    return $commandstring
+    # return $commandstring
+    # Christian Krone <krischan@sql.de> proposed
+    return [eval concat $commandstring]
 }
 
 

@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/krispc6/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Sat May  8 15:10:15 1999 (joze)"
+# LAST MODIFICATION: "Mon May 10 13:10:22 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -164,6 +164,7 @@ SOURCES = \
     tclreadlineInit.tcl.in \
     tclreadlineSetup.tcl.in \
     tclreadline.n.in \
+    pkgIndex.tcl \
     sample.tclshrc
 
 AUXILIARY = \
