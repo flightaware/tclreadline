@@ -1,0 +1,17 @@
+#!/usr/local/bin/tclsh
+#
+# FILE: "/krispc6/home/joze/src/tclreadline/sample.tclshrc"
+# LAST MODIFICATION: "Sat May  8 14:02:19 1999 (joze)"
+# (C) 1999 by Johannes Zellner
+# johannes@zellner.org
+# $Id$
+
+
+
+if {$tcl_interactive} {
+    package require tclreadline
+    namespace import ::tclreadline::Print
+#    ::tclreadline::Print no
+    ::tclreadline::Loop
+}
+

@@ -1,10 +1,9 @@
 
  /* ==================================================================
    
-    FILE: "/home/joze/src/tclreadline/tclreadline.h.in"
-    LAST MODIFIED: "Sun Feb 28 15:04:08 1999 (joze)"
-    (C) 1998, 1999 by Johannes Zellner
-    Johannes.Zellner@physik.uni-karlsruhe.de
+    FILE: "/krispc6/home/joze/src/tclreadline/tclreadline.h.in"
+    LAST MODIFICATION: "Sat May  8 14:03:02 1999 (joze)"
+    (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
 
@@ -25,8 +24,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-    Johannes.Zellner@physik.uni-karlsruhe.de
-    http://krisal.physik.uni-karlsruhe.de/~joze
+    johannes@zellner.org
+    http://www.zellner.org/tclreadline/
 
     ================================================================== */  
 

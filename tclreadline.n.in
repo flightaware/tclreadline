@@ -1,9 +1,9 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@" "Johannes Zellner"
 
-.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFIED: "Mon Mar  1 13:38:15 1999 (joze)"
 .\" (C) 1999 by Johannes Zellner
-.\" Johannes.Zellner@physik.uni-karlsruhe.de
+.\" FILE: "/krispc6/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Sat May  8 14:07:46 1999 (joze)"
+.\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
 .\"
@@ -24,8 +24,7 @@
 .\" along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 .\"
-.\" Johannes.Zellner@physik.uni-karlsruhe.de
-.\" http://krisal.physik.uni-karlsruhe.de/~joze
+.\" <johannes@zellner.org>, http://www.zellner.org/tclreadline/
 
 
 .SH NAME
@@ -194,14 +193,14 @@ The official \fBtclreadline\fP web site at:
 
 .PP
 .RS 4
-http://krisal.physik.uni-karlsruhe.de/tclreadline/index.html
+http://www.zellner.org/tclreadline/
 .RE
 
 
 .SH AUTHOR(S)
 Johannes Zellner
 .br
-<Johannes.Zellner@physik.uni-karlsruhe.de>
+<johannes@zellner.org>
 .br
 If you want to be listed here, you have to contribute to the code :-)
 (see below).

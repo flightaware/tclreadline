@@ -1,9 +1,9 @@
 
  /* ==================================================================
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFIED: "Sun Feb 28 15:01:31 1999 (joze)"
-    (C) 1998, 1999 by Johannes Zellner
-    Johannes.Zellner@physik.uni-karlsruhe.de
+
+    FILE: "/krispc6/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Sat May  8 16:20:59 1999 (joze)"
+    (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
 
@@ -24,8 +24,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-    Johannes.Zellner@physik.uni-karlsruhe.de
-    http://krisal.physik.uni-karlsruhe.de/~joze
+    <johannes@zellner.org>, http://www.zellner.org/tclreadline/
+
     ================================================================== */  
 
 
@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define READLINE_LIBRARY
 #include <readline.h>
 #include <history.h>
 
@@ -41,15 +42,17 @@
 #define MALLOC(size) Tcl_Alloc ((int) size)
 #define FREE(ptr) if (ptr) Tcl_Free ((char *) ptr)
 
-#define _CMD_SET	(1 << 0)
-#define _CMD_GET	(1 << 1)
-#define _CMD_SUB_GET	(1 << 2)
+enum {
+    _CMD_SET     = (1 << 0),
+    _CMD_GET     = (1 << 1),
+    _CMD_SUB_GET = (1 << 2)
+};
 
 
 typedef struct cmds_t {
-    struct cmds_t *prev;
-    char **cmd;
-    struct cmds_t *next;
+    struct cmds_t  *prev;
+    char          **cmd;
+    struct cmds_t  *next;
 } cmds_t;
 
 
@@ -76,25 +79,22 @@ do {                    \
 } while (0)
 
 
-
-
-
 /*
  * forward declarations.
  */
-int	TclReadlineCmd	(ClientData clientData, Tcl_Interp *interp,
+int    TclReadlineCmd	(ClientData clientData, Tcl_Interp *interp,
                          int argc, char **argv);
-void	TclReadlineDataAvailableHandler	(ClientData clientData, int mask);
-void	TclReadlineLineCompleteHandler	(char *ptr);
-int	Tclreadline_SafeInit	(Tcl_Interp *interp);
-int	Tclreadline_Init	(Tcl_Interp *interp);
-char	*TclReadlineInitialize	(char *historyfile);
-char	**TclReadlineCompletion	(char *text, int start, int end);
-char	*TclReadline0generator	(char *text, int state);
-char	*TclReadline1generator	(char *text, int state);
-char	*TclReadlineKnownCommands	(char *text, int state, int mode);
-int	TclReadlineEventHook	(void);
-int	TclReadlineParse	(char **args, int maxargs, char *buf);
+void   TclReadlineDataAvailableHandler	(ClientData clientData, int mask);
+void   TclReadlineLineCompleteHandler	(char *ptr);
+int    Tclreadline_SafeInit	(Tcl_Interp *interp);
+int    Tclreadline_Init	(Tcl_Interp *interp);
+char*  TclReadlineInitialize	(char *historyfile);
+char** TclReadlineCompletion	(char *text, int start, int end);
+char*  TclReadline0generator	(char *text, int state);
+char*  TclReadline1generator	(char *text, int state);
+char*  TclReadlineKnownCommands	(char *text, int state, int mode);
+int    TclReadlineEventHook	(void);
+int    TclReadlineParse	(char **args, int maxargs, char *buf);
 
 
 static int line_complete = 0;
@@ -126,7 +126,6 @@ int TclReadlineCmd (clientData, interp, argc, argv)
 
     c = argv[1][0];
     length = strlen(argv[1]);
-
 
 
     if (c == 'r'  && strncmp (argv[1], "read", length) == 0) {
@@ -230,10 +229,8 @@ int Tclreadline_SafeInit (Tcl_Interp *interp)
 
 int Tclreadline_Init (Tcl_Interp *interp)
 {
-    
     Tcl_CreateCommand (interp, "::tclreadline::readline", TclReadlineCmd,
 	    (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-
     return (Tcl_PkgProvide (interp, "tclreadline", TCLREADLINE_VERSION));
 }
 
@@ -420,17 +417,9 @@ int TclReadlineParse (char **args, int maxargs, char *buf)
         if (!(*buf)) /* don't count the terminating NULL */
             break;
 
-        /* -----------------
-         * Save the argument.
-         * -----------------
-         */
         *args++ = buf;
         nr++;
 
-        /* ----------------------
-         * Skip over the argument.
-         * ----------------------
-         */
         while ((*buf!='\0') && (*buf!=' ') && (*buf!='\t') && (*buf!='\n'))
             buf++;
     }
