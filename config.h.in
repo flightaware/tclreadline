@@ -1,15 +1,15 @@
 
  /* ==================================================================
    
-    FILE: "/home/joze/src/tclreadline/config.h.in.bak"
-    LAST MODIFICATION: "Thu, 23 Mar 2000 20:53:11 +0100 (joze)"
+    FILE: "/home/joze/src/tclreadline/config.h.in"
+    LAST MODIFICATION: "Thu, 23 Mar 2000 21:16:34 +0100 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     vim:set ft=c:
     ---
 
     tclreadline -- gnu readline for tcl
-    Copyright (C) 1998 - 2000 Johannes Zellner
+    Copyright (C) 1998 - 2000 by Johannes Zellner
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License

@@ -1,12 +1,12 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Thu, 23 Mar 2000 20:46:59 +0100 (joze)"
+dnl LAST MODIFICATION: "Thu, 23 Mar 2000 23:26:48 +0100 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
 dnl
 dnl tclreadline -- gnu readline for tcl
-dnl Copyright (C) 1998 - 2000 Johannes Zellner
+dnl Copyright (C) 1998 - 2000 by Johannes Zellner
 dnl
 dnl This program is free software; you can redistribute it and/or
 dnl modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@ dnl	to configure the system for the local environment.
 
 
 AC_INIT(tclreadline.c)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADER(config.h)
 AC_PREREQ(2.13)
 AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
@@ -44,8 +44,6 @@ TCLREADLINE_PATCHLEVEL=0
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 TCLREADLINE_PATCHLEVEL_STR=${TCLREADLINE_VERSION}.${TCLREADLINE_PATCHLEVEL}
 VERSION=$TCLREADLINE_VERSION
-
-AM_INIT_AUTOMAKE(libtclreadline, $VERSION)
 
 dnl AM_INIT_AUTOMAKE(tclreadline, $VERSION)
 
@@ -93,7 +91,7 @@ fi
 tk_search="no"
 AC_ARG_WITH(
     tk,
-    [  --with-tk=DIR           where to look for tclConfig.sh],
+    [  --with-tk=DIR           where to look for tkConfig.sh],
     tk_search=$withval,
     tk_search="yes"
 )
@@ -101,7 +99,7 @@ AC_ARG_WITH(
 if test "$tk_search" != "no"; then
     AC_MSG_CHECKING([which tkConfig.sh to use])
     TK_LIB_DIR=""
-    for dir in $tk_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
+    for dir in $tk_search $TCL_LIB_DIR /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
 	if test -r $dir/tkConfig.sh; then
 	    TK_LIB_DIR=$dir
 	    break
@@ -171,7 +169,6 @@ TCLREADLINE_LIBRARY=${exec_prefix}/lib/tclreadline$TCLREADLINE_VERSION
 #   Check for some programs here.
 # -----------------------------------------------------------------------
 
-AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_LN_S
@@ -204,32 +201,35 @@ fi
 AC_PROG_CPP
 
 
-
-#--------------------------------------------------------------------
-#   If this is gcc, add some extra compile flags.
-#--------------------------------------------------------------------
-
-AC_MSG_CHECKING([whether C compiler is gcc])
-AC_CACHE_VAL(tclreadline_cv_prog_gcc,
-    AC_EGREP_CPP(_cc_is_gcc_, [
-#ifdef __GNUC__
-_cc_is_gcc_
-#endif
-],      [tclreadline_cv_prog_gcc=yes], [tclreadline_cv_prog_gcc=no]))
-AC_MSG_RESULT([$tclreadline_cv_prog_gcc])
-
 if test -z "$CFLAGS" ; then
     CFLAGS=$TCL_CFLAGS_OPTIMIZE
 fi
-if test "$tclreadline_cv_prog_gcc" = "yes" ; then
-    CFLAGS="$CFLAGS -Wshadow -Wtraditional -Wall"
-fi
 
-AC_MSG_CHECKING([default compiler flags])
-AC_ARG_WITH(cflags, [  --with-cflags=FLAGS     set compiler flags to FLAGS],
-    [CFLAGS="$with_cflags"])
-
-AC_MSG_RESULT([$CFLAGS])
+dnl #--------------------------------------------------------------------
+dnl #   If this is gcc, add some extra compile flags.
+dnl #--------------------------------------------------------------------
+dnl 
+dnl AC_MSG_CHECKING([whether C compiler is gcc])
+dnl AC_CACHE_VAL(tclreadline_cv_prog_gcc,
+dnl     AC_EGREP_CPP(_cc_is_gcc_, [
+dnl #ifdef __GNUC__
+dnl _cc_is_gcc_
+dnl #endif
+dnl ],      [tclreadline_cv_prog_gcc=yes], [tclreadline_cv_prog_gcc=no]))
+dnl AC_MSG_RESULT([$tclreadline_cv_prog_gcc])
+dnl 
+dnl if test -z "$CFLAGS" ; then
+dnl     CFLAGS=$TCL_CFLAGS_OPTIMIZE
+dnl fi
+dnl if test "$tclreadline_cv_prog_gcc" = "yes" ; then
+dnl     CFLAGS="$CFLAGS -Wshadow -Wtraditional -Wall"
+dnl fi
+dnl 
+dnl AC_MSG_CHECKING([default compiler flags])
+dnl AC_ARG_WITH(cflags, [  --with-cflags=FLAGS     set compiler flags to FLAGS],
+dnl     [CFLAGS="$with_cflags"])
+dnl 
+dnl AC_MSG_RESULT([$CFLAGS])
 
 if test "$TCL_CC" != "$CC" ; then
     echo ""
@@ -360,8 +360,18 @@ for dir in $rl_library $TCLREADLINE_LPATH $prefix/lib/readline; do
         READLINE_LIB_DIR=$dir
         break
     fi
+    if test -r $dir/libreadline$SHLIB_SUFFIX.4; then
+        READLINE_VERSION_SUFFIX=".4"
+        READLINE_LIB_DIR=$dir
+        break
+    fi
     if test -r $dir/libreadline$SHLIB_SUFFIX.4.0; then
         READLINE_VERSION_SUFFIX=".4.0"
+        READLINE_LIB_DIR=$dir
+        break
+    fi
+    if test -r $dir/libreadline$SHLIB_SUFFIX.3; then
+        READLINE_VERSION_SUFFIX=".3"
         READLINE_LIB_DIR=$dir
         break
     fi

@@ -1,7 +1,7 @@
 #!/bin/sh
-# FILE: "/diska/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Mon Sep 13 18:21:52 1999 (joze)"
-# (C) 1999 by Johannes Zellner, <johannes@zellner.org>
+# FILE: "/home/joze/src/tclreadline/sample.tclshrc"
+# LAST MODIFICATION: "Thu, 23 Mar 2000 21:13:08 +0100 (joze)"
+# (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ft=tcl: \
 exec tclsh "$0" "$@"

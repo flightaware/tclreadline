@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in.bak"
-# LAST MODIFICATION: "Thu, 23 Mar 2000 20:47:35 +0100 (joze)"
+# FILE: "/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Thu, 23 Mar 2000 23:26:56 +0100 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -145,7 +145,7 @@ TK_LIB_SPEC          = @TK_LIB_SPEC@
 READLINE_INCLUDE_DIR = @READLINE_INCLUDE_DIR@
 TCLREADLINE_LIB_FILE = @TCLREADLINE_LIB_FILE@
 
-READLINE_LIB         = -L@READLINE_LIB_DIR@ -lreadline
+READLINE_LIB         = @READLINE_LIB_DIR@ -lreadline
 TERMLIB              = @TERMLIB@
 TERMLIB_DIR          = @TERMLIB_DIR@
 

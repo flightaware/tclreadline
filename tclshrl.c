@@ -2,13 +2,13 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclshrl.c"
-    LAST MODIFICATION: "Thu Dec 16 21:51:19 1999 (joze)"
-    (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
+    LAST MODIFICATION: "Thu, 23 Mar 2000 22:42:14 +0100 (joze)"
+    (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
 
     tclreadline -- gnu readline for tcl
-    Copyright (C) 1999  Johannes Zellner
+    Copyright (C) 1998 - 2000 by Johannes Zellner
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
