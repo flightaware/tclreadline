@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Fri Aug 20 15:59:31 1999 (joze)"
+# LAST MODIFICATION: "Fri Aug 20 16:00:20 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -270,7 +270,7 @@ distribution: $(SOURCES) configure $(AUXILIARY)
 	- mkdir -p dist/tclreadline-$(VERSION)/aux
 	- cp $(SOURCES) configure dist/tclreadline-$(VERSION)
 	- cp $(AUXILIARY) dist/tclreadline-$(VERSION)/aux
-	(cd dist; tar zcvf tclreadline-$(VERSION).tgz tclreadline-$(VERSION); rm -rf tclreadline-$(VERSION))
+	(cd dist; tar zcvf tclreadline-$(VERSION).tar.gz tclreadline-$(VERSION); rm -rf tclreadline-$(VERSION))
 
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
