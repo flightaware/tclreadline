@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Sun, 02 Jul 2000 00:12:15 +0200 (joze)"
+dnl LAST MODIFICATION: "Don, 20 Jul 2000 03:30:38 +0200 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
@@ -17,7 +17,7 @@ AC_CONFIG_AUX_DIR(./aux)
 
 MAJOR=2
 MINOR=0
-PATCHLEVEL=0
+PATCHLEVEL=1
 VERSION=$MAJOR.$MINOR
 PATCHLEVEL_STR=$VERSION.$PATCHLEVEL
 
