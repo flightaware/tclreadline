@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Fri Sep 10 02:57:55 1999 (joze)"
+    LAST MODIFICATION: "Mon Sep 13 02:21:35 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -476,7 +476,11 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
      * added "[]"
      * added "}"
      */
-    rl_basic_word_break_characters = " \t\n\"\\@$}>=;|&[]";
+    /* 11.Sep rl_basic_word_break_characters = " \t\n\"\\@$}=;|&[]"; */
+    /* besser (11. Sept) 2. (removed \") */
+    /* rl_basic_word_break_characters = " \t\n\\@$}=;|&[]"; */
+    /* besser (11. Sept) 3. (removed }) */
+    rl_basic_word_break_characters = " \t\n\\@$=;|&[]";
     // rl_basic_quote_characters = "\"{"; // XXX ??? XXX
     // rl_completer_quote_characters = "\"";
     /*
@@ -526,6 +530,7 @@ TclReadlineCompletion(char* text, int start, int end)
     char** matches = (char**) NULL;
     int status;
     // rl_attempted_completion_over = 0;
+    rl_completion_append_character = ' '; /* reset, just in case ... */
 
 #if 0
     fprintf(stderr, "DEBUG> TclReadlineCompletion: text=|%s|\n", text);
@@ -628,6 +633,20 @@ TclReadlineCompletion(char* text, int start, int end)
                     matches[i], strlen(matches[i]));
                 */
             }
+
+            /**
+             * this is a special one:
+             * if the script returns exactly two arguments
+             * and the second argument is the empty string,
+             * the rl_completion_append_character is set
+             * temporaryly to NULL.
+             */
+            if (2 == objc && !strlen(matches[1])) {
+                i--;
+                FREE(matches[1]);
+                rl_completion_append_character = '\0';
+            }
+
             matches[i] = (char*) NULL; /* terminate */
         }
         Tcl_ResetResult(tclrl_interp); /* clear result space */
