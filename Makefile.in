@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Fri Aug 20 17:22:45 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Sat Aug 21 00:21:27 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -180,6 +180,7 @@ AUXILIARY = \
     aux/vimtags
 
 MAN = tclreadline.n
+HTML = tclreadline.n.html
 
 CIFLAGS = -f -t-"gnu readline for tcl" -m"before initial relase"
 
@@ -187,7 +188,7 @@ CIFLAGS = -f -t-"gnu readline for tcl" -m"before initial relase"
 
 .SUFFIXES: .c .o .so .sl .tcl
 
-all: $(TCLREADLINE_LIB_FILE) pkgIndex.tcl
+all: $(TCLREADLINE_LIB_FILE)
 
 
 @TCLREADLINE_LIB_FILE@: ${OBJS}
@@ -220,8 +221,8 @@ FORCE:
 $(MANN_INSTALL_DIR)/$(MAN): FORCE
 	- $(INSTALL_DATA) $(srcdir)/$(MAN) $@ &&  chmod 644 $@
 
-pkgIndex.tcl:
-	@echo "eval pkg_mkIndex $(TOP_DIR) tclreadline*.tcl" | tclsh
+tclreadline.n.html: tclreadline.n
+	rman -f html $^ > $@
 
 Makefile: $(TOP_DIR)/Makefile.in
 	$(SHELL) config.status
@@ -266,9 +267,9 @@ ci: $(SOURCES)
 co: $(SOURCES)
 	co -l $^
 
-distribution: $(SOURCES) configure $(AUXILIARY)
+distribution: $(SOURCES) configure $(AUXILIARY) tclreadline.n.html
 	- mkdir -p dist/tclreadline-$(VERSION)/aux
-	- cp $(SOURCES) configure dist/tclreadline-$(VERSION)
+	- cp $(SOURCES) configure tclreadline.n.html dist/tclreadline-$(VERSION)
 	- cp $(AUXILIARY) dist/tclreadline-$(VERSION)/aux
 	(cd dist; tar zcvf tclreadline-$(VERSION).tar.gz tclreadline-$(VERSION); rm -rf tclreadline-$(VERSION))
 

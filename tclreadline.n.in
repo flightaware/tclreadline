@@ -1,8 +1,8 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@" "Johannes Zellner"
 
 .\" (C) 1999 by Johannes Zellner
-.\" FILE: "/diska/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Fri Aug 20 15:01:22 1999 (joze)"
+.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Sat Aug 21 00:33:01 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -132,6 +132,31 @@ enter the tclreadline main loop. This command is typically called from
 the startup resource file (something .tclshrc, depending on the interpreter
 you use). \fB::tclreadline::Loop\fP will normally not return.
 
+.TP 5
+\fB::tclreadline::prompt1\fP
+a proc which is called by ::tclreadline::Loop and returns a string
+which will be displayed as the primary prompt. This prompt will be
+something like "[info nameofexecutable] \[[pwd]\]" possibly fancy colored.
+The default proc is defined on entering the ::tclreadline::Loop,
+if it is not already defined. So: If you define your own proc
+::tclreadline::prompt1 before entering ::tclreadline::Loop, this
+proc is called each time the prompt is to be displayed.
+Example:
+.EQ
+    package require tclreadline
+    namespace eval tclreadline {
+        proc prompt1 {} {
+            return "[clock format [clock seconds]]> "
+        }
+    }
+    ::tclreadline::Loop
+.EN
+Note that non-printable control characters as color control characters
+must be enclosed in literal ctrl-a / ctrl-b to tell readline the length
+of the printable prompt. See for example the variable `prompt_string'
+in the file tclreadlineSetup.tcl in your tclreadline installation directory.
+
+
 .\".SH "EXAMPLES"
 
 
@@ -175,7 +200,7 @@ some lines in your .inputrc:
 
 .EQ
     $if tclreadline
-    "\C-xp": "puts $env(PATH)"
+    "\\C-xp": "puts $env(PATH)"
     $endif
 .EN
 
@@ -185,7 +210,7 @@ For further documentation please refer to the gnu readline documentation.
 probably.
 
 
-.SH "SEE ALSO"
+.SH SEE ALSO
 
 
 .PP
@@ -205,7 +230,8 @@ Magnus Eriksson <magnus.eriksson@netinsight.se>,
 Les Johnson <les@infolabs.com>,
 Harald Kirsch <kir@iitb.fhg.de>,
 Christian Krone <krischan@sql.de>,
-Larry W. Virden <lvirden@cas.org>
+Larry W. Virden <lvirden@cas.org>,
+David Engel <dlengel@home.com>, <david@debian.org>
 
 .SH DEBIAN PACKAGE
 David Engel <dlengel@home.com>, <david@debian.org>

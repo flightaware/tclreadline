@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Fri Aug 20 18:14:57 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Fri Aug 20 23:41:24 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -216,7 +216,7 @@ BAD_COMMAND:
 
 void TclReadlineDataAvailableHandler (ClientData clientData, int mask)
 {
-#if 1
+#if 0
     fprintf (stderr, "(TclReadlineDataAvailableHandler) mask = %d\n",  mask);
 #endif
     if (mask & TCL_READABLE) {

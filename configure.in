@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Fri Aug 20 15:52:19 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Fri Aug 20 23:57:02 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -112,6 +112,7 @@ fi
 #   Set up a new default --prefix.
 # -----------------------------------------------------------------------
 
+# this is the default anyway:
 # AC_PREFIX_DEFAULT(/usr/local)
 
 if test "${prefix}" = "NONE"; then
@@ -123,7 +124,7 @@ else
     TCLREADLINE_PACKAGE_PATH=${exec_prefix}/lib
 fi
 
-TCLREADLINE_LIBRARY=$TCLREADLINE_PACKAGE_PATH/tclreadline$TCLREADLINE_VERSION
+TCLREADLINE_LIBRARY=${exec_prefix}/lib/tclreadline$TCLREADLINE_VERSION
 
 
 # -----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Fri Aug 20 15:23:15 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Sat Aug 21 00:19:39 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -46,11 +46,11 @@ proc unknown args {
         # Make sure we're not trying to load the same proc twice.
         #
         if [info exists unknown_pending($name)] {
-            return -code error "self-referential recursion in \"unknown\" for command \"$name\"";
+            return -code error "self-referential recursion in \"unknown\" for command \"$name\""
         }
-        set unknown_pending($name) pending;
+        set unknown_pending($name) pending
         set ret [catch {auto_load $name [uplevel 1 {namespace current}]} msg]
-        unset unknown_pending($name);
+        unset unknown_pending($name)
         if {$ret != 0} {
             return -code $ret -errorcode $errorCode \
                 "error while autoloading \"$name\": $msg"
@@ -166,17 +166,19 @@ proc ::tclreadline::Setup {} {
 
             }
 
-            proc ::tclreadline::prompt1 {} {
-                variable prompt_string
-                global env
-                if {[catch {set pwd [pwd]} tmp]} {
-                    set pwd "unable to get pwd"
-                }
+            if {"" == [info procs ::tclreadline::prompt1]} {
+                proc ::tclreadline::prompt1 {} {
+                    variable prompt_string
+                    global env
+                    if {[catch {set pwd [pwd]} tmp]} {
+                        set pwd "unable to get pwd"
+                    }
 
-                if [info exists env(HOME)] {
-                    regsub $env(HOME) $pwd "~" pwd
+                    if [info exists env(HOME)] {
+                        regsub $env(HOME) $pwd "~" pwd
+                    }
+                    return "$prompt_string \[$pwd\]"
                 }
-                return "$prompt_string \[$pwd\]"
             }
         }
 
@@ -293,7 +295,7 @@ proc ::tclreadline::Loop {} {
             }
 
             while {![::tclreadline::readline complete $::tclreadline::LINE]} {
-                append ::tclreadline::LINE ";"
+                append ::tclreadline::LINE "\n"
                 append ::tclreadline::LINE [::tclreadline::readline read \
                     ${::tclreadline::prompt2}]
             }
