@@ -2,7 +2,7 @@
  /* ==================================================================
    
     FILE: "/diska/home/joze/src/tclreadline/TODO"
-    LAST MODIFICATION: "Thu Sep  2 04:06:52 1999 (joze)"
+    LAST MODIFICATION: "Mon Sep  6 08:44:35 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -35,10 +35,6 @@
     +  wenn nur ein array Element von a vorliegt,
        wird trotzdem nur auf $a( completed. --> ändern.
 
-    +  custom completers:
-       prüfen, ob ein completer für eine Funktion da ist ...
-       z.B.: `set' könnte für alle Variblennamen completen.
-
     +  history_expansion mit <Tab> (z.B. !$).
 
     +  ist $bla das erste Wort eines Befehls, so sollte vor 
@@ -46,3 +42,4 @@
        completer herauszufinden.
 
     +  den script completern den level mitgeben ?
+

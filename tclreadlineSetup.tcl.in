@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Sat Sep  4 07:35:09 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep  6 08:50:52 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -336,7 +336,8 @@ proc GetCommon {str} {
 
 proc SubCmd {start line} {
     set depth 0
-    for {set i $start} {$i > 0} {incr i -1} {
+    # puts stderr SubCmd
+    for {set i $start} {$i >= 0} {incr i -1} {
         set c [string index $line $i]
         if {{;} == $c} {
             incr i; # discard command break character
@@ -411,6 +412,13 @@ proc QuoteQuotes {line} {
     return $line
 }
 
+#**
+# get the word position.
+# @return the word position
+# @note will returned modified values.
+# @sa EventuallyEvaluateFirst
+# @date Sep-06-1999
+#
 # % p<TAB>
 # % bla put<TAB> $b
 # % put<TAB> $b
@@ -420,7 +428,11 @@ proc QuoteQuotes {line} {
 # line  == "put $b"
 # [PartPosition] should return 0
 #
-proc PartPosition {part start end line} {
+proc PartPosition {partT startT endT lineT} {
+
+    upvar $partT part $startT start $endT end $lineT line
+    EventuallyEvaluateFirst part start end line
+
     # puts stderr "(PartPosition) line\[start\]=[string index $line $start]"
     # puts stderr "(PartPosition) part=|$part|"
     incr start -1
@@ -640,6 +652,42 @@ proc CommandCompletion {cmd {action both} {spc ::}} {
     return [string trim "${matches} ${namespaces}"]
 }
 
+#**
+# check, if the first argument starts with a '['
+# and must be evaluated before continuing.
+# NOTE: eventually modifies all arguments.
+# DATE: Sep-06-1999
+#
+proc EventuallyEvaluateFirst {partT startT endT lineT} {
+    # return; # disabled
+    upvar $partT part $startT start $endT end $lineT line
+    set line [string trim ${line}]
+
+    set char [string index ${line} 0]
+    if {{[} != ${char} && {$} != ${char}} {return}
+
+    set pos 0
+    while {-1 != [set idx [string first {]} ${line} ${pos}]]} {
+        set cmd [string range ${line} 0 ${idx}]
+        if {[info complete ${cmd}]} {
+            break;
+        }
+        set pos [expr ${idx} + 1]
+    }
+
+    if {![info exists cmd]} {return}
+    if {![info complete ${cmd}]} {return}
+    set cmd [string range ${cmd} 1 [expr [string length ${cmd}] - 2]]
+    set rest [string range ${line} [expr ${idx} + 1] end]
+
+    if {[catch [list set result [string trim [eval ${cmd}]]]]} {return}
+
+    set line ${result}${rest}
+    set diff [expr [string length ${result}] - ([string length ${cmd}] + 2)]
+    incr start ${diff}
+    incr end ${diff}
+}
+
 # if the line entered so far is
 # % puts $b<TAB>
 # part  == $b
@@ -703,10 +751,8 @@ proc ScriptCompleter {part start end line} {
         set new_end [expr $end - ($start - $new_start)]
         set new_line [lindex $sub 1]
         # puts stderr "(SubCmd) $new_start $new_end $new_line"
-        return \
-            [ScriptCompleter $part $new_start $new_end $new_line]
-    } elseif {0 == \
-        [set pos [PartPosition $part $start $end $line]]} {
+        return [ScriptCompleter $part $new_start $new_end $new_line]
+    } elseif {0 == [set pos [PartPosition part start end line]]} {
         # puts stderr "(PartPosition) $part $start $end $line"
         # set matches [array names known_cmds "[string trim ${part}]*"]
         set all [CommandCompletion ${part}]
@@ -714,6 +760,7 @@ proc ScriptCompleter {part start end line} {
         return [Format $all $part]
     } else {
         # try to use $pos further ...
+        # puts stderr |$line|
         if {"." == [string index [lindex ${line} 0] 0]} {
             set alias WIDGET
         } else {
@@ -1692,7 +1739,9 @@ proc complete(namespace) {text start end line pos mod} {
             code { return "" }
             current {}
             export { return [MenuFromList ${mod} -clear ?pattern?] }
-            import { return [MenuFromList ${mod} -force] }
+            import {
+                return [MenuFromList ${mod} "-force $space_matches"]
+            }
             origin { if {![llength ${mod}]} { return <command> } }
             qualifiers -
             tail { if {![llength ${mod}]} { return <string> } }
@@ -1711,9 +1760,9 @@ proc complete(namespace) {text start end line pos mod} {
             parent {}
             code {}
             current {}
-            export { return [MenuFromList ${mod} ?pattern?] }
+            export -
             forget -
-            import { if {![llength ${mod}]} { return ?pattern? } }
+            import { return [Menu ?pattern?] }
             origin {}
             qualifiers {}
             tail {}
@@ -2088,7 +2137,7 @@ proc complete(trace) {text start end line pos mod} {
 
 proc complete(update) {text start end line pos mod} {
     if {1 == $pos && ![llength ${mod}]} {
-        return ?idletasks?
+        return idletasks
     }
     return ""
 }
@@ -2232,7 +2281,7 @@ proc complete(WIDGET) {text start end line pos mod} {
         #puts found=[lsearch -exact ${prev} $options(switches)]
         if {-1 != [set found [lsearch -exact $options(switches) ${prev}]]} {
             if {![llength ${mod}]} {
-                return [lindex $options(value) ${found}]
+                return [list "[lindex $options(value) ${found}]"]
             }
         } else {
             return [AttemptFromList ${mod} $options(switches)]
