@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/krispc6/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sat May  8 16:20:59 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Fri Aug 20 18:14:57 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -96,8 +96,13 @@ char*  TclReadlineKnownCommands	(char *text, int state, int mode);
 int    TclReadlineEventHook	(void);
 int    TclReadlineParse	(char **args, int maxargs, char *buf);
 
+enum { 
+    LINE_PENDING,
+    LINE_CONTROL_D,
+    LINE_COMPLETE
+};
 
-static int line_complete = 0;
+static int line_complete = LINE_PENDING;
 static char *line = (char *) NULL;
 
 
@@ -133,21 +138,21 @@ int TclReadlineCmd (clientData, interp, argc, argv)
         char *expansion = (char *) NULL;
         int status;
         
-        line_complete = 0;
+        line_complete = LINE_PENDING;
         rl_callback_handler_install (argc == 3 ? argv[2] : "%",
                 TclReadlineLineCompleteHandler);
 
         Tcl_CreateFileHandler (0, TCL_READABLE,
                 TclReadlineDataAvailableHandler, (ClientData) NULL);
 
-        while (!line_complete) {
+        while (LINE_PENDING == line_complete) {
             Tcl_DoOneEvent (0);
         }
 
         Tcl_DeleteFileHandler (0);
 
-	if (line_complete < 0) {
-	    Tcl_Eval(interp, "exit");
+	if (LINE_CONTROL_D == line_complete) {
+	    Tcl_Eval (interp, "puts {}; exit");
 	}
 
         status = history_expand (line, &expansion);
@@ -164,8 +169,7 @@ int TclReadlineCmd (clientData, interp, argc, argv)
 
         FREE (line);
         FREE (expansion);
-        return (TCL_OK);
-
+        return TCL_OK;
     }
     else if (c == 'i'  && strncmp (argv[1], "initialize", length) == 0) {
         if (argc != 3)
@@ -206,23 +210,33 @@ BAD_COMMAND:
     Tcl_AppendResult (interp,
             "wrong # args: should be \"readline option ?arg ...?\"",
 	    (char *) NULL);
-    return (TCL_ERROR);
+    return TCL_ERROR;
 
 }
 
 void TclReadlineDataAvailableHandler (ClientData clientData, int mask)
 {
-    if (mask & TCL_READABLE)
+#if 1
+    fprintf (stderr, "(TclReadlineDataAvailableHandler) mask = %d\n",  mask);
+#endif
+    if (mask & TCL_READABLE) {
         rl_callback_read_char ();
+        rl_redisplay ();
+    }
 }
 
 void TclReadlineLineCompleteHandler (char *ptr)
 {
-    if (!ptr) {
-        line_complete = -1;
+#if 0
+    fprintf (stderr, "(TclReadlineLineCompleteHandler)  ptr = %p\n",  ptr);
+    if (ptr)
+    fprintf (stderr, "(TclReadlineLineCompleteHandler) *ptr = %p\n", *ptr);
+#endif
+    if (!ptr) { /* <c-d> */
+        line_complete = LINE_CONTROL_D;
         rl_callback_handler_remove ();
     } else if (*ptr) {
-        line_complete = 1;
+        line_complete = LINE_COMPLETE;
         rl_callback_handler_remove ();
         line = ptr;
     }
@@ -231,14 +245,14 @@ void TclReadlineLineCompleteHandler (char *ptr)
 
 int Tclreadline_SafeInit (Tcl_Interp *interp)
 {
-    return (Tclreadline_Init (interp));
+    return Tclreadline_Init (interp);
 }
 
 int Tclreadline_Init (Tcl_Interp *interp)
 {
     Tcl_CreateCommand (interp, "::tclreadline::readline", TclReadlineCmd,
 	    (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-    return (Tcl_PkgProvide (interp, "tclreadline", TCLREADLINE_VERSION));
+    return Tcl_PkgProvide (interp, "tclreadline", TCLREADLINE_VERSION);
 }
 
 char *TclReadlineInitialize (char *historyfile)
@@ -254,10 +268,10 @@ char *TclReadlineInitialize (char *historyfile)
      */
     rl_attempted_completion_function = (CPPFunction *) TclReadlineCompletion;
     if (read_history (historyfile))
-        return ("unable to read history file");
+        return "unable to read history file";
     
     else
-        return ("");
+        return "";
 }
 
 char **TclReadlineCompletion (char *text, int start, int end)
@@ -280,17 +294,17 @@ char **TclReadlineCompletion (char *text, int start, int end)
     else
         matches = completion_matches (text, TclReadline1generator);
     
-    return (matches);
+    return matches;
 }
 
 char *TclReadline0generator (char *text, int state)
 {
-    return (TclReadlineKnownCommands (text, state, _CMD_GET));
+    return TclReadlineKnownCommands (text, state, _CMD_GET);
 }
 
 char *TclReadline1generator (char *text, int state)
 {
-    return (TclReadlineKnownCommands (text, state, _CMD_SUB_GET));
+    return TclReadlineKnownCommands (text, state, _CMD_SUB_GET);
 }
 
 char *TclReadlineKnownCommands (char *text, int state, int mode)
@@ -342,7 +356,7 @@ char *TclReadlineKnownCommands (char *text, int state, int mode)
             while (new && (name = new->cmd)) {
                 new = new->next;
                 if (!strncmp (name[0], text, len))
-                    return (strdup (name[0]));
+                    return strdup (name[0]);
             }
 
             return (char *) NULL;
@@ -380,7 +394,7 @@ char *TclReadlineKnownCommands (char *text, int state, int mode)
                 for (i = 0; new->cmd[i]; i++) /* EMPTY */;
 
                 if (sub < i && !strncmp (new->cmd[sub], text, len))
-                    return (strdup (new->cmd[sub]));
+                    return strdup (new->cmd[sub]);
                 else
                    return (char *) NULL;
 
@@ -405,7 +419,7 @@ char *TclReadlineKnownCommands (char *text, int state, int mode)
 int TclReadlineEventHook (void)
 {
     Tcl_DoOneEvent (TCL_ALL_EVENTS | TCL_DONT_WAIT);
-    return (TCL_OK);
+    return TCL_OK;
 }
 
 int TclReadlineParse (char **args, int maxargs, char *buf)
