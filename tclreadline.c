@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sun Sep 19 22:41:52 1999 (joze)"
+    FILE: "/disk01/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Mon Sep 20 01:23:39 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -384,7 +384,7 @@ TclReadlineCmd(
 				 *   to take no arguments. This might produce
 				 *   a compiler warning.
 				 */
-				rl_reset_terminal(Tcl_GetStringFromObj(objv[2], -1));
+				rl_reset_terminal(Tcl_GetStringFromObj(objv[2], (int*) NULL));
             } else {
 				rl_cleanup_after_signal();
 			}
