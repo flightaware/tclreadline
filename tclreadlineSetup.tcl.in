@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Wed Sep  8 18:09:57 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Mon Sep 13 23:44:55 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -28,7 +28,8 @@
 # ================================================================== 
 
 
-package provide tclreadline @TCLREADLINE_VERSION@
+# package provide tclreadline @TCLREADLINE_VERSION@
+package provide tclreadline 0.9
 
 proc unknown args {
 
@@ -298,7 +299,16 @@ proc Loop {args} {
             }
 
             # Magnus Eriksson <magnus.eriksson@netinsight.se> proposed
-            history add $LINE
+            # to add the line also to tclsh's history.
+            #
+            # I decided to add only lines which are different from
+            # the previous one to the history. This is different
+            # from tcsh's behaviour, but I found it quite convenient
+            # while using mshell on os9.
+            #
+            if {[string length $LINE] && [history event 0] != $LINE} {
+                history add $LINE
+            }
 
             if [catch {
                 set result [eval $LINE]

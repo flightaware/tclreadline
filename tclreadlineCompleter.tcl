@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Mon Sep 13 02:21:21 1999 (joze)"
+# LAST MODIFICATION: "Tue Sep 14 01:55:17 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -147,6 +147,10 @@ proc Rehash {} {
 # build a list hosts from the /etc/hosts file.
 # this is only done once. This is sort of a
 # dirty hack, /etc/hosts is hardcoded ...
+# But on the other side, if the user supplies
+# a valid host table in tclreadline::hosts
+# before entering the event loop, this proc
+# will return this list.
 # 
 proc HostList {} {
     # read the host table only once.
@@ -154,8 +158,8 @@ proc HostList {} {
     variable hosts
     if {![info exists hosts]} {
         catch {
-            set id [open /etc/hosts r]
             set hosts ""
+            set id [open /etc/hosts r]
             if {0 != ${id}} {
                 while {-1 != [gets ${id} line]} {
                     regsub {#.*} ${line} {} line
@@ -206,6 +210,44 @@ proc MatchesFromList {text lst {allow ""}} {
         }
     }
     return [string trim $result]
+}
+
+#**
+# invoke cmd with a (hopefully) invalid string and
+# parse the error message to get an option list.
+#
+# @param cmd
+# @return list of options for cmd
+# @date Sep-14-1999
+#
+proc TrySubCmds {cmd} {
+    set trystring ____
+    set result ""
+    if [catch {set result [${cmd} ${trystring}]} msg] {
+        if {[regexp {bad *option.*____.*: *must *be( .*$)} ${msg} all raw]} {
+            regsub -all -- , ${raw} { } raw
+            set len [llength ${raw}]
+            set len_2 [expr ${len} - 2]
+            for {set i 0} {${i} < ${len}} {incr i} {
+                set word [lindex ${raw} ${i}]
+                if {"or" != ${word} && ${i} != ${len_2}} {
+                    lappend result ${word}
+                }
+
+            }
+        } else {
+            # check, if it's a blt error msg ...
+            #
+            set msglst [split ${msg} \n]
+            foreach line ${msglst} {
+                if {[regexp "${cmd}\[ \t\]\+\(\[^ \t\]*\)\[^:\]*$" \
+                    ${line} all sub]} {
+                    lappend result [list ${sub}]
+                }
+            }
+        }
+    }
+    return ${result}
 }
 
 proc FirstNonOption {line} {
@@ -659,22 +701,22 @@ proc CommandsOnlyCompletion {cmd} {
     return [CommandCompletion ${cmd} commands]
 }
 
-proc CommandCompletion {cmd {action both} {spc ::} {pre UNDEFINED}} {
+proc CommandCompletion {cmd {action both} {spc ::}} {
+    # get the leading colons in `cmd'.
+    regexp {^:*} ${cmd} pre
+    return [CommandCompletionWithPre $cmd $action $spc $pre]
+}
+
+proc CommandCompletionWithPre {cmd action spc pre} {
     # puts stderr "(CommandCompletion) cmd=|$cmd|"
     # puts stderr "(CommandCompletion) action=|$action|"
     # puts stderr "(CommandCompletion) spc=|$spc|"
-
-    # get the leading colons in `cmd'.
-    if {"UNDEFINED" == $pre} {
-        regexp {^:*} ${cmd} pre
-    }
-    # puts stderr \npre=|$pre|
 
     set cmd [StripPrefix ${cmd}]
     set quali [namespace qualifiers ${cmd}]
     if {[string length ${quali}]} {
         # puts stderr \nquali=|$quali|
-        set matches [CommandCompletion \
+        set matches [CommandCompletionWithPre \
         [namespace tail ${cmd}] ${action} ${spc}${quali} ${pre}]
         # puts stderr \nmatches1=|$matches|
         return $matches
@@ -699,9 +741,9 @@ proc CommandCompletion {cmd {action both} {spc ::} {pre UNDEFINED}} {
         # puts stderr procs=|$procs|
         set procs ""
         foreach proc $all_procs {
-            if {[namespace eval $spc [list namespace origin $command]] == \
-                [namespace eval $spc [list namespace which $command]]} {
-                lappend procs $command
+            if {[namespace eval $spc [list namespace origin $proc]] == \
+                [namespace eval $spc [list namespace which $proc]]} {
+                lappend procs $proc
             }
         }
     } else {
@@ -711,7 +753,7 @@ proc CommandCompletion {cmd {action both} {spc ::} {pre UNDEFINED}} {
     set namespaces [namespace children $spc ${cmd}]
 
     if {![llength ${matches}] && 1 == [llength ${namespaces}]} {
-        set matches [CommandCompletion {} ${action} ${namespaces} ${pre}]
+        set matches [CommandCompletionWithPre {} ${action} ${namespaces} ${pre}]
         # puts stderr \nmatches=|$matches|
         return $matches
     }
@@ -832,18 +874,22 @@ proc ScriptCompleter {part start end line} {
     # new_line  = [lindex $sub 1] == " put $b"
     # 
     } elseif {"" != [set sub [SplitLine $start $line]]} {
+
         set new_start [lindex $sub 0]
         set new_end [expr $end - ($start - $new_start)]
         set new_line [lindex $sub 1]
         # puts stderr "(SplitLine) $new_start $new_end $new_line"
         return [ScriptCompleter $part $new_start $new_end $new_line]
+
     } elseif {0 == [set pos [PartPosition part start end line]]} {
+
         # puts stderr "(PartPosition) $part $start $end $line"
         set all [CommandCompletion ${part}]
         # puts stderr "(ScriptCompleter) all=$all"
         #puts \nmatches=$matches\n
         # return [Format $all $part]
         return [TryFromList $part $all]
+
     } else {
 
         # try to use $pos further ...
@@ -909,6 +955,37 @@ proc ScriptCompleter {part start end line} {
             }
             # set namespc ""; # no qualifiers for tclreadline_complete_unknown
         }
+
+        # as we've reached here no valid specific completer
+        # was found. Check, if it's a proc and return the
+        # arguments.
+        #
+        if {[string length [uplevel [info level] info proc $alias]]} {
+            set args [uplevel [info level] info args $alias]
+            set arg [lindex $args [expr $pos - 1]]
+            if {"" != $arg} {
+                if {[uplevel [info level] info default $alias $arg junk]} {
+                    return [DisplayHints ?$arg?]
+                } else {
+                    return [DisplayHints <$arg>]
+                }
+            }
+        }
+
+
+        # Ok, also no proc. Try to do the same as for widgets now:
+        # try to get at least the first option from an error output.
+        #
+        switch -- $pos {
+            1 {
+                set cmds [TrySubCmds ${alias}]
+                if {[llength ${cmds}]} {
+                    return [TryFromList ${part} ${cmds}]
+                }
+            }
+        }
+
+
         # no specific command completer found.
         return ""
     }
@@ -1053,8 +1130,9 @@ proc complete(catch) {text start end line pos mod} {
     return ""
 }
 
-# proc complete(cd) {text start end line pos mod} {
-# }
+proc complete(cd) {text start end line pos mod} {
+    return ""
+}
 
 proc complete(clock) {text start end line pos mod} {
     set cmd [Lindex $line 1]
@@ -2233,17 +2311,35 @@ proc complete(package) {text start end line pos mod} {
             }
         }
         3 {
+            set versions ""
+            catch [list set versions [package versions [Lindex $line 2]]]
             switch -- $cmd {
                 forget {}
-                ifneeded { return [DisplayHints <version>] }
-                provide { return [DisplayHints ?version?] }
+                ifneeded {
+                    if {"" != $versions} {
+                        return [CompleteFromList ${text} $versions]
+                    } else {
+                        return [DisplayHints <version>]
+                    }
+                }
+                provide {
+                    if {"" != $versions} {
+                        return [CompleteFromList ${text} $versions]
+                    } else {
+                        return [DisplayHints ?version?]
+                    }
+                }
                 versions {}
                 present -
                 require {
                     if {"-exact" == [PreviousWord ${start} ${line}]} {
                         return [CompleteFromList ${mod} [package names]]
                     } else {
-                        return [DisplayHints ?version?]
+                        if {"" != $versions} {
+                            return [CompleteFromList ${text} $versions]
+                        } else {
+                            return [DisplayHints ?version?]
+                        }
                     }
                 }
                 names {}
@@ -2773,9 +2869,48 @@ proc complete(switch) {text start end line pos mod} {
     return ""
 }
 
+# --- TCLREADLINE PACKAGE ---
+
+# create a tclreadline namespace inside
+# tclreadline and import some commands.
+#
+namespace eval tclreadline {
+    catch {
+        namespace import \
+        ::tclreadline::DisplayHints \
+        ::tclreadline::CompleteFromList \
+        ::tclreadline::Lindex
+    }
+}
+
+proc tclreadline::complete(readline) {text start end line pos mod} {
+    set cmd [Lindex $line 1]
+    switch -- $pos {
+        1 { return [CompleteFromList ${text} {
+            read initialize write add complete
+            customcompleter builtincompleter eofchar}]
+        }
+        2 {
+            switch -- $cmd {
+                read {}
+                initialize {}
+                write {}
+                add { return [DisplayHints <completerLine>] }
+                completer { return [DisplayHints <line>] }
+                customcompleter { return [DisplayHints ?scriptCompleter?] }
+                builtincompleter { return [DisplayHints ?boolean?] }
+                eofchar { return [DisplayHints ?script?] }
+            }
+        }
+    }
+    return ""
+}
+
+# --- END OF TCLREADLINE PACKAGE ---
+
 proc complete(tell) {text start end line pos mod} {
     switch -- $pos {
-        1 { return [ChannelId ${mod}] }
+        1 { return [ChannelId ${text}] }
     }
     return ""
 }
@@ -2930,40 +3065,13 @@ proc complete(while) {text start end line pos mod} {
 #                  TK
 # -------------------------------------
 
-# generic widget configuration
+# GENERIC WIDGET CONFIGURATION
 
-proc TrySubCmds {cmd} {
-    set trystring ____
-    set result ""
-    if [catch {set result [${cmd} ${trystring}]} msg] {
-        if {[regexp {bad *option.*____.*: *must *be( .*$)} ${msg} all raw]} {
-            regsub -all -- , ${raw} { } raw
-            set len [llength ${raw}]
-            set len_2 [expr ${len} - 2]
-            for {set i 0} {${i} < ${len}} {incr i} {
-                set word [lindex ${raw} ${i}]
-                if {"or" != ${word} && ${i} != ${len_2}} {
-                    lappend result ${word}
-                }
-
-            }
-        } else {
-            # check, if it's a blt error msg ...
-            #
-            set msglst [split ${msg} \n]
-            foreach line ${msglst} {
-                if {[regexp "${cmd}\[ \t\]\+\(\[^ \t\]*\)\[^:\]*$" \
-                    ${line} all sub]} {
-                    lappend result [list ${sub}]
-                }
-            }
-        }
-    }
-    return ${result}
-}
-
-proc WidgetList {pattern} {
+proc WidgetChildren {pattern} {
     regsub {^([^\.])} ${pattern} {\.\1} pattern
+    if {![string length ${pattern}]} {
+        set pattern .
+    }
     if {[winfo exists ${pattern}]} {
         return [winfo children ${pattern}]
     } else {
@@ -2974,6 +3082,14 @@ proc WidgetList {pattern} {
             return ""
         }
     }
+}
+
+proc WidgetDescendants {pattern} {
+    set tree [WidgetChildren ${pattern}]
+    foreach widget $tree {
+        append tree " [WidgetDescendants $widget]"
+    }
+    return $tree
 }
 
 proc complete(WIDGET) {text start end line pos mod} {
@@ -2992,38 +3108,61 @@ proc complete(WIDGET) {text start end line pos mod} {
         }
     }
 
-    if {1 >= ${pos}} {
-        set cmds [TrySubCmds ${widget}]
-        if {[llength ${cmds}]} {
-            return [TryFromList ${mod} ${cmds}]
-        }
-    } elseif {2 <= ${pos} && 
-        ([string match ${cmd}* cget] || \
-         [string match ${cmd}* configure])} {
-        set prev [PreviousWord ${start} ${line}]
-        #puts \nprev=|$prev|
-        #puts switches=|$options(switches)|
-        #puts found=[lsearch -exact ${prev} $options(switches)]
-        if {-1 != [set found [lsearch -exact $options(switches) ${prev}]]} {
-            if {![llength ${mod}]} {
-                return [list "[lindex $options(value) ${found}]"]
+    switch -- $pos {
+        1 {
+            set cmds [TrySubCmds ${widget}]
+            if {[llength ${cmds}]} {
+                return [TryFromList ${mod} ${cmds}]
             }
-        } else {
-            return [TryFromList ${mod} $options(switches)]
+        }
+        2 {
+            if {([string match ${cmd}* cget] || \
+                [string match ${cmd}* configure])
+            } {
+                set prev [PreviousWord ${start} ${line}]
+                #puts \nprev=|$prev|
+                #puts switches=|$options(switches)|
+                #puts found=[lsearch -exact ${prev} $options(switches)]
+                if {-1 != [set found \
+                    [lsearch -exact $options(switches) ${prev}]]
+                } {
+                    if {![llength ${mod}]} {
+                        return [list "[lindex $options(value) ${found}]"]
+                    }
+                } else {
+                    return [TryFromList ${mod} $options(switches)]
+                }
+            }
         }
     }
     return ""
 }
 
+# SPECIFIC TK COMMAND COMPLETERS
+
+proc complete(bell) {text start end line pos mod} {
+    switch -- $pos {
+        1 { return [CompleteFromList ${text} -displayof] }
+        2 {
+            if {"-displayof" == [PreviousWord ${start} ${line}]} {
+                return [CompleteFromList ${text} [WidgetDescendants ${text}]]
+            }
+        }
+    }
+}
+
 proc complete(winfo) {text start end line pos mod} {
     set cmd [lindex ${line} 1]
-    if {1 >= ${pos}} {
-        set cmds [TrySubCmds winfo]
-        if {[llength ${cmds}]} {
-            return [TryFromList ${mod} ${cmds}]
+    switch -- $pos {
+        1 {
+            set cmds [TrySubCmds winfo]
+            if {[llength ${cmds}]} {
+                return [TryFromList ${text} ${cmds}]
+            }
         }
-    } elseif {2 == ${pos}} {
-        return [TryFromList ${mod} [WidgetList ${mod}]]
+        2 {
+            return [TryFromList ${text} [WidgetChildren ${text}]]
+        }
     }
     return ""
 }

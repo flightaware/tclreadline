@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Mon Sep 13 18:04:01 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Tue Sep 14 00:57:33 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -81,6 +81,8 @@ typedef struct cmds_t {
 char* stripleft(char* in);
 char* stripright(char* in);
 char* stripwhite(char* in);
+int TclReadlineLineComplete(void);
+void TclReadlineTerminate(int state);
 char* TclReadlineQuote(char* text, char* quotechars);
 int TclReadlineCmd(ClientData clientData, Tcl_Interp* interp,
     int argc, char** argv);
@@ -96,19 +98,18 @@ char* TclReadlineKnownCommands(char* text, int state, int mode);
 int TclReadlineParse(char** args, int maxargs, char* buf);
 
 enum { 
-    LINE_PENDING,
-    LINE_EOF,
-    LINE_COMPLETE
+    LINE_PENDING = -1,
+    LINE_EOF = (1 << 8),
+    LINE_COMPLETE = (1 << 9)
 };
 
 /**
  * global variables
  */
-static int tclrl_line_complete = LINE_PENDING;
 static int tclrl_state = TCL_OK;
 static char* tclrl_eof_string = (char*) NULL;
-static char* tclrl_line = (char*) NULL;
 static char* tclrl_custom_completer = (char*) NULL;
+static char* tclrl_last_line = (char*) NULL;
 static int tclrl_use_builtin_completer = 1;
 static int tclrl_history_length = -1;
 Tcl_Interp* tclrl_interp = (Tcl_Interp*) NULL;
@@ -142,6 +143,19 @@ stripwhite(char* in)
     return in;
 }
 
+int
+TclReadlineLineComplete(void)
+{
+    return !(tclrl_state == LINE_PENDING);
+}
+
+void
+TclReadlineTerminate(int state)
+{
+    tclrl_state = state;
+    rl_callback_handler_remove();
+}
+
 char*
 TclReadlineQuote(char* text, char* quotechars)
 {
@@ -166,151 +180,201 @@ TclReadlineQuote(char* text, char* quotechars)
 
 int
 TclReadlineCmd(
-    ClientData  clientData, /* Main window associated with interpreter  */
-    Tcl_Interp* interp,     /* Current interpreter                      */
-    int         argc,       /* Number of arguments                      */
-    char**      argv        /* Argument strings                         */
+    ClientData  clientData,
+    Tcl_Interp* interp,     /* Current interpreter */
+    int         argc,       /* Number of arguments */
+    char**      argv        /* Argument strings    */
 )
 {
-    int		c, length;
+    int i, obj_idx, status;
+    Tcl_Obj** objv = (Tcl_Obj**) MALLOC((argc + 1) * sizeof(Tcl_Obj *));
+
+    static char *subCmds[] = {
+        "read", "initialize", "write", "add", "complete",
+        "customcompleter", "builtincompleter", "eofchar",
+        (char *) NULL
+    };
+    enum SubCmdIdx {
+        TCLRL_READ, TCLRL_INITIALIZE, TCLRL_WRITE, TCLRL_ADD, TCLRL_COMPLETE,
+        TCLRL_CUSTOMCOMPLETER, TCLRL_BUILTINCOMPLETER, TCLRL_EOFCHAR
+    };
+
+
+    Tcl_ResetResult(interp); /* clear the result space */
+
+    for (i = 0;  i < argc;  i++) {
+        Tcl_Obj* objPtr = Tcl_NewStringObj(argv[i], -1);
+        Tcl_IncrRefCount(objPtr);
+        objv[i] = objPtr;
+    }
+    objv[argc] = 0; /* terminate */
+
+    if (argc < 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "option ?arg arg ...?");
+        return TCL_ERROR;
+    }
     
-    if (argc < 2)
-        goto BAD_COMMAND;
+    status = Tcl_GetIndexFromObj
+        (interp, objv[1], subCmds, "option", 0, (int *) &obj_idx);
 
-    c = argv[1][0];
-    length = strlen(argv[1]);
+    if (status != TCL_OK) {
+        FREE(objv)
+        return status;
+    }
 
-    if (c == 'r'  && strncmp(argv[1], "read", length) == 0) {
-        
-        char* expansion = (char*) NULL;
-        int status;
-        
-        tclrl_line_complete = LINE_PENDING;
-        tclrl_state = TCL_OK;
-        rl_callback_handler_install(argc == 3 ? argv[2] : "%",
+    switch (obj_idx) {
+
+        case TCLRL_READ:
+
+            rl_callback_handler_install(argc == 3 ? argv[2] : "%",
                 TclReadlineLineCompleteHandler);
 
-        Tcl_CreateFileHandler(0, TCL_READABLE,
+            Tcl_CreateFileHandler(0, TCL_READABLE,
                 TclReadlineReadHandler, (ClientData) NULL);
 
-        /**
-         * Main Loop.
-         * XXX each modification of the global variables
-         *     which terminates the main loop must call
-         *     rl_callback_handler_remove() to leave
-         *     readline in a defined state.          XXX
-         */
-        while (LINE_PENDING == tclrl_line_complete
-            && TCL_OK == tclrl_state && !rl_done) {
-            Tcl_DoOneEvent(TCL_ALL_EVENTS);
-        }
+            /**
+             * Main Loop.
+             * XXX each modification of the global variables
+             *     which terminates the main loop must call
+             *     rl_callback_handler_remove() to leave
+             *     readline in a defined state.          XXX
+             */
+            tclrl_state = LINE_PENDING;
 
-        Tcl_DeleteFileHandler(0);
-
-        if (TCL_OK != tclrl_state)
-            return tclrl_state; /* !! */
-
-	if ((LINE_EOF == tclrl_line_complete) && tclrl_eof_string) {
-	    Tcl_Eval(interp, tclrl_eof_string);
-            return tclrl_state;
-	}
-
-        status = history_expand(tclrl_line, &expansion);
-        if (status >= 1) {
-#if 0
-            Tcl_Channel channel = Tcl_MakeFileChannel(stdout, TCL_WRITABLE);
-            /* Tcl_RegisterChannel(interp, channel); */
-            (void) Tcl_WriteChars(channel, expansion, -1);
-            Tcl_Flush(channel);
-            Tcl_Close(interp, channel);
-#else
-            printf("%s\n", expansion);
+            while (!TclReadlineLineComplete()) {
+#ifdef EXECUTING_MACRO_HACK
+                /**
+                 * check first, if more characters are
+                 * available from _rl_executing_macro,
+                 * because Tcl_DoOneEvent() will (naturally)
+                 * not detect this `event'.
+                 */
+                if (_rl_executing_macro)
+                    TclReadlineReadHandler((ClientData) NULL, TCL_READABLE);
+                else
 #endif
-        }
-        else if (status == -1) {
-            Tcl_AppendResult
-                (interp, "error in history expansion\n", (char*) NULL);
-            return tclrl_state;
-        }
-        /**
-         * TODO: status == 2 ...
-         */
-        
-        if (expansion && *expansion)
-            add_history(expansion);
+                    Tcl_DoOneEvent(TCL_ALL_EVENTS);
+            }
 
-        Tcl_SetResult(interp, expansion, TCL_VOLATILE);
+            Tcl_DeleteFileHandler(0);
 
-        FREE(tclrl_line);
-        FREE(expansion);
-        return tclrl_state;
-    } else if (c == 'i'  && strncmp(argv[1], "initialize", length) == 0) {
-        if (3 != argc)
-            goto BAD_COMMAND;
-        else
-            return TclReadlineInitialize(interp, argv[2]);
-    } else if (c == 'w'  && strncmp(argv[1], "write", length) == 0) {
-        if (3 != argc) {
-            goto BAD_COMMAND;
-        }  else if (write_history(argv[2])) {
-            Tcl_AppendResult(interp, "unable to write history to `",
-                    argv[2], "'\n", (char*) NULL);
-            return TCL_ERROR;
-        }
-        if (tclrl_history_length >= 0) {
-            history_truncate_file(argv[2], tclrl_history_length);
-        }
-        return TCL_OK;
-    } else if (c == 'a'  && strncmp(argv[1], "add", length) == 0) {
-        if (3 != argc)
-            goto BAD_COMMAND;
-        else if (TclReadlineKnownCommands(argv[2], (int) 0, _CMD_SET))
-            Tcl_AppendResult(interp, "unable to add command \"",
-                    argv[2], "\"\n", (char*) NULL);
-    } else if (c == 'c'  && strncmp(argv[1], "complete", length) == 0) {
-        if (3 != argc)
-            goto BAD_COMMAND;
-        else if (Tcl_CommandComplete(argv[2]))
-            Tcl_AppendResult(interp, "1", (char*) NULL);
-        else
-            Tcl_AppendResult(interp, "0", (char*) NULL);
-    } else if (c == 'c'  && strncmp(argv[1], "customcompleter", length) == 0) {
-        if (3 != argc && 2 != argc)
-            goto BAD_COMMAND;
-        if (3 == argc) {
-            if (tclrl_custom_completer)
-                FREE(tclrl_custom_completer);
-            if (!blank_line(argv[2]))
-                tclrl_custom_completer = stripwhite(strdup(argv[2]));
-        }
-        Tcl_AppendResult(interp, tclrl_custom_completer, (char*) NULL);
-    } else if (c == 'b'  && strncmp(argv[1], "builtincompleter", length) == 0) {
-        int bool = tclrl_use_builtin_completer;
-        if (3 != argc && 2 != argc)
-            goto BAD_COMMAND;
-        if (3 == argc) {
-            if (TCL_OK != Tcl_GetBoolean(interp, argv[2], &bool)) {
-                Tcl_AppendResult(interp,
-                    "wrong # args: should be a boolean value.", (char*) NULL);
+            switch (tclrl_state) {
+
+                case LINE_COMPLETE:
+
+                    return TCL_OK;
+                    /* NOTREACHED */
+                    break;
+
+                case LINE_EOF:
+                    if (tclrl_eof_string)
+                        return Tcl_Eval(interp, tclrl_eof_string);
+                    else
+                        return TCL_OK;
+                    /* NOTREACHED */
+                    break;
+
+                default:
+                    return tclrl_state;
+                    /* NOTREACHED */
+                    break;
+            }
+            break;
+
+        case TCLRL_INITIALIZE:
+            if (3 != argc) {
+                Tcl_WrongNumArgs(interp, 2, objv, "historyfile");
                 return TCL_ERROR;
             } else {
-                tclrl_use_builtin_completer = bool;
+                return TclReadlineInitialize(interp, argv[2]);
             }
-        }
-        Tcl_AppendResult(interp, tclrl_use_builtin_completer ? "1" : "0",
-            (char*) NULL);
-    } else if (c == 'e'  && strncmp(argv[1], "eofchar", length) == 0) {
-        if (3 != argc && 2 != argc)
+            break;
+
+        case TCLRL_WRITE:
+            if (3 != argc) {
+                Tcl_WrongNumArgs(interp, 2, objv, "historyfile");
+                return TCL_ERROR;
+            }  else if (write_history(argv[2])) {
+                Tcl_AppendResult(interp, "unable to write history to `",
+                    argv[2], "'\n", (char*) NULL);
+                return TCL_ERROR;
+            }
+            if (tclrl_history_length >= 0) {
+                history_truncate_file(argv[2], tclrl_history_length);
+            }
+            return TCL_OK;
+            break;
+
+        case TCLRL_ADD:
+            if (3 != argc) {
+                Tcl_WrongNumArgs(interp, 2, objv, "completerLine");
+                return TCL_ERROR;
+            } else if (TclReadlineKnownCommands(argv[2], (int) 0, _CMD_SET)) {
+                Tcl_AppendResult(interp, "unable to add command \"",
+                    argv[2], "\"\n", (char*) NULL);
+            }
+            break;
+
+        case TCLRL_COMPLETE:
+            if (3 != argc) {
+                Tcl_WrongNumArgs(interp, 2, objv, "line");
+                return TCL_ERROR;
+            } else if (Tcl_CommandComplete(argv[2])) {
+                Tcl_AppendResult(interp, "1", (char*) NULL);
+            } else {
+                Tcl_AppendResult(interp, "0", (char*) NULL);
+            }
+            break;
+
+        case TCLRL_CUSTOMCOMPLETER:
+            if (argc > 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "?scriptCompleter?");
+                return TCL_ERROR;
+            } else if (3 == argc) {
+                if (tclrl_custom_completer)
+                    FREE(tclrl_custom_completer);
+                if (!blank_line(argv[2]))
+                    tclrl_custom_completer = stripwhite(strdup(argv[2]));
+            }
+            Tcl_AppendResult(interp, tclrl_custom_completer, (char*) NULL);
+            break;
+
+        case TCLRL_BUILTINCOMPLETER:
+            if (argc > 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "?boolean?");
+                return TCL_ERROR;
+            } else if (3 == argc) {
+                int bool = tclrl_use_builtin_completer;
+                if (TCL_OK != Tcl_GetBoolean(interp, argv[2], &bool)) {
+                    Tcl_AppendResult(interp,
+                        "wrong # args: should be a boolean value.",
+                        (char*) NULL);
+                    return TCL_ERROR;
+                } else {
+                    tclrl_use_builtin_completer = bool;
+                }
+            }
+            Tcl_AppendResult(interp, tclrl_use_builtin_completer ? "1" : "0",
+                (char*) NULL);
+            break;
+
+        case TCLRL_EOFCHAR:
+            if (argc > 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "?script?");
+                return TCL_ERROR;
+            } else if (3 == argc) {
+                if (tclrl_eof_string)
+                    FREE(tclrl_eof_string);
+                if (!blank_line(argv[2]))
+                    tclrl_eof_string = stripwhite(strdup(argv[2]));
+            }
+            Tcl_AppendResult(interp, tclrl_eof_string, (char*) NULL);
+            break;
+
+        default:
             goto BAD_COMMAND;
-        if (3 == argc) {
-            if (tclrl_eof_string)
-                FREE(tclrl_eof_string);
-            if (!blank_line(argv[2]))
-                tclrl_eof_string = stripwhite(strdup(argv[2]));
-        }
-        Tcl_AppendResult(interp, tclrl_eof_string, (char*) NULL);
-    } else {
-        goto BAD_COMMAND;
+            /* NOTREACHED */
+            break;
     }
 
     return TCL_OK;
@@ -327,15 +391,17 @@ void
 TclReadlineReadHandler(ClientData clientData, int mask)
 {
     if (mask & TCL_READABLE) {
-        rl_callback_read_char();
 #ifdef EXECUTING_MACRO_HACK
-        /**
-         * check, if we're inside a macro and
-         * if so, read all macro characters.
-         */
-        while (_rl_executing_macro) {
+        do {
+#endif
             rl_callback_read_char();
-        }
+#ifdef EXECUTING_MACRO_HACK
+            /**
+             * check, if we're inside a macro and
+             * if so, read all macro characters
+             * until the next eol.
+             */
+        } while (_rl_executing_macro && !TclReadlineLineComplete());
 #endif
     }
 }
@@ -343,22 +409,75 @@ TclReadlineReadHandler(ClientData clientData, int mask)
 void
 TclReadlineLineCompleteHandler(char* ptr)
 {
-#if 1
     if (!ptr) { /* <c-d> */
-        tclrl_line_complete = LINE_EOF;
-        rl_callback_handler_remove();
-    } else if (*ptr) {
-        tclrl_line_complete = LINE_COMPLETE;
-        rl_callback_handler_remove();
-        tclrl_line = ptr;
-    }
+
+        TclReadlineTerminate(LINE_EOF);
+
+    } else {
+
+        /**
+         * From version 0.9.3 upwards, all lines are
+         * returned, even empty lines. (Only non-empty
+         * lines are stuffed in readline's history.)
+         * The calling script is responsible for handling
+         * empty strings.
+         */
+
+        char* expansion = (char*) NULL;
+        int status = history_expand(ptr, &expansion);
+
+        if (status >= 1) {
+#if 0
+            Tcl_Channel channel = Tcl_MakeFileChannel(stdout, TCL_WRITABLE);
+            /* Tcl_RegisterChannel(interp, channel); */
+            (void) Tcl_WriteChars(channel, expansion, -1);
+            Tcl_Flush(channel);
+            Tcl_Close(interp, channel);
 #else
-    if (ptr && *ptr) {
-        tclrl_line_complete = 1;
-        rl_callback_handler_remove();
-        tclrl_line = ptr;
-    }
+            /* TODO: make this a valid tcl output */
+            printf("%s\n", expansion);
 #endif
+        } else if (-1 == status) {
+            Tcl_AppendResult
+                (tclrl_interp, "error in history expansion\n", (char*) NULL);
+            TclReadlineTerminate(TCL_ERROR);
+        }
+        /**
+         * TODO: status == 2 ...
+         */
+
+        Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+
+#ifdef EXECUTING_MACRO_HACK
+        /**
+         * don't stuff macro lines
+         * into readline's history.
+         */
+        if(!_rl_executing_macro) {
+#endif
+            /**
+             * don't stuff empty lines
+             * into readline's history.
+             * don't stuff twice the same
+             * line into readline's history.
+             */
+            if (expansion && *expansion && (!tclrl_last_line ||
+                strcmp(tclrl_last_line, expansion))) {
+                add_history(expansion);
+            }
+            if (tclrl_last_line)
+                free(tclrl_last_line);
+            tclrl_last_line = strdup(expansion);
+#ifdef EXECUTING_MACRO_HACK
+        }
+#endif
+        /**
+         * tell the calling routines to terminate.
+         */
+        TclReadlineTerminate(LINE_COMPLETE);
+        FREE(ptr);
+        FREE(expansion);
+    }
 }
 
 int
@@ -402,7 +521,7 @@ int
 TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 {
     rl_readline_name = "tclreadline";
-    //    rl_special_prefixes = "${\"[";
+    /*    rl_special_prefixes = "${\"["; */
     rl_special_prefixes = "$";
     /**
      * default is " \t\n\"\\'`@$><=;|&{("
@@ -418,7 +537,7 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
     /* besser (11. Sept) 3. (removed }) */
     rl_basic_word_break_characters = " \t\n\\@$=;|&[]";
 #if 0
-    rl_basic_quote_characters = "\"{"; // XXX ??? XXX
+    rl_basic_quote_characters = "\"{"; /* XXX ??? XXX */
     rl_completer_quote_characters = "\"";
 #endif
     /*
@@ -496,22 +615,23 @@ TclReadlineCompletion(char* text, int start, int end)
         Tcl_Obj* obj;
         Tcl_Obj** objv;
         int objc;
+        int state;
         char* quoted_text = TclReadlineQuote(text, "$[]{}\"");
         char* quoted_rl_line_buffer
             = TclReadlineQuote(rl_line_buffer, "$[]{}\"");
         sprintf(start_s, "%d", start);
         sprintf(end_s, "%d", end);
         Tcl_ResetResult(tclrl_interp); /* clear result space */
-        tclrl_state = Tcl_VarEval(tclrl_interp, tclrl_custom_completer,
+        state = Tcl_VarEval(tclrl_interp, tclrl_custom_completer,
             " \"", quoted_text, "\" ", start_s, " ", end_s,
             " \"", quoted_rl_line_buffer, "\"", (char*) NULL);
         FREE(quoted_text);
         FREE(quoted_rl_line_buffer);
-        if (TCL_OK != tclrl_state) {
-            rl_callback_handler_remove();
+        if (TCL_OK != state) {
             Tcl_AppendResult (tclrl_interp, " `", tclrl_custom_completer,
                 " \"", quoted_text, "\" ", start_s, " ", end_s,
                 " \"", quoted_rl_line_buffer, "\"' failed.", (char*) NULL);
+            TclReadlineTerminate(state);
             return matches;
         }
         obj = Tcl_GetObjResult(tclrl_interp);
