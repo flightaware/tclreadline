@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Sat Aug 21 00:21:27 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Mon Aug 23 17:10:16 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -138,7 +138,7 @@ READLINE_INCLUDE_DIR = @READLINE_INCLUDE_DIR@
 TCLREADLINE_LIB_FILE = @TCLREADLINE_LIB_FILE@
 
 READLINE_LIB         = -L@READLINE_LIB_DIR@ -lreadline
-TERMCAP_LIB          = -L@TERMCAP_LIB_DIR@ -l@TERMCAP_LIB@
+TERM_LIB             = @TERM_LIB@
 
 #----------------------------------------------------------------
 # The information below should be usable as is.  The configure
@@ -193,7 +193,7 @@ all: $(TCLREADLINE_LIB_FILE)
 
 @TCLREADLINE_LIB_FILE@: ${OBJS}
 	rm -f $(TCLREADLINE_LIB_FILE)
-	@MAKE_LIB@ $(TERMCAP_LIB) $(READLINE_LIB)
+	@MAKE_LIB@ $(TERM_LIB) $(READLINE_LIB)
 	$(RANLIB) $(TCLREADLINE_LIB_FILE)
 
 install: install-binaries install-libraries install-man
@@ -233,7 +233,7 @@ clean:
 distclean: clean
 	rm -f \
 	Makefile *.so *.sl pkgIndex.tcl tclreadlineInit.tcl \
-        tclreadlineSetup.tcl\
+        tclreadlineSetup.tcl tclreadline.h tclreadline.n \
  	tclreadlineConfig.sh config.status config.log config.cache
 
 depend:

@@ -1,6 +1,6 @@
 # -*- autoconf -*-
 # FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Aug 23 10:59:40 1999 (joze)"
+# LAST MODIFICATION: "Mon Aug 23 16:45:33 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -341,75 +341,48 @@ fi
 
 
 #--------------------------------------------------------------------
-#   Specify termlib or curses library
-#--------------------------------------------------------------------
-
-opt_curses=no
-AC_ARG_WITH(curses, 
-[  --with-curses           force using the curses library instead of termcap],
-opt_curses=$withval)
-
-if test "$opt_curses" = "yes"; then
-    TERMCAP_CHECK="curses ncurses"
-else
-    TERMCAP_CHECK="termcap curses ncurses"
-fi
-
-
-#--------------------------------------------------------------------
-#   Check for termlib / curses / ncurses library.
-#--------------------------------------------------------------------
-
-AC_ARG_WITH(termcap-library,
-            [  --with-termcap-library=DIR
-                          search termcap (or curses / ncurses) library in DIR],
-            termcap_lib=$withval, termcap_lib=$exec_prefix/lib)
-
-tcheck_path="$termcap_lib $TCLREADLINE_LPATH $prefix/lib"
-for tcheck in $TERMCAP_CHECK; do
-    AC_MSG_CHECKING([whether we use lib$tcheck$SHLIB_SUFFIX])
-    TERMCAP_LIB_DIR=""
-    for dir in $tcheck_path; do
-        if test -r $dir/lib$tcheck$SHLIB_SUFFIX; then
-            TERMCAP_LIB_DIR=$dir
-            break
-        fi
-    done
-
-    if test -z "$TERMCAP_LIB_DIR"; then
-        AC_MSG_RESULT(no)
-    else
-        TERMCAP_LIB=$tcheck
-        TERMCAP_LOAD_PATH=${TERMCAP_LIB_DIR}/lib${tcheck}${SHLIB_SUFFIX}
-        AC_MSG_RESULT(yes: $TERMCAP_LOAD_PATH)
-        break
-    fi
-done
-
-if test -z "$TERMCAP_LIB_DIR"; then
-    AC_MSG_ERROR([
-  None of "$TERMCAP_CHECK" found in:
-  $tcheck_path
-  Use --with-termcap-library to specify the directory containing 
-  lib$TERMCAP_LIB$SHLIB_SUFFIX on your system.])
-fi
-
-
-
-#--------------------------------------------------------------------
 #   Check for appropriate version of gnu readline
 #   (older versions of gnu readline don't have
 #    rl_callback_read_char ()).
 #--------------------------------------------------------------------
 
 save=$LIBS
-
-LIBS="-L$READLINE_LIB_DIR -lreadline -L$TERMCAP_LIB_DIR -l$TERMCAP_LIB"
+LIBS="-L$READLINE_LIB_DIR -lreadline"
 alternate=no
-AC_CHECK_LIB(readline, rl_callback_read_char, alternate=yes, alternate=no, -l$TERMCAP_LIB)
-if test $alternate = "no"; then
+AC_CHECK_LIB(readline, rl_callback_read_char, alternate=yes, alternate=no)
+if test "$alternate" = "no"; then
     AC_MSG_ERROR(alternate interface not supported by this readline version.)
 fi
+
+
+# ---
+# check, if curses or termcap is already
+# linked with libreadline. (on newer Linux
+# systems it is.)
+# ---
+
+AC_CHECK_LIB(readline, tputs, termcaps=yes, termcaps=no)
+if test "$termcaps" = "no"; then
+
+    # ---
+    # nope. tputs() is unresolved in libreadline, so
+    # check if we want libcurses or libtermcap.
+    # ---
+
+    AC_ARG_WITH(
+        termcap, 
+        [  --with-termcap          use termcap library instead of curses.],
+        TERM_LIB="termcap",
+        TERM_LIB="curses"
+    )
+    AC_CHECK_LIB($TERM_LIB, tputs, tputs_ok=yes, tputs_ok=no)
+    if test "$tputs_ok" = "no"; then
+        AC_MSG_ERROR(tputs() not found in lib$TERM_LIB.)
+    else
+        TERM_LIB=-l$TERM_LIB
+    fi
+fi
+# ===========================================
 
 AC_MSG_CHECKING([for the readline version number])
 AC_TRY_RUN([
@@ -458,8 +431,7 @@ AC_SUBST(SHLIB_LD_LIBS)
 
 AC_SUBST(SHLIB_SUFFIX)
 
-AC_SUBST(TERMCAP_LIB_DIR)
-AC_SUBST(TERMCAP_LIB)
+AC_SUBST(TERM_LIB)
 AC_SUBST(READLINE_LIB_DIR)
 
 AC_SUBST(TCLREADLINE_LIB_FILE)

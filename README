@@ -1,6 +1,6 @@
 
-    FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Mon Aug 23 00:21:24 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/README"
+    LAST MODIFICATION: "Mon Aug 23 17:46:01 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -51,8 +51,8 @@ This release will probably only build under UNIX (Linux).
 Before trying to compile tclreadline you should do the following things:
 
     (a) Make sure you have tcl 8.0 or higher.  I've tested tclreadline
-        with tcl 8.0.3 and 8.0.4.  tclreadline relies on a proper tcl
-        installation:
+        with tcl 8.0.3, 8.0.4, 8.0.5, 8.1.0, 8.1.1 and 8.2.0.
+        tclreadline relies on a proper tcl installation:
         It uses the tclConfig.sh file, which should reside somewhere
         in /usr/local/lib/ or /usr/local/lib/tcl8.0/...
 
@@ -98,7 +98,7 @@ tclreadline-0.9: (Aug 1999)
         - lines added to tcl's history. (were only in readline's hist.)
         - macro mappings didn't work. (only when hitting
           mapped characters more than once.)
-        - minor fixes in configure.in
+        - various changes and fixes in configure.in
 
 tclreadline-0.8: (May 1999)
     - adapted for tcl8.1.

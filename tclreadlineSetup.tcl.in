@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
-# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Mon Aug 23 00:54:01 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Mon Aug 23 17:34:09 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -135,7 +135,7 @@ proc unknown args {
 }
 
 namespace eval tclreadline:: {
-    namespace export Setup Glob Loop InitCmds InitTclCmds InitTkCmds Print
+    namespace export Setup Glob Loop InitCmds InitTclCmds InitTkCmds Print ls
 }
 
 # get the longest common completion

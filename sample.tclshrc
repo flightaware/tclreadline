@@ -1,6 +1,6 @@
 #!/bin/sh
-# FILE: "/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Mon Aug 23 00:55:51 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/sample.tclshrc"
+# LAST MODIFICATION: "Mon Aug 23 17:50:54 1999 (joze)"
 # (C) 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ft=tcl: \
@@ -29,7 +29,7 @@ if {$tcl_interactive} {
     # uncomment the following line to use
     # tclreadline's fancy ls proc.
     #
-    # namespace import ::tclreadline::ls
+    # namespace import tclreadline::ls
 
     # tclreadline::Print is on (`yes') by default.
     # This mimics the command echoing like in the
@@ -37,15 +37,16 @@ if {$tcl_interactive} {
     # If you don't like this, uncomment the following
     # line.
     #
-    # ::tclreadline::Print no
+    # tclreadline::Print no
 
     # uncomment the folling line, if you want
     # to change tclreadline's print behaviour
     # frequently with less typing.
     #
-    # namespace import ::tclreadline::Print
+    # namespace import tclreadline::Print
 
     # go to tclrealdine's main loop.
-    ::tclreadline::Loop
+    #
+    tclreadline::Loop
 }
 
