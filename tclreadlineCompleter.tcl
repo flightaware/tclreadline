@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Thu Sep 16 16:24:46 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Thu Sep 16 22:17:38 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -1009,6 +1009,9 @@ proc ScriptCompleter {part start end line} {
 			set alias [namespace tail $alias]
 		}
 
+		# try first a specific completer, then, and only then
+		# the tclreadline_complete_unknown.
+		#
 		foreach cmd [list ${alias} tclreadline_complete_unknown] {
 			# puts stderr ${namespc}complete(${cmd})
 			if {"" != [namespace eval ::tclreadline::${namespc} \
@@ -1039,9 +1042,17 @@ proc ScriptCompleter {part start end line} {
 					error [list error during evaluation of `complete(${cmd})']
 				}
 				# puts stderr \nscript_result=|${script_result}|
-				if {[string length ${script_result}] || \
+				if {![string length ${script_result}] && \
 					"tclreadline_complete_unknown" == ${cmd}
 				} {
+					# as we're here, the tclreadline_complete_unknown
+					# returned an empty string. Fall thru and try
+					# further fallback completers.
+					#
+				} else {
+					# return also empty strings, if
+					# they're from a specific completer.
+					#
 					return ${script_result}
 				}
 			}
@@ -3016,7 +3027,7 @@ proc complete(tell) {text start end line pos mod} {
 
 proc complete(time) {text start end line pos mod} {
 	switch -- $pos {
-		1 { return [DisplayHints <script>] }
+		1 { return [BraceOrCommand $text $start $end $line $pos $mod] }
 		2 { return [DisplayHints ?count?] }
 	}
 	return ""
