@@ -2,7 +2,7 @@
 
 .\" (C) 1999 by Johannes Zellner
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Mon Aug 23 00:15:10 1999 (joze)"
+.\" LAST MODIFICATION: "Mon Aug 23 22:31:24 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -27,16 +27,27 @@
 .\" <johannes@zellner.org>, http://www.zellner.org/tclreadline/
 
 
-.SH NAME
+.\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+.\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+
+.SH "NAME"
 tclreadline \- gnu readline for the tcl scripting language
 
-
-.SH SYNOPSIS
+.SH "SYNOPSIS"
 .TP 6
 \fB::tclreadline::readline\fP \fIcommand\fP [\fIoptions\fP]
 
 
-.SH DESCRIPTION
+.SH "DESCRIPTION"
 
 The \fBtclreadline\fP package makes the gnu readline available
 to the scripting language tcl. The primary purpose of the package
@@ -63,10 +74,10 @@ which are accessed with the tcl package require command. Therefore
 \fBblt, itcl, itk, tix ...\fP.
 
 
-.\".SH SOURCE FILES
+.\" .SH SOURCE FILES
 
 
-.SH COMMANDS
+.SH "COMMANDS"
 
 If you want to use \fBtclreadline\fP as a line interface
 for developing tcl scripts, you probably don't have to read
@@ -149,13 +160,11 @@ initialize the tclreadline interface and read the history from
 the \fIhistoryfile\fP. On succes an empty string is returned.
 This command has to be called before any other tclreadline commands.
 
-
 .TP 5
 \fB::tclreadline::readline read\fP \fIprompt\fP
 prints the \fIprompt\fP to stdout and enters the tclreadline event
 loop. Both readline and X events are processed. Returns the
 (eventually history-expanded) input string.
-
 
 .TP 5
 \fB::tclreadline::readline write\fP \fIhistoryfile\fP
@@ -192,7 +201,7 @@ if it is not already defined. So: If you define your own proc
 ::tclreadline::prompt1 before entering ::tclreadline::Loop, this
 proc is called each time the prompt is to be displayed.
 Example:
-.EQ
+.CS
     package require tclreadline
     namespace eval tclreadline {
         proc prompt1 {} {
@@ -200,36 +209,36 @@ Example:
         }
     }
     ::tclreadline::Loop
-.EN
+.CE
+
 Note that non-printable control characters as color control characters
 must be enclosed in literal ctrl-a / ctrl-b to tell readline the length
 of the printable prompt. See for example the variable `prompt_string'
 in the file tclreadlineSetup.tcl in your tclreadline installation directory.
 
 
-.\".SH "EXAMPLES"
+.\" .SH "EXAMPLES"
 
 
-.\".SH "ENVIRONMENT VARIABLES"
+.\" .SH "ENVIRONMENT VARIABLES"
 
-.SH VARIABLES
+.SH "VARIABLES"
 
 The global variable \fBtclreadline_version\fP holds the version number
 of the tclreadline package.
 
-.SH FILES
+.SH "FILES"
 
 the \fB.tclshrc\fP file in the HOME directory, which
 is read on tclsh startup. Alternatively, the name of this initialization
 file might be \fB.wishrc\fP ... depending on what interpreter you use.
 These files should typically contain something like
-
-.EQ
+.CS
     if {$tcl_interactive} {
         package require tclreadline
         ::tclreadline::Loop
     }
-.EN
+.CE
 
 which will enter the tclreadline main loop.
 
@@ -247,20 +256,19 @@ The `global' readline settings there will be valid also for
 \fBtclreadline\fP. Additionally the .inputrc might hold conditional
 settings for the implementation name \fBtclreadline\fP. Example of 
 some lines in your .inputrc:
-
-.EQ
+.CS
     $if tclreadline
     "\\C-xp": "puts $env(PATH)"
     $endif
-.EN
+.CE
 
 For further documentation please refer to the gnu readline documentation.
 
-.SH BUGS
+.SH "BUGS"
 probably.
 
 
-.SH SEE ALSO
+.SH "SEE ALSO"
 
 
 .PP
@@ -272,10 +280,10 @@ http://www.zellner.org/tclreadline/
 .RE
 
 
-.SH AUTHOR
+.SH "AUTHOR"
 Johannes Zellner, <johannes@zellner.org>
-.br
-.SH CONTRIBUTIONS, SUGGESTIONS AND PATCHES
+
+.SH "CONTRIBUTIONS, SUGGESTIONS AND PATCHES"
 Magnus Eriksson <magnus.eriksson@netinsight.se>,
 Les Johnson <les@infolabs.com>,
 Harald Kirsch <kir@iitb.fhg.de>,
@@ -283,10 +291,10 @@ Christian Krone <krischan@sql.de>,
 Larry W. Virden <lvirden@cas.org>,
 David Engel <dlengel@home.com>, <david@debian.org>
 
-.SH DEBIAN PACKAGE
+.SH "DEBIAN PACKAGE"
 David Engel <dlengel@home.com>, <david@debian.org>
 
-.SH DISCLAIMER
+.SH "DISCLAIMER"
 
 This version of \fBtclreadline\fP is still a development version.
 Pretty a lot of features and ideas are not implemented yet. The
