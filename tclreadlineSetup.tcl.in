@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Mon Aug 30 01:54:12 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Tue Aug 31 03:32:02 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -222,11 +222,11 @@ proc unknown args {
     return -code error "invalid command name \"$name\""
 }
 
-namespace eval tclreadline:: {
-    namespace export Setup Glob Loop InitCmds InitTclCmds InitTkCmds Print ls
-}
+namespace eval tclreadline {
 
-proc tclreadline::FirstNonOption {line} {
+namespace export Setup Glob Loop InitCmds InitTclCmds InitTkCmds Print ls
+
+proc FirstNonOption {line} {
     set expr_pos 1
     foreach word [lrange ${line} 1 end] {; # 0 is the command itself
         if {"-" != [string index ${word} 0]} {
@@ -238,12 +238,7 @@ proc tclreadline::FirstNonOption {line} {
     return ${expr_pos}
 }
 
-proc tclreadline::FmtFindInList {text lst} {
-    return [string trim [tclreadline::Format \
-    [tclreadline::FindInList $text $lst] $text]]
-}
-
-proc tclreadline::RemoveUsedOptions {line opts {terminate {}}} {
+proc RemoveUsedOptions {line opts {terminate {}}} {
     if {[llength ${terminate}]} {
         if {[regexp -- ${terminate} ${line}]} {
             return ""
@@ -258,15 +253,49 @@ proc tclreadline::RemoveUsedOptions {line opts {terminate {}}} {
     return [string trim ${new}]
 }
 
-proc tclreadline::FmtFindInListSpecial {text lst} {
-    if {![llength ${text}]} {
-        return [string trim "{} ${lst}"]
+proc Alert {} {
+    puts -nonewline \a
+    flush stdout
+}
+
+# AttemptFromList will return an empty string, if
+# the text typed so far does not match any of the
+# elements in list. This might be used to allow
+# subsequent filename completion by the builtin
+# completer.
+#
+proc AttemptFromList {text lst} {
+    return [string trim [Format [FindInList $text $lst] $text]]
+}
+
+# CompleteFromList will never return an empty string.
+#
+proc CompleteFromList {text lst} {
+    set result [AttemptFromList ${text} ${lst}]
+    if {![llength ${result}]} {
+        Alert
+        return [string trim "${text} ${lst}"]
     } else {
-        return [string trim [FmtFindInList ${text} ${lst}]]
+        return ${result}
     }
 }
 
-proc tclreadline::FindInList {text lst} {
+# ???????
+proc MenuFromList {text lst} {
+    if {![llength ${text}]} {
+        return [string trim "{} ${lst}"]
+    } else {
+        return [AttemptFromList ${text} ${lst}]
+    }
+}
+
+# never return an empty string
+#
+proc Menu {lst} {
+    return [string trim "{} ${lst}"]
+}
+
+proc FindInList {text lst} {
     set result ""
     foreach word $lst {
         if {[string match ${text}* ${word}]} {
@@ -279,9 +308,9 @@ proc tclreadline::FindInList {text lst} {
 
 # get the longest common completion
 # e.g. str == {tcl_version tclreadline_version tclreadline_library}
-# --> [tclreadline::GetCommon ${str}] == "tcl"
+# --> [GetCommon ${str}] == "tcl"
 #
-proc tclreadline::GetCommon {str} {
+proc GetCommon {str} {
     # puts stderr str=$str
     set match0 [lindex ${str} 0]
     set len0 [string length $match0]
@@ -304,7 +333,7 @@ proc tclreadline::GetCommon {str} {
     return ${part}
 }
 
-proc tclreadline::SubCmd {start line} {
+proc SubCmd {start line} {
     set depth 0
     for {set i $start} {$i > 0} {incr i -1} {
         set c [string index $line $i]
@@ -324,7 +353,7 @@ proc tclreadline::SubCmd {start line} {
     return ""
 }
 
-proc tclreadline::IsWhite {char} {
+proc IsWhite {char} {
     if {" " == $char || "\n" == $char || "\t" == $char} {
         return 1
     } else {
@@ -332,7 +361,7 @@ proc tclreadline::IsWhite {char} {
     }
 }
 
-proc tclreadline::PreviousWord {start line} {
+proc PreviousWord {start line} {
     incr start -1
     set found 0
     for {set i $start} {$i > 0} {incr i -1} {
@@ -346,8 +375,8 @@ proc tclreadline::PreviousWord {start line} {
     return [string trim [string range ${line} $i $start]]
 }
 
-proc tclreadline::Quote {value left} {
-    set right [tclreadline::Right ${left}]
+proc Quote {value left} {
+    set right [Right ${left}]
     if {1 < [llength $value] && "" == $right} {
         return [list \"${value}\"]
     } else {
@@ -355,18 +384,17 @@ proc tclreadline::Quote {value left} {
     }
 }
 
-proc tclreadline::InChannelId {text} {
+proc InChannelId {text} {
     return [ChannelId ${text} <inChannel> {stdin}]
 }
 
-proc tclreadline::OutChannelId {text} {
+proc OutChannelId {text} {
     return [ChannelId ${text} <outChannel> {stdout stderr}]
 }
 
-proc tclreadline::ChannelId {
-    text {default <channelId>} {chs {stdin stdout stderr}}} {
+proc ChannelId {text {default <channelId>} {chs {stdin stdout stderr}}} {
     if {[llength ${text}]} {
-        set channel [FmtFindInList $text ${chs}]
+        set channel [AttemptFromList $text ${chs}]
         if {[llength [lindex ${channel} 0]]} {
             return ${channel}
         } else {
@@ -376,9 +404,9 @@ proc tclreadline::ChannelId {
     return ${default}
 }
 
-proc tclreadline::QuoteQuotes {line} {
+proc QuoteQuotes {line} {
     regsub -all -- \" $line {\"} line
-    regsub -all -- \{ $line {\{} line
+    regsub -all -- \{ $line {\{} line; # \}\} (keep the editor happy)
     return $line
 }
 
@@ -391,24 +419,24 @@ proc tclreadline::QuoteQuotes {line} {
 # line  == "put $b"
 # [PartPosition] should return 0
 #
-proc tclreadline::PartPosition {part start end line} {
-    # puts stderr "(tclreadline::PartPosition) line\[start\]=[string index $line $start]"
-    # puts stderr "(tclreadline::PartPosition) part=|$part|"
+proc PartPosition {part start end line} {
+    # puts stderr "(PartPosition) line\[start\]=[string index $line $start]"
+    # puts stderr "(PartPosition) part=|$part|"
     incr start -1
     if {"\"" == [string index $line $start]} {
         incr start -1
     }
-    # puts stderr "(tclreadline::PartPosition) line=|$line|" 
-    # puts stderr "(tclreadline::PartPosition) start=$start"
+    # puts stderr "(PartPosition) line=|$line|" 
+    # puts stderr "(PartPosition) start=$start"
     set line [string range $line 0 $start]
     set line [QuoteQuotes $line]
-    # puts stderr "(tclreadline::PartPosition) line=|$line|" 
+    # puts stderr "(PartPosition) line=|$line|" 
     set result [llength $line]
     # puts stderr $result
     return $result
 }
 
-proc tclreadline::Right {left} {
+proc Right {left} {
     if {"\"" == $left} {
         return ""
     } elseif {"\{" == $left} {
@@ -419,7 +447,7 @@ proc tclreadline::Right {left} {
     return ""
 }
 
-proc tclreadline::GetPrefix {text} {
+proc GetPrefix {text} {
     set null [string index $text 0]
     # puts null=|$null|
     if {"\"" == $null} {
@@ -435,17 +463,17 @@ proc tclreadline::GetPrefix {text} {
     return ${pre}
 }
 
-proc tclreadline::Format {matches {part {}}} {
+proc Format {matches {part {}}} {
     # puts matches=|$matches|
     # puts stderr \npart=|$part|\n
     set pre [GetPrefix ${part}]
     if {1 == [llength $matches]} { ; # unique match
         # puts stderr \nunique=$matches\n
         # puts stderr "\n|${pre}${matches}[Right ${pre}]|\n"
-        return ${pre}${matches}[Right ${pre}]
+        return [string trim ${pre}${matches}[Right ${pre}]]
     } elseif {"" != ${matches}} {
         # puts stderr \nmore=$matches\n
-        set common [tclreadline::GetCommon ${matches}]
+        set common [GetCommon ${matches}]
         # puts stderr common=|$common|
         if {"" == $common} {
             return [string trim "[list $part] ${matches}"]
@@ -457,13 +485,13 @@ proc tclreadline::Format {matches {part {}}} {
     }
 }
 
-proc tclreadline::ListCompletion {text {level -1}} {
+proc ListCompletion {text {level -1}} {
     # TODO
     return ""
     # return [VarCompletion ${text} ${level}]
 }
 
-proc tclreadline::VarCompletion {text {level -1}} {
+proc VarCompletion {text {level -1}} {
     if {-1 == ${level}} {
         set level [info level]
     } else {
@@ -484,7 +512,7 @@ proc tclreadline::VarCompletion {text {level -1}} {
         if {1 == [llength $names]} { ; # unique match
             return "${array}(${names})"
         } elseif {"" != ${names}} {
-            return "${array}([tclreadline::GetCommon ${names}] ${names}"
+            return "${array}([GetCommon ${names}] ${names}"
         } else {
             return ""; # nothing to complete
         }
@@ -516,9 +544,9 @@ proc tclreadline::VarCompletion {text {level -1}} {
             return ${pre}${matches}[Right ${pre}]
         }
     } elseif {"" != $matches} { ; # more than one match
-        set common [tclreadline::GetCommon ${matches}]
+        set common [GetCommon ${matches}]
         if {"" == ${common}} {
-            return [tclreadline::Format ${matches} ${text}]
+            return [Format ${matches} ${text}]
         } else {
             return [string trim "${pre}${common} ${matches}"]
         }
@@ -527,7 +555,7 @@ proc tclreadline::VarCompletion {text {level -1}} {
     }
 }
 
-proc tclreadline::FullQualifiedMatches {qualifier matchlist} {
+proc FullQualifiedMatches {qualifier matchlist} {
     set new ""
     foreach entry ${matchlist} {
         set full ${qualifier}::${entry}
@@ -538,15 +566,15 @@ proc tclreadline::FullQualifiedMatches {qualifier matchlist} {
     return ${new}
 }
 
-proc tclreadline::ProcsOnlyCompletion {cmd} {
-    return [tclreadline::CommandCompletion ${cmd} procs]
+proc ProcsOnlyCompletion {cmd} {
+    return [CommandCompletion ${cmd} procs]
 }
 
-proc tclreadline::CommandsOnlyCompletion {cmd} {
-    return [tclreadline::CommandCompletion ${cmd} commands]
+proc CommandsOnlyCompletion {cmd} {
+    return [CommandCompletion ${cmd} commands]
 }
 
-proc tclreadline::CommandCompletion {cmd {action both} {spc ::}} {
+proc CommandCompletion {cmd {action both} {spc ::}} {
     set quali [namespace qualifiers ${cmd}]
     if {[llength ${quali}]} {
         set rec [CommandCompletion [namespace tail ${cmd}] ${action} ${quali}]
@@ -618,7 +646,7 @@ proc tclreadline::CommandCompletion {cmd {action both} {spc ::}} {
 # end   == 7
 # line  == "$puts $b"
 #
-proc tclreadline::ScriptCompleter {part start end line} {
+proc ScriptCompleter {part start end line} {
     # puts stderr "(ScriptCompleter) |$part| $start $end |$line|"
     variable known_cmds
     if {{$} == [string index $part 0]} {
@@ -669,47 +697,63 @@ proc tclreadline::ScriptCompleter {part start end line} {
     # new_part  == $part == put
     # new_line  = [lindex $sub 1] == " put $b"
     # 
-    } elseif {"" != [set sub [tclreadline::SubCmd $start $line]]} {
+    } elseif {"" != [set sub [SubCmd $start $line]]} {
         set new_start [lindex $sub 0]
         set new_end [expr $end - ($start - $new_start)]
         set new_line [lindex $sub 1]
         # puts stderr "(SubCmd) $new_start $new_end $new_line"
         return \
-            [tclreadline::ScriptCompleter $part $new_start $new_end $new_line]
+            [ScriptCompleter $part $new_start $new_end $new_line]
     } elseif {0 == \
-        [set pos [tclreadline::PartPosition $part $start $end $line]]} {
+        [set pos [PartPosition $part $start $end $line]]} {
         # puts stderr "(PartPosition) $part $start $end $line"
         # set matches [array names known_cmds "[string trim ${part}]*"]
         set all [CommandCompletion ${part}]
         #puts \nmatches=$matches\n
-        return [tclreadline::Format $all $part]
+        return [Format $all $part]
     } else {
         # try to use $pos further ...
-        # regsub -all -- \" $line {\"} thisline
-        set thisline [QuoteQuotes $line]
-        set cmd [lindex $thisline 0]
         if {"." == [string index [lindex ${line} 0] 0]} {
             set alias WIDGET
         } else {
-            set alias ${cmd}
+            set alias [lindex [QuoteQuotes ${line}] 0]
         }
-        if {"" != [namespace eval ::tclreadline \
-            "info procs complete($alias)"]} {
-            # to be more error-proof, we could check here,
-            # if complete($cmd) takes exactly 5 arguments.
-            if {"\"" == [string index $part 0] \
-            || "\{" == [string index $part 0]} {
-                set mod [string range $part 1 end]
-            } else {
-                set mod $part
+        foreach cmd [list ${alias} tclreadline_complete_unknown] {
+            if {"" != [namespace eval ::tclreadline \
+                [list info procs complete(${cmd})]]
+            } {
+                # to be more error-proof, we check here,
+                # if complete($cmd) takes exactly 5 arguments.
+                #
+                if {6 != [set arguments [llength \
+                    [namespace eval ::tclreadline \
+                    [list info args complete(${cmd})]]]]
+                } {
+                    error [list complete(${cmd}) takes ${arguments} \
+                    arguments, but should take exactly 6.]
+                }
+
+                # remove leading quotes
+                #
+                if {"\"" == [string index $part 0] \
+                    || "\{" == [string index $part 0]
+                } {
+                    set mod [string range $part 1 end]
+                } else {
+                    set mod $part
+                }
+
+                if {[catch [list set script_result \
+                    [complete(${cmd}) $part \
+                    $start $end $line $pos $mod]] msg]
+                } {
+                    error "error during evaluation of `complete(${cmd})'"
+                }
+                return ${script_result}
             }
-            if {[catch [list set script_result \
-                [::tclreadline::complete($alias) $part \
-                $start $end $line $pos $mod]] msg]} {
-                error "error during evaluation of `complete($alias)'"
-            }
-            return ${script_result}
-        } elseif {"" != [array names known_cmds $cmd]} {
+        }
+        # no specific command completer found.
+        if {"" != [array names known_cmds $cmd]} {
             set current [lindex $known_cmds($cmd) $pos]
             if {"" != $current && "" == [string trim $part]} {
                 return $current
@@ -723,22 +767,22 @@ proc tclreadline::ScriptCompleter {part start end line} {
     error "{NOTREACHED (this is probably an error)}"
 }
 
-proc tclreadline::ls {args} {
+proc ls {args} {
     if {[exec uname -s] == "Linux"} {
-        eval exec ls --color -FC [::tclreadline::Glob $args]
+        eval exec ls --color -FC [Glob $args]
     } else {
-        eval exec ls -FC [::tclreadline::Glob $args]
+        eval exec ls -FC [Glob $args]
     }
 }
 
-proc ::tclreadline::Setup {args} {
+proc Setup {args} {
 
     uplevel #0 {
 
-        if {[info commands ::tclreadline::readline] == ""} {
+        if {"" == [info commands ::tclreadline::readline]} {
             ::tclreadline::Init
         }
-        tclreadline::readline customcompleter tclreadline::ScriptCompleter
+        ::tclreadline::readline customcompleter ::tclreadline::ScriptCompleter
 
         if {[catch {set a [::tclreadline::prompt1]}] \
             && [info nameofexecutable] != ""} {
@@ -772,9 +816,10 @@ proc ::tclreadline::Setup {args} {
                     return "$prompt_string \[$pwd\]"
                 }
             }
+            # puts body=[info body ::tclreadline::prompt1]
         }
 
-        if {[info procs exit] == ""} {
+        if {"" == [info procs exit]} {
 
             catch {rename ::tclreadline::Exit ""}
             rename exit ::tclreadline::Exit
@@ -816,22 +861,22 @@ proc ::tclreadline::Setup {args} {
             set historyfile  .tclsh-history
         }
     }
-    set msg [::tclreadline::readline initialize $historyfile]
+    set msg [readline initialize $historyfile]
     if {$msg != ""} {
         puts stderr "$msg"
     }
 
-    ::tclreadline::InitCmds
+    InitCmds
 
-    rename ::tclreadline::Setup ""
+    rename Setup ""
 }
 
-proc ::tclreadline::HistoryFileGet {} {
+proc HistoryFileGet {} {
     variable historyfile
     return $historyfile
 }
 
-proc ::tclreadline::Glob {string} {
+proc Glob {string} {
 
     set commandstring ""
     foreach name $string {
@@ -849,80 +894,79 @@ proc ::tclreadline::Glob {string} {
 
 
 
-proc ::tclreadline::Loop {args} {
+proc Loop {args} {
 
-    eval ::tclreadline::Setup ${args}
+    eval Setup ${args}
 
     uplevel #0 {
 
         while {1} {
 
             if [info exists tcl_prompt2] {
-                set ::tclreadline::prompt2 $tcl_prompt2
+                set prompt2 $tcl_prompt2
             } else {
-                set ::tclreadline::prompt2 ">"
+                set prompt2 ">"
             }
 
             if {[catch {
-            if {[namespace eval ::tclreadline {[info procs prompt1]}] != ""} {
-                set ::tclreadline::LINE [::tclreadline::readline read \
+                if {"" != [namespace eval ::tclreadline {info procs prompt1}]} {
+                    set LINE [::tclreadline::readline read \
                     [::tclreadline::prompt1]]
-            } else {
-                set ::tclreadline::LINE [::tclreadline::readline read %]
-            }
-
-            while {![::tclreadline::readline complete $::tclreadline::LINE]} {
-                append ::tclreadline::LINE "\n"
-                append ::tclreadline::LINE [::tclreadline::readline read \
-                    ${::tclreadline::prompt2}]
-            }
+                } else {
+                    set LINE [::tclreadline::readline read %]
+                }
+                while {![::tclreadline::readline complete $LINE]} {
+                    append LINE "\n"
+                    append LINE [tclreadline::readline read ${prompt2}]
+                }
             } msg]} {
-                puts stderr \n$msg
+                puts stderr [list tclreadline::Loop: error. $msg]
                 continue
             }
 
             # Magnus Eriksson <magnus.eriksson@netinsight.se> proposed
-            history add $::tclreadline::LINE
+            history add $LINE
 
             if [catch {
-                set result [eval $::tclreadline::LINE]
-                if {$result != "" && [::tclreadline::Print]} {
+                set result [eval $LINE]
+                if {$result != "" && [tclreadline::Print]} {
                     puts $result
                 }
                 set result ""
             } msg] {
                 puts stderr $msg
+                puts stderr [list while evaluating $LINE]
             }
 
         }
     }
 }
 
-proc ::tclreadline::Print {args} {
+proc Print {args} {
     variable PRINT
     if ![info exists PRINT] {
-        set ::tclreadline::PRINT yes
+        set PRINT yes
     }
     if [regexp -nocase \(true\|yes\|1\) $args] {
-        set ::tclreadline::PRINT yes
+        set PRINT yes
     } elseif [regexp -nocase \(false\|no\|0\) $args] {
-        set ::tclreadline::PRINT no
+        set PRINT no
     }
     return $PRINT
 }
 
-proc ::tclreadline::InitCmds {} {
+proc InitCmds {} {
     global tcl_version tk_version
     if {[info exists tcl_version]} {
-        ::tclreadline::InitTclCmds
+        InitTclCmds
     }
     if {[info exists tk_version]} {
-        ::tclreadline::InitTkCmds
+        InitTkCmds
     }
-    rename tclreadline::InitCmds ""
+    rename InitCmds ""
 }
 
-proc ::tclreadline::InitTclCmds {} {
+proc InitTclCmds {} {
     variable known_cmds
     foreach line {
         "after option ?arg arg ...?"
@@ -986,13 +1030,13 @@ proc ::tclreadline::InitTclCmds {} {
         "vwait name"
         "while test command"
     } {
-        tclreadline::readline add $line
+        readline add $line
         set known_cmds([lindex $line 0]) ${line}
     }
-    rename tclreadline::InitTclCmds ""
+    rename InitTclCmds ""
 }
 
-proc ::tclreadline::InitTkCmds {} {
+proc InitTkCmds {} {
     variable known_cmds
     foreach line {
         "bind window ?pattern? ?command?"
@@ -1029,14 +1073,12 @@ proc ::tclreadline::InitTkCmds {} {
         "winfo option ?arg?"
         "wm option window ?arg ...?"
     } {
-        tclreadline::readline add $line
+        readline add $line
         set known_cmds([lindex $line 0]) ${line}
     }
-rename tclreadline::InitTkCmds ""
+    rename InitTkCmds ""
 }
 
-
-namespace eval tclreadline {
 
 # explicit command completers
 #
@@ -1055,7 +1097,7 @@ proc complete(append) {text start end line pos mod} {
 proc complete(if) {text start end line pos mod} {
     # TODO: this is not good yet.
     if {2 == $pos} {
-        return [FmtFindInList $text {then}]
+        return [AttemptFromList $text {then}]
     } elseif {$pos > 2} {
         set prev [PreviousWord ${start} ${line}]
         switch $prev {
@@ -1063,7 +1105,7 @@ proc complete(if) {text start end line pos mod} {
             else -
             elseif { return "" }
         }
-        return [FmtFindInList $text {then else elseif}]
+        return [AttemptFromList $text {then else elseif}]
     }
 }
 
@@ -1091,7 +1133,7 @@ proc complete(array) {text start end line pos mod} {
             anymore donesearch exists get names
             nextelement set size startsearch
         }
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1142,7 +1184,7 @@ proc complete(binary) {text start end line pos mod} {
         set cmds {
             format scan
         }
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
 # 
 #     } elseif {2 == $pos} {
 #         set cmd [lindex $line 1]
@@ -1158,7 +1200,7 @@ proc complete(binary) {text start end line pos mod} {
 proc complete(clock) {text start end line pos mod} {
     if {1 == $pos} {
         set cmds {clicks format scan seconds}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1182,12 +1224,12 @@ proc complete(clock) {text start end line pos mod} {
             format {
                 set sub [lindex $line 3]
                 set subcmds {-fmt -gmt}
-                return [FmtFindInList $text $subcmds]
+                return [AttemptFromList $text $subcmds]
             }
             scan {
                 set sub [lindex $line 3]
                 set subcmds {-base -gmt}
-                return [FmtFindInList $text $subcmds]
+                return [AttemptFromList $text $subcmds]
             }
             seconds {}
         }
@@ -1198,7 +1240,7 @@ proc complete(clock) {text start end line pos mod} {
 proc complete(encoding) {text start end line pos mod} {
     if {1 == $pos} {
         set cmds {convertfrom convertto names system}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1207,7 +1249,7 @@ proc complete(encoding) {text start end line pos mod} {
             convertto -
             system {
                 set enc [encoding names]
-                return [FmtFindInList ${text} ${enc}]
+                return [AttemptFromList ${text} ${enc}]
             }
         }
     }
@@ -1224,7 +1266,7 @@ proc complete(expr) {text start end line pos mod} {
         double  int     rand    round 
         srand 
     }
-    return [FmtFindInList $text $cmds]
+    return [AttemptFromList $text $cmds]
 }
 
 proc complete(fconfigure) {text start end line pos mod} {
@@ -1234,10 +1276,10 @@ proc complete(fconfigure) {text start end line pos mod} {
         set option [PreviousWord ${start} ${line}]
         switch -- $option {
             -blocking {
-                return [FmtFindInList ${text} {yes no}]
+                return [AttemptFromList ${text} {yes no}]
             }
             -buffering {
-                return [FmtFindInList ${text} {full line none}]
+                return [AttemptFromList ${text} {full line none}]
             }
             -buffersize {
                 if {![llength ${text}} {
@@ -1246,7 +1288,7 @@ proc complete(fconfigure) {text start end line pos mod} {
             }
             -encoding {
                 set enc [encoding names]
-                return [FmtFindInList ${text} ${enc}]
+                return [AttemptFromList ${text} ${enc}]
             }
             -eofchar {
                 if {![llength ${text}]} {
@@ -1254,7 +1296,7 @@ proc complete(fconfigure) {text start end line pos mod} {
                 }
             }
             -translation {
-                return [FmtFindInList ${text} {auto binary cr crlf lf}]
+                return [AttemptFromList ${text} {auto binary cr crlf lf}]
             }
         }
         set cmds {
@@ -1265,7 +1307,7 @@ proc complete(fconfigure) {text start end line pos mod} {
             -eofchar
             -translation
         }
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     }
     return ""
 }
@@ -1285,7 +1327,7 @@ proc complete(fcopy) {text start end line pos mod} {
                 if {![llength ${mod}]} { return <callback> }
             }
         }
-        return [FmtFindInList $text {-size -command}]
+        return [AttemptFromList $text {-size -command}]
     }
     return ""
 }
@@ -1298,7 +1340,7 @@ proc complete(file) {text start end line pos mod} {
             nativename owned pathtype readable readlink rename
             rootname size split stat tail type volumes writable
         }
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1333,7 +1375,7 @@ proc complete(file) {text start end line pos mod} {
             copy -
             delete -
             rename {
-                set match [FmtFindInList ${mod} {-force}]
+                set match [AttemptFromList ${mod} {-force}]
                 if {[llength ${match}] && [llength ${mod}]} {
                     return ${match}
                 } else {
@@ -1348,7 +1390,7 @@ proc complete(fileevent) {text start end line pos mod} {
     if {1 == $pos} {
         return [ChannelId ${mod}]
     } elseif {2 == $pos} {
-        return [FmtFindInList ${mod} {readable writable}]
+        return [AttemptFromList ${mod} {readable writable}]
     }
 }
 
@@ -1366,7 +1408,7 @@ proc complete(gets) {text start end line pos mod} {
 
 proc complete(glob) {text start end line pos mod} {
     if {1 == $pos} {
-        set matches [FmtFindInList ${mod} {-nocomplain --}]
+        set matches [AttemptFromList ${mod} {-nocomplain --}]
         if {[llength [string trim ${mod}]] && [llength ${matches}]} {
             return ${matches}
         }
@@ -1393,7 +1435,7 @@ proc complete(info) {text start end line pos mod} {
             args body cmdcount commands complete default exists
             globals hostname level library loaded locals nameofexecutable
             patchlevel procs script sharedlibextension tclversion vars}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1431,11 +1473,11 @@ proc complete(interp) {text start end line pos mod} {
         set cmds {
             alias aliases create delete eval exists expose hide hidden
             issafe invokehidden marktrusted slaves share target transfer}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         switch -- $cmd {
             create {
-                return [FmtFindInList $text {-safe -- ?path?}]
+                return [AttemptFromList $text {-safe -- ?path?}]
             }
 
             eval -
@@ -1462,7 +1504,7 @@ proc complete(interp) {text start end line pos mod} {
             alias {if {![llength ${mod}]} { return <srcCmd> }}
 
             create {
-                return [FmtFindInList $text {-safe -- ?path?}]
+                return [AttemptFromList $text {-safe -- ?path?}]
             }
 
             eval {if {![llength ${mod}]} { return <arg> }}
@@ -1473,7 +1515,7 @@ proc complete(interp) {text start end line pos mod} {
 
             invokehidden {
                 return \
-                [FmtFindInList $text {?-global? <hiddenCmdName}]
+                [AttemptFromList $text {?-global? <hiddenCmdName}]
             }
 
             target {if {![llength ${mod}]} { return <alias> }}
@@ -1494,7 +1536,7 @@ proc complete(interp) {text start end line pos mod} {
             alias {if {![llength ${mod}]} { return <targetPath> }}
 
             create {
-                return [FmtFindInList $text {-safe -- path}]
+                return [AttemptFromList $text {-safe -- path}]
             }
 
             expose {if {![llength ${mod}]} { return ?exposedCmdName? }}
@@ -1572,14 +1614,14 @@ proc complete(lreplace) {text start end line pos mod} {
 
 proc complete(lsearch) {text start end line pos mod} {
     if {1 == $pos} {
-        set options [FmtFindInListSpecial ${mod} {
+        set options [MenuFromList ${mod} {
             -exact -glob -regexp <list>}]
         set matches [ListCompletion ${text}]
         return [string trim "${matches} ${options}"]
     } else {
         if {![llength ${mod}]} {
             set opt [lindex ${line} 1]
-            if {[llength [FmtFindInListSpecial ${opt} {
+            if {[llength [MenuFromList ${opt} {
                 -exact -glob -regexp }]]} {
                 incr pos -1
             }
@@ -1594,7 +1636,7 @@ proc complete(lsearch) {text start end line pos mod} {
 }
 
 proc complete(lsort) {text start end line pos mod} {
-    set options [FmtFindInListSpecial ${mod} {
+    set options [MenuFromList ${mod} {
         -ascii -dictionary -integer -real -command
         -increasing -decreasing -index
     }]
@@ -1605,7 +1647,7 @@ proc complete(lsort) {text start end line pos mod} {
 proc complete(history) {text start end line pos mod} {
     if {1 == $pos} {
         set cmds {add change clear event info keep nextid redo}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == ${pos}} {
         set cmd [lindex $line 1]
         switch -- $cmd {
@@ -1635,7 +1677,7 @@ proc complete(namespace) {text start end line pos mod} {
         set cmds {
             children code current delete eval export forget
             import inscope origin parent qualifiers tail which}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         switch -- $cmd {
             children -
@@ -1643,15 +1685,15 @@ proc complete(namespace) {text start end line pos mod} {
             eval -
             inscope -
             forget -
-            parent { return [FmtFindInList ${mod} $space_matches] }
+            parent { return [AttemptFromList ${mod} $space_matches] }
             code { return "" }
             current {}
-            export { return [FmtFindInListSpecial ${mod} -clear ?pattern?] }
-            import { return [FmtFindInListSpecial ${mod} -force] }
+            export { return [MenuFromList ${mod} -clear ?pattern?] }
+            import { return [MenuFromList ${mod} -force] }
             origin { if {![llength ${mod}]} { return <command> } }
             qualifiers -
             tail { if {![llength ${mod}]} { return <string> } }
-            which { return [FmtFindInListSpecial ${mod} {
+            which { return [MenuFromList ${mod} {
                 -command -variable <name>}] }
         }
      #      forget { if {![llength ${mod}]} { return ?pattern? } }
@@ -1660,19 +1702,19 @@ proc complete(namespace) {text start end line pos mod} {
     } else {
         switch -- $cmd {
             children { if {![llength ${mod}]} { return ?pattern? } }
-            delete { return [FmtFindInList $text $space_matches] }
+            delete { return [AttemptFromList $text $space_matches] }
             eval { if {![llength ${mod}]} { return ?arg? } }
             inscope { if {![llength ${mod}]} { return ?arg? } }
             parent {}
             code {}
             current {}
-            export { return [FmtFindInListSpecial ${mod} ?pattern?] }
+            export { return [MenuFromList ${mod} ?pattern?] }
             forget -
             import { if {![llength ${mod}]} { return ?pattern? } }
             origin {}
             qualifiers {}
             tail {}
-            which { return [FmtFindInListSpecial $text {
+            which { return [MenuFromList $text {
                 -command -variable <name>}] }
         }
     }
@@ -1696,16 +1738,16 @@ proc complete(package) {text start end line pos mod} {
         set cmds {
             forget ifneeded names present provide require
             unknown vcompare versions vsatisfies}
-        return [FmtFindInList $text $cmds]
+        return [AttemptFromList $text $cmds]
     } elseif {2 == $pos} {
         switch -- $cmd {
             forget -
             ifneeded -
             provide -
-            versions { return [FmtFindInListSpecial ${mod} [package names]] }
+            versions { return [MenuFromList ${mod} [package names]] }
             present -
             require {
-                return [FmtFindInListSpecial ${mod} "-exact [package names]"] }
+                return [MenuFromList ${mod} "-exact [package names]"] }
             names {}
             unknown { if {![llength ${mod}]} { return ?command? } }
             vcompare -
@@ -1720,8 +1762,8 @@ proc complete(package) {text start end line pos mod} {
             present -
             require {
                 set prev [PreviousWord ${start} ${line}]
-                if {[llength [FmtFindInListSpecial ${prev} -exact]]} {
-                    return [FmtFindInListSpecial ${mod} [package names]]
+                if {[llength [MenuFromList ${prev} -exact]]} {
+                    return [MenuFromList ${mod} [package names]]
                 } elseif {![llength ${mod}]} {
                     return ?version?
                 }
@@ -1737,7 +1779,7 @@ proc complete(package) {text start end line pos mod} {
 
 proc complete(pkg_mkIndex) {text start end line pos mod} {
     set cmds [RemoveUsedOptions ${line} {-direct -load -verbose -- <dir>} {--}]
-    set res [string trim [FmtFindInListSpecial $text $cmds]]
+    set res [string trim [MenuFromList $text $cmds]]
     if {[regexp -- [PreviousWord ${start} ${line}] -load] \
         && ![llength ${mod}]} {
             return <pkgPat>
@@ -1773,16 +1815,17 @@ proc complete(proc) {text start end line pos mod} {
 
 proc complete(puts) {text start end line pos mod} {
     if {1 == $pos} {
-        return [FmtFindInListSpecial ${mod} "-nonewline [OutChannelId ${mod}]"]
+        return [MenuFromList ${mod} "-nonewline [OutChannelId ${mod}]"]
     } elseif {2 <= $pos} {
         if {![llength ${mod}]} {
             set opt [lindex ${line} 1]
-            if {[llength [FmtFindInListSpecial ${opt} {-nonewline}]]} {
+            if {[llength [MenuFromList ${opt} {-nonewline}]]} {
                 incr pos -1
             }
             if {1 == $pos} {
                 return [OutChannelId ${mod}]
             } elseif {2 == $pos} {
+                return [Menu <string>]
                 return <string>
             }
         }
@@ -1792,11 +1835,11 @@ proc complete(puts) {text start end line pos mod} {
 
 proc complete(read) {text start end line pos mod} {
     if {1 == $pos} {
-        return [FmtFindInListSpecial ${mod} "-nonewline [InChannelId ${mod}]"]
+        return [MenuFromList ${mod} "-nonewline [InChannelId ${mod}]"]
     } elseif {2 == $pos} {
         if {![llength ${mod}]} {
             set opt [lindex ${line} 1]
-            if {[llength [FmtFindInListSpecial ${opt} {-nonewline}]]} {
+            if {[llength [MenuFromList ${opt} {-nonewline}]]} {
                 return [InChannelId ${mod}]
             } elseif {![llength ${mod}]} {
                 return <numBytes>
@@ -1813,7 +1856,7 @@ proc complete(regexp) {text start end line pos mod} {
             -nocase -indices -expanded -line 
             -linestop -lineanchor -about <expression> --} {--}]
         if {[llength ${cmds}]} {
-            return [string trim [FmtFindInListSpecial $text $cmds]]
+            return [string trim [MenuFromList $text $cmds]]
         }
     } else {
         set virtual_pos [expr ${pos} - [FirstNonOption ${line}]]
@@ -1830,7 +1873,7 @@ proc complete(regsub) {text start end line pos mod} {
     set prev [PreviousWord ${start} ${line}]
     if {[llength ${prev}] && ("-" == [string index ${prev} 0] || 1 == $pos)} {
         set cmds [RemoveUsedOptions ${line} {-all -nocase -- <expression>} {--}]
-        set res [string trim [FmtFindInListSpecial ${mod} ${cmds}]]
+        set res [string trim [MenuFromList ${mod} ${cmds}]]
         if {[llength ${res}]} {
             return ${res}
         }
@@ -1849,7 +1892,7 @@ proc complete(regsub) {text start end line pos mod} {
 proc complete(rename) {text start end line pos mod} {
     if {1 == $pos} {
         set all [CommandCompletion ${mod}]
-        return [tclreadline::Format $all ${mod}]
+        return [Format $all ${mod}]
     } elseif {2 == $pos && ![llength ${mod}]} {
         return <newName>
     }
@@ -1859,19 +1902,19 @@ proc complete(rename) {text start end line pos mod} {
 proc complete(return) {text start end line pos mod} {
     # TODO this is not perfect yet
     set cmds {-code -errorinfo -errorcode <string>}
-    set res [FmtFindInListSpecial [PreviousWord ${start} ${line}] ${cmds}]
+    set res [MenuFromList [PreviousWord ${start} ${line}] ${cmds}]
     if {1 == [llength ${res}]} {
         switch -- ${res} {
             -errorinfo { if {![llength ${mod}]} { return <info> } }
             -code -
             -errorcode {
                 set codes {ok error return break continue}
-                return [FmtFindInList ${mod} ${codes}]
+                return [AttemptFromList ${mod} ${codes}]
             }
         }
     }
     set cmds [RemoveUsedOptions ${line} ${cmds}]
-    set res [string trim [FmtFindInListSpecial ${mod} ${cmds}]]
+    set res [string trim [MenuFromList ${mod} ${cmds}]]
     if {[llength ${res}]} {
         return ${res}
     }
@@ -1882,7 +1925,7 @@ proc complete(seek) {text start end line pos mod} {
     if {1 == $pos} {
         return [ChannelId ${mod}]
     } elseif {2 == $pos} {
-        return [FmtFindInList ${mod} {start current end}]
+        return [AttemptFromList ${mod} {start current end}]
     }
     return ""
 }
@@ -1915,7 +1958,7 @@ proc complete(socket) {text start end line pos mod} {
         switch -- ${prev} {
             -myaddr { if {![llength ${mod}]} { return <addr> } }
         }
-        return [FmtFindInList ${mod} [concat {-error -sockname -peername}]]
+        return [AttemptFromList ${mod} [concat {-error -sockname -peername}]]
     } else {
         # client sockets
         #
@@ -1944,7 +1987,7 @@ proc complete(socket) {text start end line pos mod} {
         if {$pos <= 1} {
             lappend cmds -server
         }
-        return [FmtFindInList ${mod} [concat ${cmds} ${hosts}]]
+        return [AttemptFromList ${mod} [concat ${cmds} ${hosts}]]
     }
     return ""
 }
@@ -1955,7 +1998,7 @@ proc complete(string) {text start end line pos mod} {
         compare first index last length match range tolower
         totitle toupper trim trimleft trimright wordend wordstart}
     if {1 == $pos} {
-        return [FmtFindInList ${mod} ${cmds}]
+        return [AttemptFromList ${mod} ${cmds}]
     } elseif {2 == $pos} {
         switch -- $cmd {
             compare -
@@ -2006,14 +2049,14 @@ proc complete(string) {text start end line pos mod} {
 proc complete(subst) {text start end line pos mod} {
     set opts {-nobackslashes -nocommands -novariables}
     set opts [RemoveUsedOptions ${line} ${opts}]
-    return [FmtFindInList ${mod} [concat ${opts} <string>]]
+    return [AttemptFromList ${mod} [concat ${opts} <string>]]
     return ""
 }
 
 proc complete(switch) {text start end line pos mod} {
     set opts {-exact -glob -regexp --}
     set opts [RemoveUsedOptions ${line} ${opts} {--}]
-    return [FmtFindInList ${mod} [concat ${opts} <string>]]
+    return [AttemptFromList ${mod} [concat ${opts} <string>]]
     return ""
 }
 
@@ -2027,11 +2070,11 @@ proc complete(tell) {text start end line pos mod} {
 proc complete(trace) {text start end line pos mod} {
     set cmd [lindex ${line} 1]
     if {1 == $pos} {
-        return [FmtFindInList ${mod} {variable vdelete vinfo}]
+        return [AttemptFromList ${mod} {variable vdelete vinfo}]
     } elseif {2 == $pos} {
         return [Format [uplevel 2 info vars "${mod}*"] ${mod}]
     } elseif {3 == $pos && "variable" == ${cmd}} {
-        return [FmtFindInList ${mod} {r w u}]
+        return [AttemptFromList ${mod} {r w u}]
     }
     return ""
 }
@@ -2161,7 +2204,7 @@ proc complete(WIDGET) {text start end line pos mod} {
     if {1 >= ${pos}} {
         set cmds [TrySubCmds ${widget}]
         if {[llength ${cmds}]} {
-            return [FmtFindInList ${mod} ${cmds}]
+            return [AttemptFromList ${mod} ${cmds}]
         }
     } elseif {2 <= ${pos} && 
         ([string match ${cmd}* cget] || \
@@ -2175,7 +2218,7 @@ proc complete(WIDGET) {text start end line pos mod} {
                 return [lindex $options(value) ${found}]
             }
         } else {
-            return [FmtFindInList ${mod} $options(switches)]
+            return [AttemptFromList ${mod} $options(switches)]
         }
     }
     return ""
@@ -2186,13 +2229,12 @@ proc complete(winfo) {text start end line pos mod} {
     if {1 >= ${pos}} {
         set cmds [TrySubCmds winfo]
         if {[llength ${cmds}]} {
-            return [FmtFindInList ${mod} ${cmds}]
+            return [AttemptFromList ${mod} ${cmds}]
         }
     } elseif {2 == ${pos}} {
-        return [FmtFindInList ${mod} [WidgetList ${mod}]]
+        return [AttemptFromList ${mod} [WidgetList ${mod}]]
     }
     return ""
 }
-
 
 }; # namespace tclreadline

@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Sun Aug 29 01:00:01 1999 (joze)"
+    LAST MODIFICATION: "Tue Aug 31 03:31:39 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -86,6 +86,13 @@ tclreadline-0.9.2: (Aug 1999)
           to this value.
           By default tclreadline::historyfile == -1, that
           is no truncation occurs.
+        - ScriptCompleter largely extended.
+          calls tclreadline::complete(<cmd>) functions.
+        - tclreadline::complete(tclreadline_complete_unknown)
+        - some basic tk completion.
+        - convenience routines as Menu, CompleteFromList, AttemptFromList
+        - returning an empty {} will inhibit further
+          builtin filename completion.
 
     fixes:
         - after having at least one character typed, X events

@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sun Aug 29 15:04:07 1999 (joze)"
+    LAST MODIFICATION: "Tue Aug 31 03:22:55 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -224,7 +224,7 @@ TclReadlineCmd(
         if (expansion && *expansion)
             add_history(expansion);
 
-        Tcl_AppendResult(interp, expansion, (char*) NULL);
+        Tcl_SetResult(interp, expansion, TCL_VOLATILE);
 
         FREE(tclrl_line);
         FREE(expansion);
@@ -467,6 +467,7 @@ char**
 TclReadlineCompletion(char* text, int start, int end)
 {
     char** matches = (char**) NULL;
+    rl_attempted_completion_over = 0;
 
 #if 0
     fprintf(stderr, "DEBUG> TclReadlineCompletion: text=|%s|\n", text);
@@ -551,13 +552,19 @@ TclReadlineCompletion(char* text, int start, int end)
         Tcl_ListObjGetElements(tclrl_interp, obj, &objc, &objv);
         /* fprintf (stderr, "(TclReadlineCompletion) objc = %d\n", objc); */
         if (objc) {
-            int i, length /* not used */;
+            int i, length;
             matches = (char**) MALLOC(sizeof(char*) * (objc + 1));
             for (i = 0; i < objc; i++) {
                 matches[i] = strdup(Tcl_GetStringFromObj(objv[i], &length));
+                if (1 == objc && !strlen(matches[i])) {
+                    rl_attempted_completion_over = 1;
+                    FREE(matches[i]);
+                    FREE(matches);
+                    return (char**) NULL;
+                }
                 /*
-                fprintf (stderr, "(TclReadlineCompletion) matches[%d] = |%s|\n",
-                    i, matches[i]);
+                fprintf (stderr, "(TclReadlineCompletion) len[%s]=%d\n",
+                    matches[i], strlen(matches[i]));
                 */
             }
             matches[i] = (char*) NULL; /* terminate */
