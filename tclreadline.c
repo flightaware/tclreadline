@@ -2,29 +2,16 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Thu, 23 Mar 2000 22:42:52 +0100 (joze)"
+    LAST MODIFICATION: "Sat, 25 Mar 2000 21:40:27 +0100 (joze)"
     (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
 
     tclreadline -- gnu readline for tcl
-    Copyright (C) 1998 - 2000 by Johannes Zellner
+    http://www.zellner.org/tclreadline/
+    Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
 
-    This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 2
-    of the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-    <johannes@zellner.org>, http://www.zellner.org/tclreadline/
+    This software is copyright under the BSD license.
 
     ================================================================== */  
 
@@ -80,27 +67,27 @@ typedef struct cmds_t {
 
 #define ISWHITE(c) ((' ' == c) || ('\t' == c) || ('\n' == c))
 
-/*
- * forward declarations.
- */
-char* stripleft(char* in);
-char* stripright(char* in);
-char* stripwhite(char* in);
-int TclReadlineLineComplete(void);
-void TclReadlineTerminate(int state);
-char* TclReadlineQuote(char* text, char* quotechars);
-int TclReadlineCmd(ClientData clientData, Tcl_Interp* interp,
-    int argc, char** argv);
-void TclReadlineReadHandler(ClientData clientData, int mask);
-void TclReadlineLineCompleteHandler(char* ptr);
+/* forward declarations. */
+static char* stripleft(char* in);
+static char* stripright(char* in);
+static char* stripwhite(char* in);
+static int TclReadlineLineComplete(void);
+static void TclReadlineTerminate(int state);
+static char* TclReadlineQuote(char* text, char* quotechars);
+static int TclReadlineCmd(ClientData clientData, Tcl_Interp* interp, int argc, char** argv);
+static void TclReadlineReadHandler(ClientData clientData, int mask);
+static void TclReadlineLineCompleteHandler(char* ptr);
+static int TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
+static int blank_line(char* str);
+static char** TclReadlineCompletion(char* text, int start, int end);
+static char* TclReadline0generator(char* text, int state);
+static char* TclReadlineKnownCommands(char* text, int state, int mode);
+static int TclReadlineParse(char** args, int maxargs, char* buf);
+
+/* must be non-static */
 int Tclreadline_SafeInit(Tcl_Interp* interp);
 int Tclreadline_Init(Tcl_Interp* interp);
-int TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
-int blank_line(char* str);
-char** TclReadlineCompletion(char* text, int start, int end);
-char* TclReadline0generator(char* text, int state);
-char* TclReadlineKnownCommands(char* text, int state, int mode);
-int TclReadlineParse(char** args, int maxargs, char* buf);
+
 
 enum { 
     LINE_PENDING = -1,
@@ -119,8 +106,38 @@ static int tclrl_use_builtin_completer = 1;
 static int tclrl_history_length = -1;
 Tcl_Interp* tclrl_interp = (Tcl_Interp*) NULL;
 
+static char* tclrl_license =
+"   Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>\n"
+"   All rights reserved.\n"
+"   \n"
+"   Redistribution and use in source and binary forms, with or without\n"
+"   modification, are permitted provided that the following conditions\n"
+"   are met:\n"
+"   \n"
+"     * Redistributions of source code must retain the above copyright\n"
+"       notice, this list of conditions and the following disclaimer.\n"
+"     * Redistributions in binary form must reproduce the above copyright\n"
+"       notice, this list of conditions and the following disclaimer in the\n"
+"       documentation and/or other materials provided with the distribution.\n"
+"     * Neither the name of Johannes Zellner nor the names of contributors\n"
+"       to this software may be used to endorse or promote products derived\n"
+"       from this software without specific prior written permission.\n"
+"       \n"
+"   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n"
+"   ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n"
+"   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n"
+"   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR\n"
+"   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,\n"
+"   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,\n"
+"   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR\n"
+"   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF\n"
+"   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING\n"
+"   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n"
+"   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
 
-char*
+
+
+static char*
 stripleft(char* in)
 {
     char* ptr = in;
@@ -131,7 +148,7 @@ stripleft(char* in)
     return in;
 }
 
-char*
+static char*
 stripright(char* in)
 {
     char* ptr;
@@ -140,7 +157,7 @@ stripright(char* in)
     return in;
 }
 
-char*
+static char*
 stripwhite(char* in)
 {
     stripleft(in);
@@ -148,20 +165,20 @@ stripwhite(char* in)
     return in;
 }
 
-int
+static int
 TclReadlineLineComplete(void)
 {
     return !(tclrl_state == LINE_PENDING);
 }
 
-void
+static void
 TclReadlineTerminate(int state)
 {
     tclrl_state = state;
     rl_callback_handler_remove();
 }
 
-char*
+static char*
 TclReadlineQuote(char* text, char* quotechars)
 {
     char* ptr;
@@ -183,7 +200,7 @@ TclReadlineQuote(char* text, char* quotechars)
     return result_c;
 }
 
-int
+static int
 TclReadlineCmd(
     ClientData  clientData,
     Tcl_Interp* interp,     /* Current interpreter */
@@ -423,7 +440,7 @@ BAD_COMMAND:
 
 }
 
-void
+static void
 TclReadlineReadHandler(ClientData clientData, int mask)
 {
     if (mask & TCL_READABLE) {
@@ -442,7 +459,7 @@ TclReadlineReadHandler(ClientData clientData, int mask)
     }
 }
 
-void
+static void
 TclReadlineLineCompleteHandler(char* ptr)
 {
     if (!ptr) { /* <c-d> */
@@ -463,16 +480,8 @@ TclReadlineLineCompleteHandler(char* ptr)
 	int status = history_expand(ptr, &expansion);
 
 	if (status >= 1) {
-#if 0
-	    Tcl_Channel channel = Tcl_MakeFileChannel(stdout, TCL_WRITABLE);
-	    /* Tcl_RegisterChannel(interp, channel); */
-	    (void) Tcl_WriteChars(channel, expansion, -1);
-	    Tcl_Flush(channel);
-	    Tcl_Close(interp, channel);
-#else
 	    /* TODO: make this a valid tcl output */
 	    printf("%s\n", expansion);
-#endif
 	} else if (-1 == status) {
 	    Tcl_AppendResult
 	    (tclrl_interp, "error in history expansion\n", (char*) NULL);
@@ -532,6 +541,7 @@ Tclreadline_Init(Tcl_Interp *interp)
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::historyLength",
 		(char*) &tclrl_history_length, TCL_LINK_INT)))
 	return status;
+
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::library",
 		(char*) &TCLRL_LIBRARY, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
@@ -541,6 +551,10 @@ Tclreadline_Init(Tcl_Interp *interp)
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::patchLevel",
 		(char*) &TCLRL_PATCHLEVEL, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::license",
+		(char*) &tclrl_license, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+	return status;
+
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_library",
 		(char*) &TCLRL_LIBRARY, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
@@ -550,10 +564,11 @@ Tclreadline_Init(Tcl_Interp *interp)
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_patchLevel",
 		(char*) &TCLRL_PATCHLEVEL, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
 	return status;
+
     return Tcl_PkgProvide(interp, "tclreadline", TCLRL_VERSION);
 }
 
-int
+static int
 TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 {
     rl_readline_name = "tclreadline";
@@ -606,7 +621,7 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
     return TCL_OK;
 }
 
-int
+static int
 blank_line(char* str)
 {
     char* ptr;
@@ -617,7 +632,7 @@ blank_line(char* str)
     return 1;
 }
 
-char**
+static char**
 TclReadlineCompletion(char* text, int start, int end)
 {
     char** matches = (char**) NULL;
@@ -713,13 +728,13 @@ TclReadlineCompletion(char* text, int start, int end)
     return matches;
 }
 
-char*
+static char*
 TclReadline0generator(char* text, int state)
 {
     return TclReadlineKnownCommands(text, state, _CMD_GET);
 }
 
-char*
+static char*
 TclReadlineKnownCommands(char* text, int state, int mode)
 {
     static int len;
@@ -819,7 +834,7 @@ TclReadlineKnownCommands(char* text, int state, int mode)
     /* NOTREACHED */
 }
 
-int
+static int
 TclReadlineParse(char** args, int maxargs, char* buf)
 {
     int nr = 0;

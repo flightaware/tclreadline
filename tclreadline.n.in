@@ -1,29 +1,16 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Thu, 23 Mar 2000 21:14:10 +0100 (joze)"
+.\" LAST MODIFICATION: "Sat, 25 Mar 2000 21:51:43 +0100 (joze)"
 .\" (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
 .\"
-.\" tclreadline -- gnu readline for the tcl scripting language
-.\" Copyright (C) 1998 - 2000 by Johannes Zellner
+.\" tclreadline -- gnu readline for tcl
+.\" http://www.zellner.org/tclreadline/
+.\" Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
 .\"
-.\" This program is free software; you can redistribute it and/or
-.\" modify it under the terms of the GNU General Public License
-.\" as published by the Free Software Foundation; either version 2
-.\" of the License, or (at your option) any later version.
-.\"
-.\" This program is distributed in the hope that it will be useful,
-.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
-.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.\" GNU General Public License for more details.
-.\"
-.\" You should have received a copy of the GNU General Public License
-.\" along with this program; if not, write to the Free Software
-.\" Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-.\"
-.\" <johannes@zellner.org>, http://www.zellner.org/tclreadline/
+.\" This software is copyright under the BSD license.
 
 
 .\"	# CS - begin code excerpt
@@ -253,16 +240,20 @@ namespace \fI::tclreadline\fP:
  tclreadline_patchLevel and tclreadline_library are still present).
 
 .TP 5
-\fBtclreadline::version\fP
+\fBtclreadline::version\fP (read-only)
 holds the version string "@TCLREADLINE_VERSION@".
 
 .TP 5
-\fBtclreadline::patchLevel\fP
+\fBtclreadline::patchLevel\fP (read-only)
 holds the patch level string "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@".
 
 .TP 5
-\fBtclreadline::library\fP
+\fBtclreadline::library\fP (read-only)
 holds the library string "@TCLREADLINE_LIBRARY@".
+
+.TP 5
+\fBtclreadline::license\fP (read-only)
+holds a BSD license statement.
 
 .TP 5
 \fBtclreadline::historyLength\fP
@@ -340,13 +331,6 @@ David Engel <dlengel@home.com>, <david@debian.org>
 
 .SH "DISCLAIMER"
 
-This version of \fBtclreadline\fP is still a development version.
-Pretty a lot of features and ideas are not implemented yet. The
-reason for this is the lack of time and manpower.
-So you are welcome to modify and contribute to the code.
-If you have suggestions, please let me know.
-
-\fBtclreadline\fP comes with the GPL (GNU General Public License).
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+\fBtclreadline\fP comes with a BSD type license.
+The read-only variable tclreadline::license holds the
+complete license statement.

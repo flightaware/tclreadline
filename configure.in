@@ -1,35 +1,17 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Thu, 23 Mar 2000 23:26:48 +0100 (joze)"
+dnl LAST MODIFICATION: "Sat, 25 Mar 2000 21:17:25 +0100 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
 dnl
 dnl tclreadline -- gnu readline for tcl
-dnl Copyright (C) 1998 - 2000 by Johannes Zellner
-dnl
-dnl This program is free software; you can redistribute it and/or
-dnl modify it under the terms of the GNU General Public License
-dnl as published by the Free Software Foundation; either version 2
-dnl of the License, or (at your option) any later version.
-dnl
-dnl This program is distributed in the hope that it will be useful,
-dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
-dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-dnl GNU General Public License for more details.
-dnl
-dnl You should have received a copy of the GNU General Public License
-dnl along with this program; if not, write to the Free Software
-dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-dnl
-dnl johannes@zellner.org
 dnl http://www.zellner.org/tclreadline/
+dnl Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
+dnl
+dnl This software is copyright under the BSD license.
 dnl
 dnl ================================================================== */  
-
-dnl	This file is an input file used by the GNU "autoconf" program to
-dnl	generate the file "configure", which is run during Tk installation
-dnl	to configure the system for the local environment.
 
 
 AC_INIT(tclreadline.c)
@@ -39,7 +21,7 @@ AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
 
 TCLREADLINE_MAJOR_VERSION=1
-TCLREADLINE_MINOR_VERSION=1
+TCLREADLINE_MINOR_VERSION=2
 TCLREADLINE_PATCHLEVEL=0
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 TCLREADLINE_PATCHLEVEL_STR=${TCLREADLINE_VERSION}.${TCLREADLINE_PATCHLEVEL}
@@ -106,15 +88,13 @@ if test "$tk_search" != "no"; then
 	fi
     done
 
-    if test -z "$TK_LIB_DIR"; then
-	AC_MSG_ERROR(Can't find Tk libraries.)
-    else
+    if ! test -z "$TK_LIB_DIR"; then
 	. $TK_LIB_DIR/tkConfig.sh
 	AC_MSG_RESULT($TK_LIB_DIR/tkConfig.sh)
 	AC_MSG_CHECKING([for your tk version])
 	AC_MSG_RESULT([$TK_VERSION, patchlevel $TK_PATCH_LEVEL])
+	AC_SUBST(TK_LIB_SPEC)
     fi
-    AC_SUBST(TK_LIB_SPEC)
 fi
 
 #--------------------------------------------------------------------
