@@ -1,6 +1,6 @@
 #!/bin/sh
-# FILE: "/krispc6/home/joze/src/tclreadline/tclreadlineConfig.sh.in"
-# LAST MODIFICATION: "Sat May  8 14:03:17 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/tclreadlineConfig.sh.in"
+# LAST MODIFICATION: "Wed Aug 25 16:23:10 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -42,6 +42,8 @@
 TCLREADLINE_VERSION='@TCLREADLINE_VERSION@'
 TCLREADLINE_MAJOR_VERSION='@TCLREADLINE_MAJOR_VERSION@'
 TCLREADLINE_MINOR_VERSION='@TCLREADLINE_MINOR_VERSION@'
+# there's no leading dot here as in tclConfig.sh!
+TCLREADLINE_PATCHLEVEL='@TCLREADLINE_PATCHLEVEL@'
 
 # The name of the tclreadline library
 # (may be either a .a file or a shared library):

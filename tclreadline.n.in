@@ -1,8 +1,8 @@
-.TH tclreadline n "@TCLREADLINE_VERSION@" "Johannes Zellner"
+.TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" (C) 1999 by Johannes Zellner
-.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Mon Aug 23 22:31:24 1999 (joze)"
+.\" FILE: "/diska/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Wed Aug 25 16:32:02 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -180,12 +180,15 @@ binary data for example. If \fB::tclreadline::Print\fP is called w/o
 arguments, it returns the current setting.
 
 .TP 5
-\fB::tclreadline::Loop\fP
+\fB::tclreadline::Loop\fP [\fIhistoryfile\fP]
 enter the tclreadline main loop. This command is typically called from
 the startup resource file (something .tclshrc, depending on the interpreter
 you use, see the file `sample.tclshrc'). The main loop sets up some
 completion characteristics as variable -- try something like "puts $b<TAB>" -- 
 and command completion -- try "puts [in<TAB>".
+If the optional argument \fIhistoryfile\fP is given, this file will
+be used for reading and writing the command history instead of the
+default \fB.tclsh-history\fP.
 \fB::tclreadline::Loop\fP will normally not return. 
 If you want to write your own main loop and/or own custom completers,
 it is probably a good idea to start with tclreadline::Loop
@@ -224,8 +227,19 @@ in the file tclreadlineSetup.tcl in your tclreadline installation directory.
 
 .SH "VARIABLES"
 
-The global variable \fBtclreadline_version\fP holds the version number
-of the tclreadline package.
+\fItclreadline\fP defines the following variables in the global namespace:
+
+.TP 5
+\fBtclreadline_version\fP
+holds the version string "@TCLREADLINE_VERSION@".
+
+.TP 5
+\fBtclreadline_patchLevel\fP
+holds the patch level string "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@".
+
+.TP 5
+\fBtclreadline_library\fP
+holds the library string "@TCLREADLINE_LIBRARY@".
 
 .SH "FILES"
 

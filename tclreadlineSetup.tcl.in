@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Wed Aug 25 11:12:19 1999 (joze)"
+# LAST MODIFICATION: "Wed Aug 25 14:49:37 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -324,7 +324,7 @@ proc tclreadline::ls {args} {
     }
 }
 
-proc ::tclreadline::Setup {} {
+proc ::tclreadline::Setup {args} {
 
     uplevel #0 {
 
@@ -392,10 +392,20 @@ proc ::tclreadline::Setup {} {
     global env
     variable historyfile
 
-    if [info exists env(HOME)] {
-        set historyfile  $env(HOME)/.tclsh-history
+    if {[string trim [llength ${args}]]} {
+        set historyfile ""
+        catch {
+            set historyfile [file nativename [lindex ${args} 0]]
+        }
+        if {"" == [string trim $historyfile]} {
+            set historyfile [lindex ${args} 0]
+        }
     } else {
-        set historyfile  .tclsh-history
+        if [info exists env(HOME)] {
+            set historyfile  $env(HOME)/.tclsh-history
+        } else {
+            set historyfile  .tclsh-history
+        }
     }
     set msg [::tclreadline::readline initialize $historyfile]
     if {$msg != ""} {
@@ -430,9 +440,9 @@ proc ::tclreadline::Glob {string} {
 
 
 
-proc ::tclreadline::Loop {} {
+proc ::tclreadline::Loop {args} {
 
-    ::tclreadline::Setup
+    eval ::tclreadline::Setup ${args}
 
     uplevel #0 {
 

@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Aug 23 21:54:31 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Wed Aug 25 16:17:27 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -37,6 +37,7 @@ AC_INIT(tclreadline.c)
 
 TCLREADLINE_MAJOR_VERSION=0
 TCLREADLINE_MINOR_VERSION=9
+TCLREADLINE_PATCHLEVEL=1
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 VERSION=$TCLREADLINE_VERSION
 
@@ -335,7 +336,7 @@ if test -z "$READLINE_LIB_DIR"; then
   Use --with-readline-library to specify the directory
   containing libreadline$SHLIB_SUFFIX on your system.])
 else
-    AC_MSG_RESULT({READLINE_LIB_DIR}/libreadline${SHLIB_SUFFIX}${READLINE_VERSION_SUFFIX})
+    AC_MSG_RESULT(${READLINE_LIB_DIR}/libreadline${SHLIB_SUFFIX}${READLINE_VERSION_SUFFIX})
 fi
 
 
@@ -377,10 +378,10 @@ fi
 #--------------------------------------------------------------------
 
 save=$LIBS
-LIBS="-L$READLINE_LIB_DIR -lreadline"
+LIBS="-L$READLINE_LIB_DIR -lreadline $TERM_LIB"
 alternate=no
-AC_CHECK_LIB(
-    readline, rl_callback_read_char, alternate=yes, alternate=no, $TERM_LIB
+AC_CHECK_FUNC(
+    rl_callback_read_char, alternate=yes, alternate=no
 )
 if test "$alternate" = "no"; then
     AC_MSG_ERROR(alternate interface not supported by this readline version.)
@@ -416,6 +417,7 @@ LIBS=$LIBS
 AC_SUBST(TCLREADLINE_MAJOR_VERSION)
 AC_SUBST(TCLREADLINE_MINOR_VERSION)
 AC_SUBST(TCLREADLINE_VERSION)
+AC_SUBST(TCLREADLINE_PATCHLEVEL)
 
 AC_SUBST(TCL_LIB_DIR)
 AC_SUBST(TCL_INCLUDE_DIR)

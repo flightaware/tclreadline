@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon Aug 23 17:55:26 1999 (joze)"
+# LAST MODIFICATION: "Wed Aug 25 16:41:11 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -31,6 +31,9 @@
 MAJOR_VERSION = @TCLREADLINE_MAJOR_VERSION@
 MINOR_VERSION = @TCLREADLINE_MINOR_VERSION@
 VERSION       = @TCLREADLINE_VERSION@
+# NOTE, that PATCHLEVEL is the complete version string
+#
+PATCHLEVEL    = $(VERSION).@TCLREADLINE_PATCHLEVEL@
 
 #host         = @host@
 #host_cpu     = @host_cpu@
@@ -269,10 +272,10 @@ co: $(SOURCES)
 	co -l $^
 
 distribution: $(SOURCES) configure $(AUXILIARY) tclreadline.n.html
-	- mkdir -p dist/tclreadline-$(VERSION)/aux
-	- cp $(SOURCES) configure tclreadline.n.html dist/tclreadline-$(VERSION)
-	- cp $(AUXILIARY) dist/tclreadline-$(VERSION)/aux
-	(cd dist; tar zcvf tclreadline-$(VERSION).tar.gz tclreadline-$(VERSION); rm -rf tclreadline-$(VERSION))
+	- mkdir -p dist/tclreadline-$(PATCHLEVEL)/aux
+	- cp $(SOURCES) configure tclreadline.n.html dist/tclreadline-$(PATCHLEVEL)
+	- cp $(AUXILIARY) dist/tclreadline-$(PATCHLEVEL)/aux
+	(cd dist; tar zcvf tclreadline-$(PATCHLEVEL).tar.gz tclreadline-$(PATCHLEVEL); rm -rf tclreadline-$(PATCHLEVEL))
 
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

@@ -1,8 +1,8 @@
 
  /* ==================================================================
    
-    FILE: "/krispc6/home/joze/src/tclreadline/tclreadline.h.in"
-    LAST MODIFICATION: "Sat May  8 14:03:02 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/tclreadline.h.in"
+    LAST MODIFICATION: "Wed Aug 25 16:25:25 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -30,4 +30,11 @@
     ================================================================== */  
 
 static char *TCLREADLINE_VERSION = "@TCLREADLINE_VERSION@";
+
+/**
+ * NOTE, that PATCHLEVEL is the complete version string.
+ * (PATCHLEVEL is not really used here).
+ */
+static char *TCLREADLINE_PATCHLEVEL
+    = "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@";
 
