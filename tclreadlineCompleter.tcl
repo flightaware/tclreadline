@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Thu Sep 16 02:53:18 1999 (joze)"
+# LAST MODIFICATION: "Thu Sep 16 16:24:46 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -984,7 +984,7 @@ proc ScriptCompleter {part start end line} {
 		#
 		if {"." == [string index [string trim ${line}] 0]} {
 			set alias WIDGET
-			set namespc ""
+			set namespc ""; # widgets are always in the global
 		} else {
 
 			# the double `lindex' strips {} or quotes.
@@ -1039,7 +1039,11 @@ proc ScriptCompleter {part start end line} {
 					error [list error during evaluation of `complete(${cmd})']
 				}
 				# puts stderr \nscript_result=|${script_result}|
-				return ${script_result}
+				if {[string length ${script_result}] || \
+					"tclreadline_complete_unknown" == ${cmd}
+				} {
+					return ${script_result}
+				}
 			}
 			# set namespc ""; # no qualifiers for tclreadline_complete_unknown
 		}
@@ -2038,7 +2042,7 @@ proc complete(join) {text start end line pos mod} {
 proc complete(lappend) {text start end line pos mod} {
 	switch -- $pos {
 		1 { return [VarCompletion ${text}] }
-		default { return [DisplayHints ?value?] }
+		default { return [TryFromList ${text} ?value?] }
 	}
 	return ""
 }
@@ -2976,7 +2980,7 @@ proc tclreadline::complete(readline) {text start end line pos mod} {
 	switch -- $pos {
 		1 { return [CompleteFromList ${text} {
 			read initialize write add complete
-			customcompleter builtincompleter eofchar}]
+			customcompleter builtincompleter eofchar reset-terminal}]
 		}
 		2 {
 			switch -- $cmd {
@@ -2988,6 +2992,13 @@ proc tclreadline::complete(readline) {text start end line pos mod} {
 				customcompleter { return [DisplayHints ?scriptCompleter?] }
 				builtincompleter { return [DisplayHints ?boolean?] }
 				eofchar { return [DisplayHints ?script?] }
+				reset-terminal {
+					if {[info exists ::env(TERM)]} {
+						return [CompleteFromList ${text} $::env(TERM)]
+					} else {
+						return [DisplayHints ?terminalName?]
+					}
+				}
 			}
 		}
 	}

@@ -1,8 +1,8 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" (C) 1999 by Johannes Zellner
-.\" FILE: "/diska/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Mon Aug 30 14:12:14 1999 (joze)"
+.\" FILE: "/disk01/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Thu Sep 16 18:10:41 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -178,6 +178,12 @@ writes the history to the \fIhistoryfile\fP. This command is called
 automatically from the internal routine ::tclreadline::Exit.
 If the variable \fBtclreadline::historyLength\fP is non-negative,
 the historyfile will be truncated to hold only this number lines.
+
+.TP 5
+\fB::tclreadline::readline reset-terminal\fP [\fIterminalName\fP]
+w/o argument: reset the state of the terminal to what it was
+before tclreadline was used. With argument: reinitialize readline's
+idea of the terminal settings using terminalName as the terminal type.
 
 .TP 5
 \fB::tclreadline::Print\fP [\fIyes / no\fP]

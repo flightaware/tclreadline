@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Wed Sep 15 01:00:43 1999 (joze)"
+    FILE: "/disk01/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Thu Sep 16 15:43:29 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -191,11 +191,13 @@ TclReadlineCmd(
     static char *subCmds[] = {
         "read", "initialize", "write", "add", "complete",
         "customcompleter", "builtincompleter", "eofchar",
+		"reset-terminal",
         (char *) NULL
     };
     enum SubCmdIdx {
         TCLRL_READ, TCLRL_INITIALIZE, TCLRL_WRITE, TCLRL_ADD, TCLRL_COMPLETE,
-        TCLRL_CUSTOMCOMPLETER, TCLRL_BUILTINCOMPLETER, TCLRL_EOFCHAR
+        TCLRL_CUSTOMCOMPLETER, TCLRL_BUILTINCOMPLETER, TCLRL_EOFCHAR,
+		TCLRL_RESET_TERMINAL
     };
 
 
@@ -368,6 +370,18 @@ TclReadlineCmd(
                     tclrl_eof_string = stripwhite(strdup(argv[2]));
             }
             Tcl_AppendResult(interp, tclrl_eof_string, (char*) NULL);
+            break;
+
+        case TCLRL_RESET_TERMINAL:
+			/* TODO: add this to the completer */
+            if (argc > 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "?terminal-name?");
+                return TCL_ERROR;
+            } else if (3 == argc) {
+				rl_reset_terminal(Tcl_GetString(objv[2]));
+            } else {
+				rl_cleanup_after_signal();
+			}
             break;
 
         default:

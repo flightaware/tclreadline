@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/disk01/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Wed Sep 15 15:23:30 1999 (joze)"
+# LAST MODIFICATION: "Thu Sep 16 18:06:23 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -138,7 +138,7 @@ proc unknown args {
 
 namespace eval tclreadline {
 
-namespace export Setup Glob Loop InitTclCmds InitTkCmds Print ls
+namespace export Setup Loop InitTclCmds InitTkCmds Print ls
 
 proc ls {args} {
 	if {[exec uname -s] == "Linux"} {
@@ -206,6 +206,8 @@ proc Setup {args} {
 					puts stderr $::tclreadline::errorMsg
 				}
 
+				::tclreadline::readline reset-terminal
+
 				if [catch "eval ::tclreadline::Exit $args" message] {
 					puts stderr "error:"
 					puts stderr "$message"
@@ -249,6 +251,8 @@ proc HistoryFileGet {} {
 	return $historyfile
 }
 
+# obsolete
+#
 proc Glob {string} {
 
 	set commandstring ""
