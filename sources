@@ -3,7 +3,7 @@
     README
     TODO
     configure.in
-    pkgIndex.tcl
+    pkgIndex.tcl.in
     sample.tclshrc
     sources
     tclreadline.c
