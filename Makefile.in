@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon Aug 23 17:10:16 1999 (joze)"
+# LAST MODIFICATION: "Mon Aug 23 17:55:26 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -160,7 +160,6 @@ SOURCES = \
     GPL \
     Makefile.in \
     README \
-    TODO \
     configure.in \
     pkgIndex.tcl.in \
     sample.tclshrc \
@@ -171,6 +170,8 @@ SOURCES = \
     tclreadlineConfig.sh.in \
     tclreadlineInit.tcl.in \
     tclreadlineSetup.tcl.in
+
+MISC = TODO
 
 AUXILIARY = \
     aux/config.guess \

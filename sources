@@ -1,7 +1,6 @@
     GPL
     Makefile.in
     README
-    TODO
     configure.in
     pkgIndex.tcl.in
     sample.tclshrc
