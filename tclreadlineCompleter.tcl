@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Wed Sep 15 02:59:18 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Wed Sep 15 18:18:13 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -32,7 +32,6 @@
 #
 #     - tcltest is missing
 #
-#     - last try: as for widgets
 #
 
 
@@ -233,7 +232,8 @@ proc MatchesFromList {text lst {allow ""}} {
 proc TrySubCmds {cmd} {
 	set trystring ____
 	set result ""
-	if [catch {set result [${cmd} ${trystring}]} msg] {
+	if [catch {set result [eval ${cmd} ${trystring}]} msg] {
+		set tcmd [string trim ${cmd}]
 		if {[regexp {bad *option.*____.*: *must *be( .*$)} ${msg} all raw]} {
 			regsub -all -- , ${raw} { } raw
 			set len [llength ${raw}]
@@ -245,13 +245,18 @@ proc TrySubCmds {cmd} {
 				}
 
 			}
+		} elseif {[regexp "wrong # args: should be \"${tcmd}\(.*\)\"" \
+			${msg} all hint]
+		} {
+			set result [string trim $hint]
 		} else {
 			# check, if it's a blt error msg ...
 			#
 			set msglst [split ${msg} \n]
 			foreach line ${msglst} {
-				if {[regexp "${cmd}\[ \t\]\+\(\[^ \t\]*\)\[^:\]*$" \
-					${line} all sub]} {
+				if {[regexp "${tcmd}\[ \t\]\+\(\[^ \t\]*\)\[^:\]*$" \
+					${line} all sub]
+				} {
 					lappend result [list ${sub}]
 				}
 			}
@@ -676,7 +681,7 @@ proc CompleteControlStatement {text start end line pos mod pre new_line} {
 	return ""
 }
 
-proc BraceOrControlStatement {text start end line pos mod} {
+proc BraceOrCommand {text start end line pos mod} {
 	if {![string length [Lindex $line $pos]]} {
 		return [list \{ {}]; # \}
 	} else {
@@ -790,7 +795,8 @@ proc EventuallyEvaluateFirst {partT startT endT lineT} {
 	upvar $partT part $startT start $endT end $lineT line
 
 	set oldlen [string length ${line}]
-	set line [string trim ${line}]
+	# set line [string trim ${line}]
+	set line [string trimleft ${line}]
 	set diff [expr [string length $line] - $oldlen]
 	incr start $diff
 	incr end $diff
@@ -985,32 +991,11 @@ proc ScriptCompleter {part start end line} {
 
 
 		# Ok, also no proc. Try to do the same as for widgets now:
-		# try to get at least the first option from an error output.
-		# if the subcommand is configure or cget, try to get the
-		# option table.
+		# try to complete from the option table if the subcommand
+		# is `configure' or `cget' otherwise try to get further
+		# subcommands.
 		#
-		switch -- $pos {
-			1 {
-				set cmds [TrySubCmds ${alias}]
-				if {[llength ${cmds}]} {
-					return [TryFromList ${part} ${cmds}]
-				}
-			}
-			default {
-				set sub [Lindex $line 1]
-				switch -- $sub {
-					configure -
-					cget {
-						return [CompleteFromOptions \
-						${part} ${start} ${line} ${alias}]
-					}
-				}
-			}
-		}
-
-
-		# no specific command completer found.
-		return ""
+		return [CompleteFromOptionsOrSubCmds $part $start $end $line $pos]
 	}
 	error "{NOTREACHED (this is probably an error)}"
 }
@@ -1545,7 +1530,7 @@ proc complete(for) {text start end line pos mod} {
 		2 -
 		3 -
 		4 {
-			return [BraceOrControlStatement $text $start $end $line $pos $mod]
+			return [BraceOrCommand $text $start $end $line $pos $mod]
 		}
 	}
 	return ""
@@ -1748,7 +1733,7 @@ proc complete(if) {text start end line pos mod} {
 	switch -- $pos {
 		1 -
 		2 {
-			return [BraceOrControlStatement $text $start $end $line $pos $mod]
+			return [BraceOrCommand $text $start $end $line $pos $mod]
 		}
 		default {
 			set prev [PreviousWord ${start} ${line}]
@@ -1756,7 +1741,7 @@ proc complete(if) {text start end line pos mod} {
 				then -
 				else -
 				elseif {
-					return [BraceOrControlStatement \
+					return [BraceOrCommand \
 					$text $start $end $line $pos $mod]
 				}
 				default {
@@ -2283,7 +2268,7 @@ proc complete(namespace) {text start end line pos mod} {
 				delete { return [TryFromList ${mod} $space_matches] }
 				eval -
 				inscope {
-					return [BraceOrControlStatement \
+					return [BraceOrCommand \
 					$text $start $end $line $pos $mod]
 				}
 				which { return [CompleteFromList ${mod} {-variable <name>}] }
@@ -3086,7 +3071,7 @@ proc complete(while) {text start end line pos mod} {
 	switch -- $pos {
 		1 -
 		2 {
-			return [BraceOrControlStatement $text $start $end $line $pos $mod]
+			return [BraceOrCommand $text $start $end $line $pos $mod]
 		}
 	}
 	return ""
@@ -3147,7 +3132,7 @@ proc OptionTable {cmd optionsT} {
 	upvar $optionsT options
 	# first we build an option table
 	#
-	if {[catch [list set option_table [${cmd} configure]] msg]} {
+	if {[catch [list set option_table [eval ${cmd}]] msg]} {
 		return 0
 	}
 	foreach optline ${option_table} {
@@ -3165,12 +3150,25 @@ proc OptionTable {cmd optionsT} {
 # @return a tclreadline completer formatted string.
 # @date Sep-14-1999
 #
-proc CompleteFromOptions {text start line cmd} {
+proc CompleteFromOptions {text start line} {
 
-	set prev [PreviousWord ${start} ${line}]
-
+	# check if either `configure' or `cget' is present.
+	#
+	set lst [ProperList ${line}]
+	foreach keyword {configure cget} {
+		set idx [lsearch ${lst} ${keyword}]
+		if {-1 != ${idx}} {
+			break
+		}
+	}
+	if {-1 == ${idx}} {
+		return
+	}
+	set cmd [lrange ${lst} 0 ${idx}]
+	# puts stderr cmd=|$cmd|
 	if {0 < [OptionTable ${cmd} options]} {
 
+		set prev [PreviousWord ${start} ${line}]
 		if {-1 != [set found [lsearch -exact $options(switches) ${prev}]]} {
 
 			# complete only if the user has not
@@ -3185,36 +3183,39 @@ proc CompleteFromOptions {text start line cmd} {
 
 		} else {
 			return [CompleteFromList ${text} \
-			[RemoveUsedOptions $line $options(switches)]]
-		}
-	}
-}
-
-proc complete(WIDGET) {text start end line pos mod} {
-	set widget [Lindex ${line} 0]
-	set cmd [Lindex ${line} 1]
-	switch -- $pos {
-		1 {
-			set cmds [TrySubCmds ${widget}]
-			if {[llength ${cmds}]} {
-				return [TryFromList ${mod} ${cmds}]
-			}
-		}
-		default {
-			if {([string match ${cmd}* cget] || \
-				[string match ${cmd}* configure])
-			} {
-				return [CompleteFromOptions ${text} ${start} ${line} ${widget}]
-			}
+			[RemoveUsedOptions ${line} $options(switches)]]
 		}
 	}
 	return ""
 }
 
+proc CompleteFromOptionsOrSubCmds {text start end line pos} {
+	set from_opts [CompleteFromOptions ${text} ${start} ${line}]
+	if {[string length ${from_opts}]} {
+		return ${from_opts}
+	} else {
+		set cmds [TrySubCmds [lrange [ProperList ${line}] 0 [expr $pos - 1]]]
+		# puts stderr cmds=|$cmds|
+		if {[llength ${cmds}]} {
+			return [TryFromList ${text} ${cmds}]
+		}
+	}
+	return ""
+}
+
+proc complete(WIDGET) {text start end line pos mod} {
+	# set widget [Lindex ${line} 0]
+	# set cmds [TrySubCmds ${widget}]
+	# if {[llength ${cmds}]} {
+	# 	return [TryFromList ${mod} ${cmds}]
+	# }
+	return [CompleteFromOptionsOrSubCmds ${text} ${start} ${end} ${line} ${pos}]
+}
+
 # SPECIFIC TK COMMAND COMPLETERS
 
 proc complete(bell) {text start end line pos mod} {
-	switch -- $pos {
+	switch -- ${pos} {
 		1 { return [CompleteFromList ${text} -displayof] }
 		2 {
 			if {"-displayof" == [PreviousWord ${start} ${line}]} {
@@ -3222,6 +3223,75 @@ proc complete(bell) {text start end line pos mod} {
 			}
 		}
 	}
+}
+
+#**
+# TODO: shit. make this better!
+# @param text, a std completer argument (current word).
+# @param fullpart, the full text of the current position.
+# @param lst, the list to complete from.
+# @param pre, leading `quote'.
+# @param sep, word separator.
+# @param post, trailing `quote'.
+# @return a formatted completer string.
+# @date Sep-15-1999
+#
+proc CompleteListFromList {text fullpart lst pre sep post} {
+
+	# puts stderr ""
+	# puts stderr text=|$text|
+	# puts stderr lst=|$lst|
+	# puts stderr pre=|$pre|
+	# puts stderr sep=|$sep|
+	# puts stderr post=|$post|
+
+	if {![string length ${fullpart}]} {
+
+		# nothing typed so far. Insert a $pre
+		# and inhibit further completion.
+		#
+		return [list ${pre} {}]
+
+	} elseif {[regexp ${post} ${text}]} {
+
+		# finalize
+		#
+		set diff \
+		[expr [CountChar ${fullpart} ${pre}] - [CountChar ${fullpart} ${post}]]
+		for {set i 0} {${i} < ${diff}} {incr i} {
+			append text ${post}
+		}
+		append text " "
+		return ${text}
+
+	} elseif {![regexp -- ^\(.*\[${pre}${sep}\]\)\(\[^${pre}${sep}\]*\)$ \
+		${text} all left right]
+	} {
+		set left {}
+		set right ${text}
+	}
+
+	# puts stderr \nleft=|$left|
+	# puts stderr \nright=|$right|
+	set exact_matches [MatchesFromList ${right} ${lst}]
+	# TODO this is awkward. Think of making it better!
+	#
+	if {1 == [llength ${exact_matches}] && -1 != [lsearch ${lst} ${right}]
+	} {
+		#set completion [CompleteFromList ${right} [list ${sep} ${post}] 1]
+		return [list ${left}${right}${sep} {}]
+	} else {
+		set completion [CompleteFromList ${right} ${lst} 1]
+	}
+	# puts stderr \ncompletion=|$completion|
+	if {![string length [lindex $completion 0]]} {
+		return [concat [list ${left}] [lrange $completion 1 end]]
+	} elseif {[string length ${left}]} {
+		return [list ${left}]${completion}
+	} else {
+		return ${completion}
+	}
+	return ""
 }
 
 proc complete(bind) {text start end line pos mod} {
@@ -3242,19 +3312,6 @@ proc complete(bind) {text start end line pos mod} {
 			[concat $toplevels $widgets $toplevelClass $rest]]
 		}
 		2 {
-			if {![string length ${text}]} {
-				# insert a < and inhibit further completion
-				return [list < {}]
-			} elseif {[regexp > ${text}]} {
-				set diff [expr [CountChar ${text} <] - [CountChar ${text} >]]
-				for {set i 0} {$i < $diff} {incr i} {
-					append text >
-				}
-				append text " "
-				return ${text}
-			} else {
-				regexp -- {^(.*[<-])([^<-]*)} ${text} all left right
-			}
 			set modifiers {
 				Alt Control Shift Lock Double Triple
 				B1 B2 B3 B4 B5 Button1 Button2 Button3 Button4 Button5
@@ -3269,25 +3326,23 @@ proc complete(bind) {text start end line pos mod} {
 				MouseWheel Property Reparent Unmap Visibility
 			}
 			set sequence [concat $modifiers $events]
-			set exact_matches [MatchesFromList ${right} ${sequence}]
-			# TODO this is awkward. Think of making it better!
-			#
-			if {1 == [llength ${exact_matches}] && \
-				-1 != [lsearch ${sequence} ${right}]
-			} {
-				set completion [CompleteFromList ${right} {> -} 1]
-			} else {
-				set completion [CompleteFromList ${right} $sequence 1]
-			}
-			if {![string length [lindex $completion 0]]} {
-				return [concat ${left} [lrange $completion 1 end]]
-			} else {
-				return ${left}${completion}
-			}
+			return [CompleteListFromList ${text} \
+			[Lindex $line 2] ${sequence} < - >]
 		}
 		3 {
 			# return [DisplayHints {<script> <+script>}]
-			return [BraceOrControlStatement $text $start $end $line $pos $mod]
+			return [BraceOrCommand $text $start $end $line $pos $mod]
+		}
+	}
+	return ""
+}
+
+proc complete(bindtags) {text start end line pos mod} {
+	switch -- $pos {
+		1 { return [CompleteFromList ${text} [WidgetChildren ${text}]] }
+		2 {
+			return [CompleteListFromList ${text} [Lindex $line 2] \
+			[bindtags [Lindex $line 1]] \{ { } \}]
 		}
 	}
 	return ""
