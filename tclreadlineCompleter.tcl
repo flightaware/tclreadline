@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Tue Sep 21 21:19:07 1999 (joze)"
+# LAST MODIFICATION: "Thu Sep 23 02:16:55 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -1527,17 +1527,22 @@ proc ScriptCompleter {part start end line} {
 			set namespc ::
 		}
 		if {[string length [uplevel [info level] \
-			namespace eval ${namespc} [list ::info proc $alias]]]} {
-			set args [uplevel [info level] \
-			namespace eval ${namespc} [list info args $alias]]
-			set arg [lindex $args [expr $pos - 1]]
-			if {"" != $arg && "args" != $arg} {
-				if {[uplevel [info level] namespace eval \
-					${namespc} [list info default $alias $arg junk]]} {
-					return [DisplayHints ?$arg?]
-				} else {
-					return [DisplayHints <$arg>]
+			namespace eval ${namespc} [list ::info proc $alias]]]
+		} {
+			if ![string length [string trim $part]] {
+				set args [uplevel [info level] \
+				namespace eval ${namespc} [list info args $alias]]
+				set arg [lindex $args [expr $pos - 1]]
+				if {"" != $arg && "args" != $arg} {
+					if {[uplevel [info level] namespace eval \
+						${namespc} [list info default $alias $arg junk]]} {
+							return [DisplayHints ?$arg?]
+						} else {
+							return [DisplayHints <$arg>]
+						}
 				}
+			} else {
+				return ""; # enable file name completion
 			}
 		}
 
