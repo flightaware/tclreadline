@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Tue Sep 14 11:57:42 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Wed Sep 15 01:00:43 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -646,6 +646,7 @@ TclReadlineCompletion(char* text, int start, int end)
                 if (1 == objc && !strlen(matches[i])) {
                     FREE(matches[i]);
                     FREE(matches);
+                    Tcl_ResetResult(tclrl_interp); /* clear result space */
                     return (char**) NULL;
                 }
             }
