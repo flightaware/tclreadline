@@ -1,6 +1,6 @@
 # -*- tclsh -*-
 # FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Mon Sep 27 00:09:06 1999 (joze)"
+# LAST MODIFICATION: "Tue Sep 28 23:04:09 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -3521,6 +3521,48 @@ proc tclreadline::complete(readline) {text start end line pos mod} {
 proc complete(tell) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [ChannelId ${text}] }
+	}
+	return ""
+}
+
+proc complete(testthread) {text start end line pos mod} {
+
+	set cmd [Lindex ${line} 1]
+	switch -- ${pos} {
+		1 {
+			return [CompleteFromList ${text} {
+				-async create errorproc exit id names send wait
+			}]
+		}
+		2 {
+			switch -- [PreviousWord ${start} ${line}] {
+				create {
+					return [BraceOrCommand \
+					${text} ${start} ${end} ${line} ${pos} ${mod}]
+				}
+				-async {
+					return [CompleteFromList ${text} send]
+				}
+				send {
+					return [CompleteFromList ${text} [testthread names]]
+				}
+				default {}
+			}
+		}
+		3 {
+			if {"send" == [PreviousWord ${start} ${line}]} {
+				return [CompleteFromList ${text} [testthread names]]
+			} elseif {"send" == ${cmd}} {
+				return [BraceOrCommand \
+				${text} ${start} ${end} ${line} ${pos} ${mod}]
+			}
+		}
+		4 {
+			if {"send" == [Lindex ${line} 2]} {
+				return [BraceOrCommand \
+				${text} ${start} ${end} ${line} ${pos} ${mod}]
+			}
+		}
 	}
 	return ""
 }
