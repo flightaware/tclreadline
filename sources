@@ -1,9 +1,14 @@
+    GPL
     Makefile.in
+    README
+    TODO
     configure.in
+    pkgIndex.tcl
+    sample.tclshrc
+    sources
     tclreadline.c
     tclreadline.h.in
+    tclreadline.n.in
     tclreadlineConfig.sh.in
     tclreadlineInit.tcl.in
     tclreadlineSetup.tcl.in
-    tclreadline.n.in
-    sample.tclshrc
