@@ -1,11 +1,33 @@
-
-# ==================================================================
-# FILE: "/home/joze/tmp/tclreadline/Makefile.in"
-# LAST MODIFIED: "Mon Oct 05 15:46:31 1998 (joze)"
-# (c) 1998 by Johannes Zellner
+# -*- make -*-
+#
+# FILE: "/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFIED: "Sun Feb 28 17:48:01 1999 (joze)"
+# (C) 1998, 1999 by Johannes Zellner
 # Johannes.Zellner@physik.uni-karlsruhe.de
 # $Id$
-# ==================================================================
+# ---
+#
+# tclreadline -- gnu readline for tcl
+# Copyright (C) 1999  Johannes Zellner
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Johannes.Zellner@physik.uni-karlsruhe.de
+# http://krisal.physik.uni-karlsruhe.de/~joze
+# ================================================================== 
+
 
 MAJOR_VERSION = @TCLREADLINE_MAJOR_VERSION@
 MINOR_VERSION = @TCLREADLINE_MINOR_VERSION@
@@ -45,10 +67,10 @@ INSTALL_ROOT =
 # Directory from which applications will reference the library of Tcl
 # scripts (note: you can set the TCLREADLINE_LIBRARY environment variable at
 # run-time to override the compiled-in location):
-TCLREADLINE_LIBRARY = $(prefix)/lib/tclreadline$(VERSION)
+TCLREADLINE_LIBRARY = @TCLREADLINE_LIBRARY@
 
 # Path name to use when installing library scripts:
-SCRIPT_INSTALL_DIR =	$(INSTALL_ROOT)$(TCLREADLINE_LIBRARY)
+LIBRARY_INSTALL_DIR =	$(INSTALL_ROOT)$(TCLREADLINE_LIBRARY)
 
 # Directory in which to install the archive libitk.a:
 LIB_INSTALL_DIR =	$(INSTALL_ROOT)$(exec_prefix)/lib
@@ -84,10 +106,10 @@ SHELL =		/bin/sh
 # "install" around;  better to use the install-sh script that comes
 # with the distribution, which is slower but guaranteed to work.
 
-INSTALL = $(TOP_DIR)/config/install-sh -c
+INSTALL = $(TOP_DIR)/aux/install-sh -c
 INSTALL_PROGRAM =	${INSTALL}
 INSTALL_DATA =		${INSTALL} -m 644
-MKINSTALLDIRS =		$(TOP_DIR)/config/mkinstalldirs
+MKINSTALLDIRS =		$(TOP_DIR)/aux/mkinstalldirs
 
 # The symbols below provide support for dynamic loading and shared
 # libraries.  The values of the symbols are normally set by the
@@ -112,6 +134,7 @@ SHLIB_LD = @SHLIB_LD@
 RANLIB =		@RANLIB@
 TOP_DIR =		@srcdir@
 TCL_INCLUDE_DIR =	@TCL_INCLUDE_DIR@
+READLINE_INCLUDE_DIR =	@READLINE_INCLUDE_DIR@
 TCLREADLINE_LIB_FILE =	@TCLREADLINE_LIB_FILE@
 
 #----------------------------------------------------------------
@@ -123,8 +146,7 @@ TCLREADLINE_LIB_FILE =	@TCLREADLINE_LIB_FILE@
 
 CC = @CC@
 CC_SWITCHES = $(CFLAGS) $(SHLIB_CFLAGS) -I$(TOP_DIR) \
-        -I$(TCL_INCLUDE_DIR) -DREADLINE_LIBRARY \
-        -DTCLREADLINE_VERSION=\"$(VERSION)\"
+        -I$(TCL_INCLUDE_DIR) -I$(READLINE_INCLUDE_DIR)
 
 OBJS = tclreadline.o
 
@@ -133,22 +155,34 @@ TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl
 
 SOURCES = \
     Makefile.in \
+    tclreadline.n.in \
     configure.in \
     tclreadline.c \
-    tclreadline.h \
+    tclreadline.h.in \
     tclreadlineConfig.sh.in \
     tclreadlineInit.tcl.in \
-    tclreadlineSetup.tcl
+    tclreadlineSetup.tcl.in \
+    tclreadline.n.in
+
+AUXILIARY = \
+    aux/config.guess \
+    aux/config.sub \
+    aux/install-sh \
+    aux/mkinstalldirs \
+    aux/vimtags
+
+MISC = README GPL
+
+MAN = tclreadline.n
 
 CIFLAGS = -t-"gnu readline for tcl" -m"ci after porting this to configure"
 
-PHONY: all clean distclean ctags tcltags vimtags tags ci co
-SUFFIXES: .c .o .so .sl .tcl
+.PHONY: clean distclean ctags tcltags vimtags tags ci co
 
-all: $(TCLREADLINE_LIB_FILE)
+.SUFFIXES: .c .o .so .sl .tcl
 
-# The following target is configured by autoconf to generate either
-# a shared library or non-shared library for [incr Tk].
+all: $(TCLREADLINE_LIB_FILE) pkgIndex.tcl
+
 
 @TCLREADLINE_LIB_FILE@: ${OBJS}
 	rm -f $(TCLREADLINE_LIB_FILE)
@@ -156,47 +190,44 @@ all: $(TCLREADLINE_LIB_FILE)
 	$(RANLIB) $(TCLREADLINE_LIB_FILE)
 
 install: install-binaries install-libraries install-man
+install-man: $(MANN_INSTALL_DIR)/$(MAN)
 
 install-binaries: $(TCLREADLINE_LIB_FILE)
-	@$(MKINSTALLDIRS) $(SCRIPT_INSTALL_DIR)
+	@$(MKINSTALLDIRS) $(LIBRARY_INSTALL_DIR)
 	@echo "Installing $(TCLREADLINE_LIB_FILE)"
 	@$(INSTALL_DATA) $(TCLREADLINE_LIB_FILE) \
-            $(SCRIPT_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
-	@(cd $(SCRIPT_INSTALL_DIR); $(RANLIB) $(TCLREADLINE_LIB_FILE))
-	chmod 555 $(SCRIPT_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
+            $(LIBRARY_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
+	@(cd $(LIBRARY_INSTALL_DIR); $(RANLIB) $(TCLREADLINE_LIB_FILE))
+	chmod 555 $(LIBRARY_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
 
 
-install-libraries:
-	@$(MKINSTALLDIRS) $(SCRIPT_INSTALL_DIR)
-	@echo "Installing tclreadlineInit.tcl"
-	@$(INSTALL_DATA) tclreadlineInit.tcl $(SCRIPT_INSTALL_DIR)
-	@$(INSTALL_DATA) tclreadlineSetup.tcl $(SCRIPT_INSTALL_DIR)
-	@$(INSTALL_DATA) pkgIndex.tcl $(SCRIPT_INSTALL_DIR)
+install-libraries: tclreadlineInit.tcl tclreadlineSetup.tcl pkgIndex.tcl \
+                   tclreadlineConfig.sh
+	@$(MKINSTALLDIRS) $(LIBRARY_INSTALL_DIR)
+	$(INSTALL_DATA) tclreadlineInit.tcl $(LIBRARY_INSTALL_DIR)
+	$(INSTALL_DATA) tclreadlineSetup.tcl $(LIBRARY_INSTALL_DIR)
+	$(INSTALL_DATA) pkgIndex.tcl $(LIBRARY_INSTALL_DIR)
+	$(INSTALL_DATA) tclreadlineConfig.sh $(LIBRARY_INSTALL_DIR)
 
-install-man:
-	@$(MKINSTALLDIRS) $(MANN_INSTALL_DIR)
-	@cd $(TOP_DIR)/doc; for i in *.n; \
-	    do \
-	    echo "Installing doc/$$i"; \
-	    rm -f $(MANN_INSTALL_DIR)/$$i; \
-	    sed -e '/man\.macros/r man.macros' -e '/man\.macros/d' \
-		    $$i > $(MANN_INSTALL_DIR)/$$i; \
-	    chmod 444 $(MANN_INSTALL_DIR)/$$i; \
-	    done;
+FORCE:
 
-pkgIndex.tcl:
+$(MANN_INSTALL_DIR)/$(MAN): FORCE
+	- $(INSTALL_DATA) $(srcdir)/$(MAN) $@ &&  chmod 644 $@
+
+pkgIndex.tcl: FORCE
 	@echo "eval pkg_mkIndex $(TOP_DIR) tclreadline*.tcl" | tclsh
 
 Makefile: $(TOP_DIR)/Makefile.in
 	$(SHELL) config.status
 
 clean:
-	rm -f *.a *.o core errs *~ \#* tags *.E a.out errors
+	rm -f *.a *.o core errs *~ \#* tags* *.E a.out errors so_locations
 
 distclean: clean
 	rm -f \
-	Makefile pkgIndex.tcl tclreadlineInit.tcl \
-	config.status config.log config.cache
+	Makefile *.so *.sl pkgIndex.tcl tclreadlineInit.tcl \
+        tclreadlineSetup.tcl\
+ 	tclreadlineConfig.sh config.status config.log config.cache
 
 depend:
 	makedepend -- $(CC_SWITCHES) -- $(CSRCS)
@@ -228,6 +259,13 @@ ci: $(SOURCES)
 
 co: $(SOURCES)
 	co -l $(SOURCES)
+
+distribution: $(SOURCES) configure $(AUXILIARY) $(MISC)
+	- mkdir tclreadline-$(VERSION)
+	- mkdir tclreadline-$(VERSION)/aux
+	- cp $(SOURCES) $(MISC) configure tclreadline-$(VERSION)
+	- cp $(AUXILIARY) tclreadline-$(VERSION)/aux
+	tar zcvf $(srcdir)/tclreadline-$(VERSION).tgz tclreadline-$(VERSION)
 
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
