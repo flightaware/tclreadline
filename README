@@ -1,40 +1,6 @@
-
-tclreadline
-
-$Id$
-
-1. Introduction
----------------
-
-This directory contains the sources and documentation for tclreadline,
-which builds a connection between tcl and the gnu readline.
-The information here corresponds to release 0.7 (initial developers release).
-
-2. Documentation
-----------------
-
-The "doc" subdirectory in this release contains the reference manual entries
-for tclreadline.  If you only want to use tclreadline as a tool for interactive
-script development,  you don't have to read this manual page at all.  Simply
-change your .tclshrc according to the next section.
-
-3. Compiling and installing tclreadline
--------------------------------
-
-This release will probably only build under UNIX (Linux).
-
-Before trying to compile tclreadline you should do the following things:
-
-    (a) Make sure you have tcl 8.0 or higher.  I've tested tclreadline
-        with tcl 8.0.3 and 8.0.4.  tclreadline relies on a proper tcl
-        installation:
-        It uses the tclConfig.sh file, which should reside somewhere
-        in /usr/local/lib/ or /usr/local/lib/tcl8.0/...
-
- /* ==================================================================
    
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFIED: "Sun Feb 28 15:04:28 1999 (joze)"
+    LAST MODIFIED: "Sun Feb 28 18:19:34 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner
     Johannes.Zellner@physik.uni-karlsruhe.de
     $Id$
@@ -60,4 +26,53 @@ Before trying to compile tclreadline you should do the following things:
     Johannes.Zellner@physik.uni-karlsruhe.de
     http://krisal.physik.uni-karlsruhe.de/~joze
 
-    ================================================================== */  
+
+tclreadline
+
+
+1. Introduction
+---------------
+
+This directory contains the sources and documentation for tclreadline,
+which builds a connection between tcl and the gnu readline.
+The information here corresponds to release 0.7 (initial developers release).
+
+2. Documentation
+----------------
+
+The tclreadline.n nroff man page in this release contains the reference
+manual entries for tclreadline.  If you only want to use tclreadline as
+a tool for interactive script development,  you don't have to read this
+manual page at all.  Simply change your .tclshrc according to the section 4.
+
+3. Compiling and installing tclreadline
+---------------------------------------
+
+This release will probably only build under UNIX (Linux).
+
+Before trying to compile tclreadline you should do the following things:
+
+    (a) Make sure you have tcl 8.0 or higher.  I've tested tclreadline
+        with tcl 8.0.3 and 8.0.4.  tclreadline relies on a proper tcl
+        installation:
+        It uses the tclConfig.sh file, which should reside somewhere
+        in /usr/local/lib/ or /usr/local/lib/tcl8.0/...
+
+    (b) Make sure you have gnu readline 2.2 or higher.
+        tclreadline uses the gnu readline callback handler, which
+        wasn't implemented in early releases.
+
+The usual ./configure; make; make install sequence should do the rest.
+
+
+4. Using tclreadline for interactive tcl scripting.
+---------------------------------------------------
+
+copy the sample.tclshrc to $HOME/.tclshrc. If you use another interpreter
+like wish, you should copy the file sample.tclshrc to $HOME/.wishrc
+(or whatever the manual page of your interpreter says.) If you have
+installed tclreadline properly, you are just ready to start:
+start your favorite interpreter. The tclreadlineSetup.tcl script
+does the rest.
+
+
