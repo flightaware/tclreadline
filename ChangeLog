@@ -1,4 +1,8 @@
 
+2000-12-08  Johannes Zellner  <johannes@zellner.org>
+
+    * reenabled wishrl and tclshrl via configure switches
+
 2000-11-19  Johannes Zellner  <johannes@zellner.org>
 
     * configure.in: moved the tlib check before the libreadline check

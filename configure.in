@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Son, 19 Nov 2000 14:58:20 +0100 (joze)"
+dnl LAST MODIFICATION: "Fre, 08 Dez 2000 01:36:25 +0100 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
@@ -16,8 +16,8 @@ AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
 
 MAJOR=2
-MINOR=0
-PATCHLEVEL=5
+MINOR=1
+PATCHLEVEL=0
 VERSION=$MAJOR.$MINOR
 PATCHLEVEL_STR=$VERSION.$PATCHLEVEL
 
@@ -236,6 +236,43 @@ int main () {
 )
 
 
+AC_ARG_ENABLE(tclshrl,
+    [  --enable-tclshrl        build statically linked tclshrl],
+    [dnl action if given
+	case "${enableval}" in
+	    yes) enable_static=true ;;
+	    no)  enable_static=false ;;
+	    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-static) ;;
+	esac
+    ],
+    [dnl action if not given
+	enable_static=false
+    ]
+)
+AM_CONDITIONAL(STATIC_TCLSHRL, test x$enable_static = xtrue)
+
+AC_ARG_ENABLE(wishrl,
+    [  --enable-wishrl         build statically linked wishrl],
+    [dnl action if given
+	case "${enableval}" in
+	    yes)
+		enable_static=true
+		dnl source the tkConfig.sh which defines TK_LIB_SPEC
+		. $TCL_LIB_DIR/tkConfig.sh
+		AC_SUBST(TK_LIB_SPEC)
+	    ;;
+	    no)  enable_static=false ;;
+	    *)   AC_MSG_ERROR(bad value ${enableval} for --enable-static) ;;
+	esac
+    ],
+    [dnl action if not given
+	enable_static=false
+    ]
+)
+AM_CONDITIONAL(STATIC_WISHRL, test x$enable_static = xtrue)
+
+
 AC_SUBST(TCL_INCLUDE_DIR)
+AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(READLINE_INCLUDE_DIR)
 AC_OUTPUT(Makefile tclreadline.h tclreadlineInit.tcl tclreadlineSetup.tcl tclreadline.n pkgIndex.tcl)
