@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Fri, 24 Mar 2000 01:50:54 +0100 (joze)"
+# LAST MODIFICATION: "Fri, 24 Mar 2000 01:54:49 +0100 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -315,6 +315,7 @@ distribution: $(SOURCES) configure $(AUXILIARY) tclreadline.n.html
 	(cd dist; tar zcvf tclreadline-$(PATCHLEVEL).tar.gz tclreadline-$(PATCHLEVEL); rm -rf tclreadline-$(PATCHLEVEL))
 	- cp README dist/tclreadline-$(PATCHLEVEL).README
 	- echo AddDescription '"<font size=+2 color=red><b>most recent version</b></font>"' tclreadline-$(PATCHLEVEL).tar.gz > dist/.htaccess
+	- echo 'IndexOptions NameWidth=* SuppressHTMLPreamble FancyIndexing' >> dist/.htaccess
 
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
