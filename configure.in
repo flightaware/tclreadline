@@ -1,51 +1,52 @@
-# -*- autoconf -*-
-# FILE: "/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Tue Sep 28 22:51:45 1999 (joze)"
-# (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
-# $Id$
-# ---
-#
-# tclreadline -- gnu readline for tcl
-# Copyright (C) 1999  Johannes Zellner
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
-# johannes@zellner.org
-# http://www.zellner.org/tclreadline/
-#
-# ================================================================== */  
+dnl -*- autoconf -*-
+dnl FILE: "/home/joze/src/tclreadline/configure.in"
+dnl LAST MODIFICATION: "Thu Dec 16 22:01:33 1999 (joze)"
+dnl (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
+dnl $Id$
+dnl ---
+dnl
+dnl tclreadline -- gnu readline for tcl
+dnl Copyright (C) 1999  Johannes Zellner
+dnl
+dnl This program is free software; you can redistribute it and/or
+dnl modify it under the terms of the GNU General Public License
+dnl as published by the Free Software Foundation; either version 2
+dnl of the License, or (at your option) any later version.
+dnl
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU General Public License
+dnl along with this program; if not, write to the Free Software
+dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+dnl
+dnl johannes@zellner.org
+dnl http://www.zellner.org/tclreadline/
+dnl
+dnl ================================================================== */  
 
 dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tk installation
 dnl	to configure the system for the local environment.
 
-AC_REVISION($Revision$)
 
 AC_INIT(tclreadline.c)
 AC_CONFIG_HEADER(config.h)
+AC_PREREQ(2.13)
+AC_REVISION($Revision$)
+AC_CONFIG_AUX_DIR(./aux)
 
 TCLREADLINE_MAJOR_VERSION=1
 TCLREADLINE_MINOR_VERSION=0
-TCLREADLINE_PATCHLEVEL=3
+TCLREADLINE_PATCHLEVEL=5
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 TCLREADLINE_PATCHLEVEL_STR=${TCLREADLINE_VERSION}.${TCLREADLINE_PATCHLEVEL}
 VERSION=$TCLREADLINE_VERSION
 
+dnl AM_INIT_AUTOMAKE(tclreadline, $VERSION)
 
-AC_PREREQ(2.13)
-AC_CONFIG_AUX_DIR(./aux)
 AC_CANONICAL_HOST
 
 
@@ -81,6 +82,39 @@ else
     AC_MSG_RESULT($TCL_LIB_DIR/tclConfig.sh)
     AC_MSG_CHECKING([for your tcl version])
     AC_MSG_RESULT([$TCL_VERSION, patchlevel $TCL_PATCH_LEVEL])
+fi
+
+#--------------------------------------------------------------------
+#    eventually check for tkConfig.sh
+#--------------------------------------------------------------------
+
+tk_search="no"
+AC_ARG_WITH(
+    tk,
+    [  --with-tk=DIR           where to look for tclConfig.sh],
+    tk_search=$withval,
+    tk_search="yes"
+)
+
+if test "$tk_search" != "no"; then
+    AC_MSG_CHECKING([which tkConfig.sh to use])
+    TK_LIB_DIR=""
+    for dir in $tk_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
+	if test -r $dir/tkConfig.sh; then
+	    TK_LIB_DIR=$dir
+	    break
+	fi
+    done
+
+    if test -z "$TK_LIB_DIR"; then
+	AC_MSG_ERROR(Can't find Tk libraries.)
+    else
+	. $TK_LIB_DIR/tkConfig.sh
+	AC_MSG_RESULT($TK_LIB_DIR/tkConfig.sh)
+	AC_MSG_CHECKING([for your tk version])
+	AC_MSG_RESULT([$TK_VERSION, patchlevel $TK_PATCH_LEVEL])
+    fi
+    AC_SUBST(TK_LIB_SPEC)
 fi
 
 #--------------------------------------------------------------------
@@ -207,8 +241,7 @@ fi
 #--------------------------------------------------------------------
 
 AC_ARG_ENABLE(shared,
-    [  --disable-shared        don't build libtclreadline as a shared library
-                          (not implemented -- probably never).],
+    [  --disable-shared        don't build libtclreadline as a shared library.],
     [ok=$enableval], [ok=yes])
 if test "$ok" = "yes"; then
     if test ${TCL_SHARED_BUILD} = 0; then
@@ -220,10 +253,9 @@ if test "$ok" = "yes"; then
     MAKE_LIB="\$(SHLIB_LD) -o ${TCLREADLINE_LIB_FILE} \$(OBJS) ${SHLIB_LD_LIBS}"
     RANLIB=":"
 else
-    AC_MSG_ERROR(non-shared not implemented yet. (probably never))
     SHLIB_CFLAGS=""
     eval "TCLREADLINE_LIB_FILE=libtclreadline${VERSION}.a"
-    TCLREADLINE_PKG_FILE=""
+    TCLREADLINE_PKG_FILE="[[file join [file dirname \$dir] ${TCLREADLINE_LIB_FILE}]]"
     MAKE_LIB="ar cr ${TCLREADLINE_LIB_FILE} \${OBJS}"
 fi
 
@@ -302,7 +334,7 @@ else
     AC_MSG_RESULT($READLINE_INCLUDE_DIR/readline.h)
 	base="`(basename ${READLINE_INCLUDE_DIR}) 2>/dev/null`"
 	if test "x${base}" != "xreadline"; then
-		AC_DEFINE_UNQUOTED(READLINE_LIBRARY, 1)
+		AC_DEFINE_UNQUOTED(READLINE_LIBRARY, 1, [ Define if we have libreadline. ])
 	fi
 fi
 
@@ -427,7 +459,7 @@ AC_TRY_LINK(,[
 	extern char* _rl_executing_macro;
 	_rl_executing_macro = (char*) 0;
 ],
-    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(EXECUTING_MACRO_HACK, 1),
+    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(EXECUTING_MACRO_HACK, 1, [define, if _rl_executing_macro is resolved in libreadline]),
     AC_MSG_RESULT(no))
 
 # check for readline's rl_cleanup_after_signal
@@ -437,7 +469,7 @@ AC_TRY_LINK(,[
     extern void rl_cleanup_after_signal();
 	rl_cleanup_after_signal();
 ],
-    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(CLEANUP_AFER_SIGNAL, 1),
+    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(CLEANUP_AFER_SIGNAL, 1, [define, if rl_cleanup_after_signal is resolved in libreadline]),
     AC_MSG_RESULT(no))
 
 
@@ -474,6 +506,7 @@ AC_SUBST(TCLREADLINE_PATCHLEVEL_STR)
 
 
 AC_SUBST(TCL_LIB_DIR)
+AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(TCL_INCLUDE_DIR)
 AC_SUBST(READLINE_INCLUDE_DIR)
 

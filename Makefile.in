@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Wed Sep 29 10:57:20 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Thu Dec 16 22:09:55 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -58,6 +58,8 @@ VPATH         = @srcdir@
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
+
+bindir      = @bindir@
 
 # The following definition can be set to non-null for special systems
 # like AFS with replication.  It allows the pathnames used for installation
@@ -138,6 +140,8 @@ SHLIB_LD = @SHLIB_LD@
 RANLIB               = @RANLIB@
 TOP_DIR              = $(srcdir)
 TCL_INCLUDE_DIR      = @TCL_INCLUDE_DIR@
+TCL_LIB_SPEC         = @TCL_LIB_SPEC@
+TK_LIB_SPEC          = @TK_LIB_SPEC@
 READLINE_INCLUDE_DIR = @READLINE_INCLUDE_DIR@
 TCLREADLINE_LIB_FILE = @TCLREADLINE_LIB_FILE@
 
@@ -178,7 +182,9 @@ SOURCES = \
     tclreadlineConfig.sh.in \
     tclreadlineInit.tcl.in \
     tclreadlineSetup.tcl.in \
-    tclreadlineCompleter.tcl
+    tclreadlineCompleter.tcl \
+    tclshrl.c \
+    wishrl.c
 
 MISC = TODO
 
@@ -196,6 +202,7 @@ CIFLAGS = -f -t-"gnu readline for tcl" -m"before initial relase"
 
 all: $(TCLREADLINE_LIB_FILE)
 
+
 .PHONY: clean distclean ctags tcltags vimtags tags ci co
 
 .SUFFIXES: .c .o .so .sl .tcl
@@ -207,7 +214,26 @@ all: $(TCLREADLINE_LIB_FILE)
 	@MAKE_LIB@ $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB)
 	$(RANLIB) $(TCLREADLINE_LIB_FILE)
 
+shells: tclshrl wishrl
+
+tclshrl: $(OBJS) tclshrl.o
+	$(CC) -o tclshrl tclshrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TCL_LIB_SPEC)
+
+wishrl: $(OBJS) wishrl.o
+	$(CC) -o wishrl wishrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TK_LIB_SPEC)
+
 install: install-binaries install-libraries install-man
+
+install-shells: install-tclshrl install-wishrl
+
+install-tclshrl:
+	$(MKINSTALLDIRS) $(bindir)
+	$(INSTALL_PROGRAM) tclshrl $(bindir)/tclshrl
+
+install-wishrl:
+	$(MKINSTALLDIRS) $(bindir)
+	$(INSTALL_PROGRAM) wishrl $(bindir)/wishrl
+
 install-man: $(MANN_INSTALL_DIR)/$(MAN)
 
 install-binaries: $(TCLREADLINE_LIB_FILE)
@@ -260,6 +286,12 @@ configure: configure.in
 
 tclreadline.o:	$(TOP_DIR)/tclreadline.c Makefile
 	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/tclreadline.c
+
+tclshrl.o:	$(TOP_DIR)/tclshrl.c Makefile
+	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/tclshrl.c
+
+wishrl.o:	$(TOP_DIR)/wishrl.c Makefile
+	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/wishrl.c
 
 ctags:
 	ctags -R
