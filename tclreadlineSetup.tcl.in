@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Wed Sep  1 19:24:22 1999 (joze)"
+# LAST MODIFICATION: "Fri Sep  3 10:21:15 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -95,6 +95,7 @@
 # - scan # TODO
 # - seek
 # - socket
+# - source
 # - split # TODO
 # - string
 # - subst
@@ -1020,7 +1021,6 @@ proc InitTclCmds {} {
         "rename oldName newName"
         "scan <string> <format> ?varName varName ...?"
         "set varName ?newValue?"
-        "source <fileName>"
         "split <string> ?splitChars?"
         "subst ?-nobackslashes? ?-nocommands? ?-novariables? string"
         "switch ?switches? string pattern body ... ?default body?"
@@ -1991,6 +1991,10 @@ proc complete(socket) {text start end line pos mod} {
         return [AttemptFromList ${mod} [concat ${cmds} ${hosts}]]
     }
     return ""
+}
+
+proc complete(source) {text start end line pos mod} {
+    return ""; # force file name completion
 }
 
 proc complete(string) {text start end line pos mod} {
