@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Thu Dec 16 22:01:33 1999 (joze)"
+dnl LAST MODIFICATION: "Sun Feb 13 02:17:53 2000 (joze)"
 dnl (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
@@ -33,17 +33,19 @@ dnl	to configure the system for the local environment.
 
 
 AC_INIT(tclreadline.c)
-AC_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(config.h)
 AC_PREREQ(2.13)
 AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
 
 TCLREADLINE_MAJOR_VERSION=1
-TCLREADLINE_MINOR_VERSION=0
-TCLREADLINE_PATCHLEVEL=5
+TCLREADLINE_MINOR_VERSION=1
+TCLREADLINE_PATCHLEVEL=0
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 TCLREADLINE_PATCHLEVEL_STR=${TCLREADLINE_VERSION}.${TCLREADLINE_PATCHLEVEL}
 VERSION=$TCLREADLINE_VERSION
+
+AM_INIT_AUTOMAKE(libtclreadline, $VERSION)
 
 dnl AM_INIT_AUTOMAKE(tclreadline, $VERSION)
 
@@ -169,6 +171,7 @@ TCLREADLINE_LIBRARY=${exec_prefix}/lib/tclreadline$TCLREADLINE_VERSION
 #   Check for some programs here.
 # -----------------------------------------------------------------------
 
+AM_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_LN_S
@@ -378,6 +381,8 @@ else
     AC_MSG_RESULT(${READLINE_LIB_DIR}/libreadline${SHLIB_SUFFIX}${READLINE_VERSION_SUFFIX})
 fi
 
+READLINE_LIB_DIR="-L${READLINE_LIB_DIR}"
+
 
 
 # ---
@@ -441,7 +446,7 @@ fi
 #    rl_callback_read_char ()).
 #--------------------------------------------------------------------
 
-LIBS="-L$READLINE_LIB_DIR ${TERMLIB_DIR} -lreadline $TERMLIB $olibs"
+LIBS="${READLINE_LIB_DIR} ${TERMLIB_DIR} -lreadline $TERMLIB $olibs"
 alternate=no
 AC_CHECK_FUNC(
     rl_callback_read_char, alternate=yes, alternate=no
@@ -456,10 +461,12 @@ fi
 
 AC_MSG_CHECKING([for _rl_executing_macro in -lreadline])
 AC_TRY_LINK(,[
-	extern char* _rl_executing_macro;
-	_rl_executing_macro = (char*) 0;
+    extern char* _rl_executing_macro;
+    _rl_executing_macro = (char*) 0;
 ],
-    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(EXECUTING_MACRO_HACK, 1, [define, if _rl_executing_macro is resolved in libreadline]),
+    AC_MSG_RESULT(yes);
+    AC_DEFINE(EXECUTING_MACRO_HACK, 1,
+    [ Define if _rl_executing_macro is resolved in libreadline. ]),
     AC_MSG_RESULT(no))
 
 # check for readline's rl_cleanup_after_signal
@@ -467,9 +474,11 @@ AC_TRY_LINK(,[
 AC_MSG_CHECKING([for rl_cleanup_after_signal() in -lreadline])
 AC_TRY_LINK(,[
     extern void rl_cleanup_after_signal();
-	rl_cleanup_after_signal();
+    rl_cleanup_after_signal();
 ],
-    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(CLEANUP_AFER_SIGNAL, 1, [define, if rl_cleanup_after_signal is resolved in libreadline]),
+    AC_MSG_RESULT(yes);
+    AC_DEFINE(CLEANUP_AFER_SIGNAL, 1,
+    [ Define if rl_cleanup_after_signal is resolved in libreadline. ]),
     AC_MSG_RESULT(no))
 
 

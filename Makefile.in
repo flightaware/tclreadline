@@ -1,326 +1,535 @@
-# -*- make -*-
-# FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Thu Dec 16 23:12:50 1999 (joze)"
-# (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
-# $Id$
-# ---
-#
-# tclreadline -- gnu readline for tcl
-# Copyright (C) 1999  Johannes Zellner
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+#   ==================================================================
+#   FILE: "/home/joze/src/tclreadline/Makefile.am"
+#   LAST MODIFIED: "Sun Feb 13 02:27:50 2000 (joze)"
+#   (C) 1999 by Johannes Zellner
+#   johannes@zellner.org
+#   $Id$
+#   ---
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#   zimg -- display 2-D data of arbitrary format
+#   Copyright (C) 1999  Johannes Zellner
 #
-# johannes@zellner.org
-# http://www.zellner.org/tclreadline/
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
 #
-# ================================================================== 
-
-
-MAJOR_VERSION = @TCLREADLINE_MAJOR_VERSION@
-MINOR_VERSION = @TCLREADLINE_MINOR_VERSION@
-VERSION       = @TCLREADLINE_VERSION@
-# NOTE, that PATCHLEVEL is the complete version string
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 #
-PATCHLEVEL    = $(VERSION).@TCLREADLINE_PATCHLEVEL@
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#   johannes@zellner.org
+#   http://www.zellner.org
+#   ================================================================== 
 
-#host         = @host@
-#host_cpu     = @host_cpu@
-#host_vendor  = @host_vendor@
-#host_os      = @host_os@
 
-srcdir        = @srcdir@
-VPATH         = @srcdir@
+SHELL = @SHELL@
 
-#----------------------------------------------------------------
-# Things you can change to personalize the Makefile for your own
-# site (you can make these changes in either Makefile.in or
-# Makefile, but changes to Makefile will get lost if you re-run
-# the configuration script).
-#----------------------------------------------------------------
-
-# Default top-level directories in which to install architecture-
-# specific files (exec_prefix) and machine-independent files such
-# as scripts (prefix).  The values specified here may be overridden
-# at configure-time with the --exec-prefix and --prefix options
-# to the "configure" script.
-
-prefix      = @prefix@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
 exec_prefix = @exec_prefix@
 
-bindir      = @bindir@
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
 
-# The following definition can be set to non-null for special systems
-# like AFS with replication.  It allows the pathnames used for installation
-# to be different than those used for actually reference files at
-# run-time.  INSTALL_ROOT is prepended to $prefix and $exec_prefix
-# when installing files.
-INSTALL_ROOT =
+DESTDIR =
 
-# Directory from which applications will reference the library of Tcl
-# scripts (note: you can set the TCLREADLINE_LIBRARY environment variable at
-# run-time to override the compiled-in location):
-TCLREADLINE_LIBRARY = @TCLREADLINE_LIBRARY@
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
 
-# Path name to use when installing library scripts:
-LIBRARY_INSTALL_DIR = $(INSTALL_ROOT)$(TCLREADLINE_LIBRARY)
+top_builddir = .
 
-# Directory in which to install the archive libitk.a:
-LIB_INSTALL_DIR = $(INSTALL_ROOT)$(exec_prefix)/lib
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
 
-# Path to use at runtime to refer to LIB_INSTALL_DIR:
-LIB_RUNTIME_DIR = $(exec_prefix)/lib
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
 
-# Top-level directory for manual entries:
-# MAN_INSTALL_DIR = $(INSTALL_ROOT)$(prefix)/man
-MAN_INSTALL_DIR = $(INSTALL_ROOT)@mandir@
-
-# Directory in which to install manual entries for the built-in
-# Tcl commands implemented by Tk:
-MANN_INSTALL_DIR = $(MAN_INSTALL_DIR)/mann
-
-
-# To change the compiler switches, for example to change from -O
-# to -g, change the following line:
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AS = @AS@
+CC = @CC@
 CFLAGS = @CFLAGS@
-CPPFLAGS = @CPPFLAGS@
-
-# To disable ANSI-C procedure prototypes reverse the comment characters
-# on the following lines:
-PROTO_FLAGS =
-#PROTO_FLAGS = -DNO_PROTOTYPE
-
-
-# Some versions of make, like SGI's, use the following variable to
-# determine which shell to use for executing commands:
-SHELL = /bin/sh
-
-# Tk used to let the configure script choose which program to use
-# for installing, but there are just too many different versions of
-# "install" around;  better to use the install-sh script that comes
-# with the distribution, which is slower but guaranteed to work.
-
-INSTALL         = $(TOP_DIR)/aux/install-sh -c
-# INSTALL         = @INSTALL@
-INSTALL_PROGRAM = ${INSTALL}
-INSTALL_DATA    = ${INSTALL} -m 644
-MKINSTALLDIRS   = $(TOP_DIR)/aux/mkinstalldirs
-
-# The symbols below provide support for dynamic loading and shared
-# libraries.  The values of the symbols are normally set by the
-# configure script.  You shouldn't normally need to modify any of
-# these definitions by hand.
-
-SHLIB_CFLAGS = @SHLIB_CFLAGS@
-
-
-# The symbol below provides support for dynamic loading and shared
-# libraries.  See configure.in for a description of what it means.
-# The values of the symbolis normally set by the configure script.
-
-SHLIB_LD = @SHLIB_LD@
-
-#----------------------------------------------------------------
-# The information below is modified by the configure script when
-# Makefile is generated from Makefile.in.  You shouldn't normally
-# modify any of this stuff by hand.
-#----------------------------------------------------------------
-
-RANLIB               = @RANLIB@
-TOP_DIR              = $(srcdir)
-TCL_INCLUDE_DIR      = @TCL_INCLUDE_DIR@
-TCL_LIB_SPEC         = @TCL_LIB_SPEC@
-TK_LIB_SPEC          = @TK_LIB_SPEC@
+CPP = @CPP@
+DLLTOOL = @DLLTOOL@
+DL_LIBS = @DL_LIBS@
+LD_FLAGS = @LD_FLAGS@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+MAKEINFO = @MAKEINFO@
+MAKE_LIB = @MAKE_LIB@
+OBJDUMP = @OBJDUMP@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
 READLINE_INCLUDE_DIR = @READLINE_INCLUDE_DIR@
+READLINE_LIB_DIR = @READLINE_LIB_DIR@
+SHLIB_CFLAGS = @SHLIB_CFLAGS@
+SHLIB_LD = @SHLIB_LD@
+SHLIB_LD_LIBS = @SHLIB_LD_LIBS@
+SHLIB_SUFFIX = @SHLIB_SUFFIX@
+TCLREADLINE_BUILD_LIB_SPEC = @TCLREADLINE_BUILD_LIB_SPEC@
+TCLREADLINE_LIBRARY = @TCLREADLINE_LIBRARY@
+TCLREADLINE_LIB_DIR = @TCLREADLINE_LIB_DIR@
 TCLREADLINE_LIB_FILE = @TCLREADLINE_LIB_FILE@
+TCLREADLINE_LIB_SPEC = @TCLREADLINE_LIB_SPEC@
+TCLREADLINE_MAJOR_VERSION = @TCLREADLINE_MAJOR_VERSION@
+TCLREADLINE_MINOR_VERSION = @TCLREADLINE_MINOR_VERSION@
+TCLREADLINE_PACKAGE_PATH = @TCLREADLINE_PACKAGE_PATH@
+TCLREADLINE_PATCHLEVEL = @TCLREADLINE_PATCHLEVEL@
+TCLREADLINE_PATCHLEVEL_STR = @TCLREADLINE_PATCHLEVEL_STR@
+TCLREADLINE_PKG_FILE = @TCLREADLINE_PKG_FILE@
+TCLREADLINE_VERSION = @TCLREADLINE_VERSION@
+TCL_INCLUDE_DIR = @TCL_INCLUDE_DIR@
+TCL_LIB_DIR = @TCL_LIB_DIR@
+TCL_LIB_SPEC = @TCL_LIB_SPEC@
+TERMLIB = @TERMLIB@
+TERMLIB_DIR = @TERMLIB_DIR@
+TK_LIB_SPEC = @TK_LIB_SPEC@
+VERSION = @VERSION@
 
-READLINE_LIB         = -L@READLINE_LIB_DIR@ -lreadline
-TERMLIB              = @TERMLIB@
-TERMLIB_DIR          = @TERMLIB_DIR@
+lib_LTLIBRARIES = libtclreadline.la
+libtclreadline_la_SOURCES = tclreadline.c tclreadline.h config.h
 
-#----------------------------------------------------------------
-# The information below should be usable as is.  The configure
-# script won't modify it and you shouldn't need to modify it
-# either.
-#----------------------------------------------------------------
+libtclreadline_la_LIBADD = $(READLINE_LIB_DIR) $(TERMLIB_DIR) -lreadline $(TERMLIB)
+libtclreadline_la_LDFLAGS = -release $(TCLREADLINE_VERSION) -version-info $(TCLREADLINE_MAJOR_VERSION):$(TCLREADLINE_MINOR_VERSION):$(TCLREADLINE_PATCHLEVEL)
 
-
-CC   = @CC@
-DEFS = @DEFS@
-
-CC_SWITCHES = $(CFLAGS) $(SHLIB_CFLAGS) -I$(TOP_DIR) \
-        -I$(TCL_INCLUDE_DIR) -I$(READLINE_INCLUDE_DIR)
-
-OBJS = tclreadline.o
-
-CSRCS = $(TOP_DIR)/tclreadline.c
-TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl tclreadlineCompleter.tcl
-
-SOURCES = \
-    GPL \
-    Makefile.in \
-    README \
-    configure.in \
-    pkgIndex.tcl.in \
-    sample.tclshrc \
-    sources \
-    config.h.in \
-    tclreadline.c \
-    tclreadline.h.in \
-    tclreadline.n.in \
-    tclreadlineConfig.sh.in \
-    tclreadlineInit.tcl.in \
-    tclreadlineSetup.tcl.in \
-    tclreadlineCompleter.tcl \
-    tclshrl.c \
-    wishrl.c
-
-MISC = TODO
-
-AUXILIARY = \
-    aux/config.guess \
-    aux/config.sub \
-    aux/install-sh \
-    aux/mkinstalldirs \
-    aux/vimtags
-
-MAN = tclreadline.n
-HTML = tclreadline.n.html
-
-CIFLAGS = -f -t-"gnu readline for tcl" -m"before initial relase"
-
-all: $(TCLREADLINE_LIB_FILE)
+man_MANS = tclreadline.n
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+mkinstalldirs = $(SHELL) $(top_srcdir)/./aux/mkinstalldirs
+CONFIG_HEADER = config.h
+CONFIG_CLEAN_FILES =  tclreadline.h tclreadlineInit.tcl \
+tclreadlineSetup.tcl tclreadlineConfig.sh tclreadline.n pkgIndex.tcl
+LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
-.PHONY: clean distclean ctags tcltags vimtags tags ci co
+DEFS = @DEFS@ -I. -I$(srcdir) -I.
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libtclreadline_la_DEPENDENCIES = 
+libtclreadline_la_OBJECTS =  tclreadline.lo
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+manndir = $(mandir)/mann
+MANS = $(man_MANS)
 
-.SUFFIXES: .c .o .so .sl .tcl
-
-
-
-@TCLREADLINE_LIB_FILE@: ${OBJS}
-	rm -f $(TCLREADLINE_LIB_FILE)
-	@MAKE_LIB@ $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB)
-	$(RANLIB) $(TCLREADLINE_LIB_FILE)
-
-shells: tclshrl wishrl
-
-tclshrl: $(OBJS) tclshrl.o
-	$(CC) -o tclshrl tclshrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TCL_LIB_SPEC)
-
-wishrl: $(OBJS) wishrl.o
-	$(CC) -o wishrl wishrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TK_LIB_SPEC) $(TCL_LIB_SPEC)
-
-install: install-binaries install-libraries install-man
-
-install-shells: install-tclshrl install-wishrl
-
-install-tclshrl:
-	$(MKINSTALLDIRS) $(bindir)
-	$(INSTALL_PROGRAM) tclshrl $(bindir)/tclshrl
-
-install-wishrl:
-	$(MKINSTALLDIRS) $(bindir)
-	$(INSTALL_PROGRAM) wishrl $(bindir)/wishrl
-
-install-man: $(MANN_INSTALL_DIR)/$(MAN)
-
-install-binaries: $(TCLREADLINE_LIB_FILE)
-	@$(MKINSTALLDIRS) $(LIBRARY_INSTALL_DIR)
-	@echo "Installing $(TCLREADLINE_LIB_FILE)"
-	@$(INSTALL_DATA) $(TCLREADLINE_LIB_FILE) \
-            $(LIBRARY_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
-	@(cd $(LIBRARY_INSTALL_DIR); $(RANLIB) $(TCLREADLINE_LIB_FILE))
-	chmod 555 $(LIBRARY_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
+NROFF = nroff
+DIST_COMMON =  README ./stamp-h.in AUTHORS COPYING ChangeLog INSTALL \
+Makefile.am Makefile.in NEWS TODO aclocal.m4 config.h.in configure \
+configure.in pkgIndex.tcl.in tclreadline.h.in tclreadline.n.in \
+tclreadlineConfig.sh.in tclreadlineInit.tcl.in tclreadlineSetup.tcl.in
 
 
-install-libraries: tclreadlineInit.tcl tclreadlineSetup.tcl \
-                   tclreadlineCompleter.tcl pkgIndex.tcl tclreadlineConfig.sh
-	@$(MKINSTALLDIRS) $(LIBRARY_INSTALL_DIR)
-	for f in \
-            tclreadlineInit.tcl \
-            tclreadlineSetup.tcl \
-            tclreadlineCompleter.tcl \
-            pkgIndex.tcl \
-            tclreadlineConfig.sh\
-        ; do \
-            $(INSTALL_DATA) $$f $(LIBRARY_INSTALL_DIR) \
-        ; done
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-FORCE:
+TAR = tar
+GZIP_ENV = --best
+DEP_FILES =  .deps/tclreadline.P
+SOURCES = $(libtclreadline_la_SOURCES)
+OBJECTS = $(libtclreadline_la_OBJECTS)
 
-$(MANN_INSTALL_DIR)/$(MAN): FORCE
-	- $(INSTALL_DATA) $(srcdir)/$(MAN) $@ &&  chmod 644 $@
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .lo .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile
 
-tclreadline.n.html: tclreadline.n
-	rman -f html $^ > $@
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-Makefile: $(TOP_DIR)/Makefile.in
-	$(SHELL) config.status
+$(ACLOCAL_M4):  configure.in 
+	cd $(srcdir) && $(ACLOCAL)
 
-clean:
-	rm -f *.a *.o core errs *~ \#* tags* *.E a.out errors so_locations
+config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+	$(SHELL) ./config.status --recheck
+$(srcdir)/configure: $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+	cd $(srcdir) && $(AUTOCONF)
 
-distclean: clean
-	rm -f \
-	Makefile *.so.* *.sl pkgIndex.tcl tclreadlineInit.tcl \
-	tclreadlineSetup.tcl config.h tclreadline.h tclreadline.n \
-	tclreadlineConfig.sh config.status config.log config.cache
+config.h: stamp-h
+	@if test ! -f $@; then \
+		rm -f stamp-h; \
+		$(MAKE) stamp-h; \
+	else :; fi
+stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES= CONFIG_HEADERS=config.h \
+	     $(SHELL) ./config.status
+	@echo timestamp > stamp-h 2> /dev/null
+$(srcdir)/config.h.in: $(srcdir)/stamp-h.in
+	@if test ! -f $@; then \
+		rm -f $(srcdir)/stamp-h.in; \
+		$(MAKE) $(srcdir)/stamp-h.in; \
+	else :; fi
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOHEADER)
+	@echo timestamp > $(srcdir)/stamp-h.in 2> /dev/null
 
-depend:
-	makedepend -- $(CC_SWITCHES) -- $(CSRCS)
+mostlyclean-hdr:
 
-configure: configure.in
-	autoconf
+clean-hdr:
 
-tclreadline.o:	$(TOP_DIR)/tclreadline.c Makefile
-	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/tclreadline.c
+distclean-hdr:
+	-rm -f config.h
 
-tclshrl.o:	$(TOP_DIR)/tclshrl.c Makefile
-	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/tclshrl.c
+maintainer-clean-hdr:
+tclreadline.h: $(top_builddir)/config.status tclreadline.h.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+tclreadlineInit.tcl: $(top_builddir)/config.status tclreadlineInit.tcl.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+tclreadlineSetup.tcl: $(top_builddir)/config.status tclreadlineSetup.tcl.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+tclreadlineConfig.sh: $(top_builddir)/config.status tclreadlineConfig.sh.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+tclreadline.n: $(top_builddir)/config.status tclreadline.n.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+pkgIndex.tcl: $(top_builddir)/config.status pkgIndex.tcl.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-wishrl.o:	$(TOP_DIR)/wishrl.c Makefile
-	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/wishrl.c
+mostlyclean-libLTLIBRARIES:
 
-ctags:
-	ctags -R
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 
-tcltags: ctags tclreadlineInit.tcl.in tclreadlineSetup.tcl.in \
-            tclreadlineCompleter.tcl
-	tcltags -a tclreadlineInit.tcl.in tclreadlineSetup.tcl.in \
-            tclreadlineCompleter.tcl
+distclean-libLTLIBRARIES:
 
-vimtags: tcltags
-	vimtags
+maintainer-clean-libLTLIBRARIES:
 
-tags: vimtags
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libtclreadline.la: $(libtclreadline_la_OBJECTS) $(libtclreadline_la_DEPENDENCIES)
+	$(LINK) -rpath $(libdir) $(libtclreadline_la_LDFLAGS) $(libtclreadline_la_OBJECTS) $(libtclreadline_la_LIBADD) $(LIBS)
+
+install-mann:
+	$(mkinstalldirs) $(DESTDIR)$(manndir)
+	@list='$(mann_MANS)'; \
+	l2='$(man_MANS)'; for i in $$l2; do \
+	  case "$$i" in \
+	    *.n*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  if test -f $(srcdir)/$$i; then file=$(srcdir)/$$i; \
+	  else file=$$i; fi; \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(manndir)/$$inst"; \
+	  $(INSTALL_DATA) $$file $(DESTDIR)$(manndir)/$$inst; \
+	done
+
+uninstall-mann:
+	@list='$(mann_MANS)'; \
+	l2='$(man_MANS)'; for i in $$l2; do \
+	  case "$$i" in \
+	    *.n*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " rm -f $(DESTDIR)$(manndir)/$$inst"; \
+	  rm -f $(DESTDIR)$(manndir)/$$inst; \
+	done
+install-man: $(MANS)
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-mann
+uninstall-man:
+	@$(NORMAL_UNINSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-mann
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)config.h.in$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config.h.in $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(PACKAGE)-$(VERSION)
+top_distdir = $(distdir)
+
+# This target untars the dist file and tries a VPATH configuration.  Then
+# it guarantees that the distribution is self-contained by making another
+# tarfile.
+distcheck: dist
+	-rm -rf $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) zxf $(distdir).tar.gz
+	mkdir $(distdir)/=build
+	mkdir $(distdir)/=inst
+	dc_install_base=`cd $(distdir)/=inst && pwd`; \
+	cd $(distdir)/=build \
+	  && ../configure --srcdir=.. --prefix=$$dc_install_base \
+	  && $(MAKE) $(AM_MAKEFLAGS) \
+	  && $(MAKE) $(AM_MAKEFLAGS) dvi \
+	  && $(MAKE) $(AM_MAKEFLAGS) check \
+	  && $(MAKE) $(AM_MAKEFLAGS) install \
+	  && $(MAKE) $(AM_MAKEFLAGS) installcheck \
+	  && $(MAKE) $(AM_MAKEFLAGS) dist
+	-rm -rf $(distdir)
+	@banner="$(distdir).tar.gz is ready for distribution"; \
+	dashes=`echo "$$banner" | sed s/./=/g`; \
+	echo "$$dashes"; \
+	echo "$$banner"; \
+	echo "$$dashes"
+dist: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
+	-rm -rf $(distdir)
+dist-all: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP_ENV) $(TAR) chozf $(distdir).tar.gz $(distdir)
+	-rm -rf $(distdir)
+distdir: $(DISTFILES)
+	-rm -rf $(distdir)
+	mkdir $(distdir)
+	-chmod 777 $(distdir)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+
+DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+
+-include $(DEP_FILES)
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+	-rm -rf .deps
+
+maintainer-clean-depend:
+
+%.o: %.c
+	@echo '$(COMPILE) -c $<'; \
+	$(COMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.c
+	@echo '$(LTCOMPILE) -c $<'; \
+	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
+check-am: all-am
+check: check-am
+installcheck-am:
+installcheck: installcheck-am
+all-recursive-am: config.h
+	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+
+install-exec-am: install-libLTLIBRARIES
+install-exec: install-exec-am
+
+install-data-am: install-man
+install-data: install-data-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-am
+uninstall-am: uninstall-libLTLIBRARIES uninstall-man
+uninstall: uninstall-am
+all-am: Makefile $(LTLIBRARIES) $(MANS) config.h
+all-redirect: all-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(mandir)/mann
 
 
-ci: $(SOURCES)
-	ci -u $(CIFLAGS) $^
+mostlyclean-generic:
 
-co: $(SOURCES)
-	co -l $^
+clean-generic:
 
-dist: distribution
-distribution: $(SOURCES) configure $(AUXILIARY) tclreadline.n.html
-	- mkdir -p dist/tclreadline-$(PATCHLEVEL)/aux
-	- cp $(SOURCES) configure tclreadline.n.html dist/tclreadline-$(PATCHLEVEL)
-	- cp $(AUXILIARY) dist/tclreadline-$(PATCHLEVEL)/aux
-	(cd dist; tar zcvf tclreadline-$(PATCHLEVEL).tar.gz tclreadline-$(PATCHLEVEL); rm -rf tclreadline-$(PATCHLEVEL))
-	- cp README dist/tclreadline-$(PATCHLEVEL).README
-	- echo AddDescription '"<font size=+2 color=red><b>most recent version</b></font>"' tclreadline-$(PATCHLEVEL).tar.gz > dist/.htaccess
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-hdr mostlyclean-libLTLIBRARIES \
+		mostlyclean-compile mostlyclean-libtool \
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+
+mostlyclean: mostlyclean-am
+
+clean-am:  clean-hdr clean-libLTLIBRARIES clean-compile clean-libtool \
+		clean-tags clean-depend clean-generic mostlyclean-am
+
+clean: clean-am
+
+distclean-am:  distclean-hdr distclean-libLTLIBRARIES distclean-compile \
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
+	-rm -f libtool
+
+distclean: distclean-am
+	-rm -f config.status
+
+maintainer-clean-am:  maintainer-clean-hdr \
+		maintainer-clean-libLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+	-rm -f config.status
+
+.PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
+mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
+distclean-compile clean-compile maintainer-clean-compile \
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool install-mann uninstall-mann install-man \
+uninstall-man tags mostlyclean-tags distclean-tags clean-tags \
+maintainer-clean-tags distdir mostlyclean-depend distclean-depend \
+clean-depend maintainer-clean-depend info-am info dvi-am dvi check \
+check-am installcheck-am installcheck all-recursive-am install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
-# DO NOT DELETE THIS LINE -- make depend depends on it.
+# OTHER_SOURCES = README GPL configure.in config.h.in version.h.in zimg.1.in
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
