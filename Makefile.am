@@ -1,6 +1,6 @@
 ## -*- automake -*-
 ## FILE: "/home/joze/src/tclreadline/Makefile.am"
-## LAST MODIFICATION: "Mon, 03 Jul 2000 14:46:10 +0200 (joze)"
+## LAST MODIFICATION: "Don, 20 Jul 2000 03:15:27 +0200 (joze)"
 ## (C) 2000 by Johannes Zellner, <johannes@zellner.org>
 ## $Id$
 ## ---
