@@ -1,6 +1,6 @@
 ## -*- automake -*-
 ## FILE: "/home/joze/src/tclreadline/Makefile.am"
-## LAST MODIFICATION: "Fre, 08 Dez 2000 01:34:51 +0100 (joze)"
+## LAST MODIFICATION: "Fre, 08 Dez 2000 01:47:52 +0100 (joze)"
 ## (C) 2000 by Johannes Zellner, <johannes@zellner.org>
 ## $Id$
 ## ---
@@ -38,19 +38,19 @@ EXTRA_DIST =                 \
 
 if STATIC_TCLSHRL
 static_tclshrl = tclshrl
-tclshrl_SOURCES = tclshrl.c
 tclshrl_LDADD = libtclreadline.la $(TCL_LIB_SPEC)
 tclshrl_LDFLAGS = -static
 endif
 
 if STATIC_WISHRL
 static_wishrl = wishrl
-wishrl_SOURCES = wishrl.c
 wishrl_LDADD = libtclreadline.la $(TCL_LIB_SPEC) $(TK_LIB_SPEC)
 wishrl_LDFLAGS = -static
 endif
 
 bin_PROGRAMS = $(static_tclshrl) $(static_wishrl)
+tclshrl_SOURCES = tclshrl.c
+wishrl_SOURCES = wishrl.c
 
 man_MANS = tclreadline.n
 

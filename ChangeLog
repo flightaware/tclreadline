@@ -1,6 +1,11 @@
 
 2000-12-08  Johannes Zellner  <johannes@zellner.org>
 
+    * reordered Makefile.am so that it always includes
+    tclshrl.c,wishrl.c into the distribution.
+
+2000-12-08  Johannes Zellner  <johannes@zellner.org>
+
     * reenabled wishrl and tclshrl via configure switches
 
 2000-11-19  Johannes Zellner  <johannes@zellner.org>
