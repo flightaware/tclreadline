@@ -1,8 +1,8 @@
 
  /* ==================================================================
    
-    FILE: "/krispc6/home/joze/src/tclreadline/TOOD"
-    LAST MODIFICATION: "Sat May  8 14:06:05 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/TODO"
+    LAST MODIFICATION: "Sat Aug 28 23:20:25 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -29,9 +29,14 @@
     ================================================================== */  
 
 
-    +  write README.
-    +  write docs.
-    +  use *forced* TCL_PREFIX or TCL_EXEC_PREFIX for installation.
-       (unless specified via --prefix or --exec-prefix).
-    +  write make release entry in Makefile.in
-    +  update make ci.
+    +  history_truncate_file(int n, char* historyfile)
+       verwenden, um nur eine begrenze Zahl zu schreiben.
+
+    +  wenn nur ein array Element von a vorliegt,
+       wird trotzdem nur auf $a( completed. --> ändern.
+
+    +  custom completers:
+       prüfen, ob ein completer für eine Funktion da ist ...
+       z.B.: `set' könnte für alle Variblennamen completen.
+
+    +  history_expansion mit <Tab> (z.B. !$).

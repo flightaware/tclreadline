@@ -1,8 +1,8 @@
 .TH tclreadline n "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@" "Johannes Zellner"
 
 .\" (C) 1999 by Johannes Zellner
-.\" FILE: "/diska/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Wed Aug 25 16:32:02 1999 (joze)"
+.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFICATION: "Sat Aug 28 23:38:44 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -81,7 +81,11 @@ which are accessed with the tcl package require command. Therefore
 
 If you want to use \fBtclreadline\fP as a line interface
 for developing tcl scripts, you probably don't have to read
-this section.
+this section. In this case the only thing you should do is
+to modify your .tclshrc according to the section \fBFILES\fP.
+
+For the functionality of the GNU readline you should refer to
+the readline's documentation.
 
 .PP
 The following list will give all commands, which are currently
@@ -170,6 +174,8 @@ loop. Both readline and X events are processed. Returns the
 \fB::tclreadline::readline write\fP \fIhistoryfile\fP
 writes the history to the \fIhistoryfile\fP. This command is called
 automatically from the internal routine ::tclreadline::Exit.
+If the variable \fBtclreadline::historyLength\fP is non-negative,
+the historyfile will be truncated to hold only this number lines.
 
 .TP 5
 \fB::tclreadline::Print\fP [\fIyes / no\fP]
@@ -227,19 +233,28 @@ in the file tclreadlineSetup.tcl in your tclreadline installation directory.
 
 .SH "VARIABLES"
 
-\fItclreadline\fP defines the following variables in the global namespace:
+\fItclreadline\fP defines the following variables in the
+namespace \fI::tclreadline\fP:
+(for backwards compatiblity the global variables tclreadline_version,
+ tclreadline_patchLevel and tclreadline_library are still present).
 
 .TP 5
-\fBtclreadline_version\fP
+\fBtclreadline::version\fP
 holds the version string "@TCLREADLINE_VERSION@".
 
 .TP 5
-\fBtclreadline_patchLevel\fP
+\fBtclreadline::patchLevel\fP
 holds the patch level string "@TCLREADLINE_VERSION@.@TCLREADLINE_PATCHLEVEL@".
 
 .TP 5
-\fBtclreadline_library\fP
+\fBtclreadline::library\fP
 holds the library string "@TCLREADLINE_LIBRARY@".
+
+.TP 5
+\fBtclreadline::historyLength\fP
+Number of lines, which will be written to the historyfile.
+This number is -1 by default, which means that the historyfile
+will not be truncated.  See also \fBtclreadline::write\fP.
 
 .SH "FILES"
 

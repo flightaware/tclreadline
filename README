@@ -1,6 +1,6 @@
 
-    FILE: "/diska/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Mon Aug 23 19:42:31 1999 (joze)"
+    FILE: "/home/joze/src/tclreadline/README"
+    LAST MODIFICATION: "Sat Aug 28 23:30:56 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -77,6 +77,31 @@ does the rest.
 4. History and Changes.
 -----------------------
 
+tclreadline-0.9.2: (Aug 1999)
+
+    changes:
+        - history event `!' expansion on <Tab>
+        - if tclreadline::historyLength >= 0,
+          tclreadline::write will truncate the historyfile
+          to this value.
+          By default tclreadline::historyfile == -1, that
+          is no truncation occurs.
+
+    fixes:
+        - after having at least one character typed, X events
+          were not processed any more until pressing <return>.
+
+
+tclreadline-0.9.1: (Aug 1999)
+
+    changes:
+        - new variable tclreadline_patchLevel
+        - tclreadline::Loop takes an optional <historyfile>
+
+    fixes:
+        - tying to fix configure problems.
+
+
 tclreadline-0.9: (Aug 1999)
 
     changes:
@@ -100,9 +125,11 @@ tclreadline-0.9: (Aug 1999)
           mapped characters more than once.)
         - various changes and fixes in configure.in
 
+
 tclreadline-0.8: (May 1999)
     - adapted for tcl8.1.
     - minor bug fixes.
+
 
 tclreadline-0.7: (Feb 1999)
     first `public release'.

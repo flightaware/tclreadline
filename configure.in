@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Wed Aug 25 16:17:27 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Sat Aug 28 22:23:57 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -37,7 +37,7 @@ AC_INIT(tclreadline.c)
 
 TCLREADLINE_MAJOR_VERSION=0
 TCLREADLINE_MINOR_VERSION=9
-TCLREADLINE_PATCHLEVEL=1
+TCLREADLINE_PATCHLEVEL=2
 TCLREADLINE_VERSION=$TCLREADLINE_MAJOR_VERSION.$TCLREADLINE_MINOR_VERSION
 VERSION=$TCLREADLINE_VERSION
 
