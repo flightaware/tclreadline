@@ -1,6 +1,6 @@
 # -*- tclsh -*-
-# FILE: "/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
-# LAST MODIFICATION: "Thu Sep 16 22:17:38 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/tclreadlineCompleter.tcl"
+# LAST MODIFICATION: "Fri Sep 17 18:41:10 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -35,6 +35,8 @@
 #	  RemoveUsedOptions ...
 #	- namespace eval fred {... <-- continue with a 
 #								   substitution in fred.
+#	- set tclreadline::pro<tab> geht *nicht*
+#	  set ::tclreadline::pro<tab> geht
 #
 #
 
@@ -316,7 +318,10 @@ proc TrySubCmds {cmd} {
 	set result ""
 	if [catch {set result [eval ${cmd} ${trystring}]} msg] {
 		set tcmd [string trim ${cmd}]
-		if {[regexp {bad *option.*____.*: *must *be( .*$)} ${msg} all raw]} {
+		# puts stderr msg=$msg
+		if {[regexp {(bad|ambiguous) .*"____": *must *be( .*$)} ${msg} \
+			all junk raw]
+		} {; # XXX see tclIndexObj.c XXX
 			regsub -all -- , ${raw} { } raw
 			set len [llength ${raw}]
 			set len_2 [expr ${len} - 2]
@@ -329,7 +334,7 @@ proc TrySubCmds {cmd} {
 			}
 		} elseif {[regexp "wrong # args: should be \"${tcmd}\(.*\)\"" \
 			${msg} all hint]
-		} {
+		} {; # XXX see tclIndexObj.c XXX
 			set result [string trim $hint]
 		} else {
 			# check, if it's a blt error msg ...
@@ -415,14 +420,14 @@ proc SplitLine {start line} {
 		set c [string index $line $i]
 		if {{;} == $c} {
 			incr i; # discard command break character
-			return [list [expr $start - $i] [string range $line $i end]]
+			return [list [expr $start - $i] [String range $line $i end]]
 		} elseif {{]} == $c} {
 			incr depth
 		} elseif {{[} == $c} {
 			incr depth -1
 			if {$depth < 0} {
 				incr i; # discard command break character
-				return [list [expr $start - $i] [string range $line $i end]]
+				return [list [expr $start - $i] [String range $line $i end]]
 			}
 		}
 	}
@@ -612,7 +617,7 @@ proc IncompleteListRemainder {line} {
 		}
 	}
 	incr i
-	return [string range $line $i end]
+	return [String range $line $i end]
 }
 
 #**
@@ -646,11 +651,30 @@ proc Llength {line} {
 	return $len
 }
 
+#**
+# string function, which works also for older versions
+# of tcl, which don't have the `end' index.
+#
+proc String args {
+	if {[info tclversion] < 8.2} {
+		switch [lindex $args 1] {
+			range -
+			index {
+				if {"end" == [lindex $args end]} {
+					set str [lindex $args 2]
+					lreplace args end end [expr [string length $str] - 1]
+				}
+			}
+		}
+	}
+	return [eval string $args]
+}
+
 proc StripPrefix {text} {
 	# puts "(StripPrefix) text=|$text|"
 	set null [string index $text 0]
 	if {"\"" == $null || "\{" == $null} {
-		return [string range $text 1 end]
+		return [String range $text 1 end]
 	} else {
 		return $text
 	}
@@ -887,7 +911,7 @@ proc EventuallyEvaluateFirst {partT startT endT lineT} {
 	if {![info exists cmd]} {return}
 	if {![info complete ${cmd}]} {return}
 	set cmd [string range ${cmd} 1 [expr [string length ${cmd}] - 2]]
-	set rest [string range ${line} [expr ${idx} + 1] end]
+	set rest [String range ${line} [expr ${idx} + 1] end]
 
 	if {[catch [list set result [string trim [eval ${cmd}]]]]} {return}
 
@@ -931,7 +955,7 @@ proc ScriptCompleter {part start end line} {
 		# variable starts with a plain `$' or should
 		# be enclosed in braces.
 		#
-		set var [string range $part 1 end]
+		set var [String range $part 1 end]
 
 		# check if $var is an array name, which
 		# already has already a "(" somewhere inside.
@@ -982,10 +1006,10 @@ proc ScriptCompleter {part start end line} {
 		# try to use $pos further ...
 		# puts stderr |$line|
 		#
-		if {"." == [string index [string trim ${line}] 0]} {
-			set alias WIDGET
-			set namespc ""; # widgets are always in the global
-		} else {
+		# if {"." == [string index [string trim ${line}] 0]} {
+		# 	set alias WIDGET
+		# 	set namespc ""; # widgets are always in the global
+		# } else {
 
 			# the double `lindex' strips {} or quotes.
 			# the subst enables variables containing
@@ -1007,7 +1031,7 @@ proc ScriptCompleter {part start end line} {
 			regsub -all {^::} $alias {} alias
 			set namespc [namespace qualifiers $alias]
 			set alias [namespace tail $alias]
-		}
+		# }
 
 		# try first a specific completer, then, and only then
 		# the tclreadline_complete_unknown.
@@ -1408,12 +1432,7 @@ proc complete(expr) {text start end line pos mod} {
 		srand 
 	}
 
-	if {[info tclversion] >= 8.2} {
-		set end end
-	} else {
-		set end [expr [string length $text] - 1]
-	}
-	if {")" == [string index $text $end] && -1 != [lsearch $cmds $left]} {
+	if {")" == [String index $text end] && -1 != [lsearch $cmds $left]} {
 		return "$text "; # append a space after a closing ')'
 	}
 
@@ -3001,7 +3020,7 @@ proc tclreadline::complete(readline) {text start end line pos mod} {
 				add { return [DisplayHints <completerLine>] }
 				completer { return [DisplayHints <line>] }
 				customcompleter { return [DisplayHints ?scriptCompleter?] }
-				builtincompleter { return [DisplayHints ?boolean?] }
+				builtincompleter { return [CompleteBoolean ${text}] }
 				eofchar { return [DisplayHints ?script?] }
 				reset-terminal {
 					if {[info exists ::env(TERM)]} {
@@ -3224,9 +3243,12 @@ proc ToplevelWindows {} {
 #
 proc OptionTable {cmd optionsT} {
 	upvar $optionsT options
-	# first we build an option table
+	# first we build an option table.
+	# We always use `configure' here,
+	# because cget will not return the
+	# option table.
 	#
-	if {[catch [list set option_table [eval ${cmd}]] msg]} {
+	if {[catch [list set option_table [eval ${cmd} configure]] msg]} {
 		return 0
 	}
 	foreach optline ${option_table} {
@@ -3258,8 +3280,15 @@ proc CompleteFromOptions {text start line} {
 	if {-1 == ${idx}} {
 		return
 	}
-	set cmd [lrange ${lst} 0 ${idx}]
-	# puts stderr cmd=|$cmd|
+
+	# separate the command, but exclude (cget|configure)
+	# because cget won't return the option table. Instead
+	# OptionTable always uses `configure' to get the
+	# option table.
+	#
+	set cmd [lrange ${lst} 0 [expr ${idx} - 1]]
+
+	TraceText $cmd
 	if {0 < [OptionTable ${cmd} options]} {
 
 		set prev [PreviousWord ${start} ${line}]
@@ -3288,8 +3317,8 @@ proc CompleteFromOptionsOrSubCmds {text start end line pos} {
 	if {[string length ${from_opts}]} {
 		return ${from_opts}
 	} else {
+		# puts stderr \n\n[lrange [ProperList ${line}] 0 [expr $pos - 1]]\n
 		set cmds [TrySubCmds [lrange [ProperList ${line}] 0 [expr $pos - 1]]]
-		# puts stderr cmds=|$cmds|
 		if {[llength ${cmds}]} {
 			return [TryFromList ${text} ${cmds}]
 		}
@@ -3297,26 +3326,12 @@ proc CompleteFromOptionsOrSubCmds {text start end line pos} {
 	return ""
 }
 
-proc complete(WIDGET) {text start end line pos mod} {
-	# set widget [Lindex ${line} 0]
-	# set cmds [TrySubCmds ${widget}]
-	# if {[llength ${cmds}]} {
-	# 	return [TryFromList ${mod} ${cmds}]
-	# }
+# TODO
+# write a dispatcher here, which gets the widget class name
+# and calls specific completers.
+#
+proc complete(WIDGET_COMMAND) {text start end line pos mod} {
 	return [CompleteFromOptionsOrSubCmds ${text} ${start} ${end} ${line} ${pos}]
-}
-
-# SPECIFIC TK COMMAND COMPLETERS
-
-proc complete(bell) {text start end line pos mod} {
-	switch -- ${pos} {
-		1 { return [CompleteFromList ${text} -displayof] }
-		2 {
-			if {"-displayof" == [PreviousWord ${start} ${line}]} {
-				return [CompleteFromList ${text} [ToplevelWindows]]
-			}
-		}
-	}
 }
 
 proc EventuallyInsertLeadingDot {text fallback} {
@@ -3329,14 +3344,14 @@ proc EventuallyInsertLeadingDot {text fallback} {
 
 #**
 # TODO: shit. make this better!
-# @param text, a std completer argument (current word).
-# @param fullpart, the full text of the current position.
-# @param lst, the list to complete from.
-# @param pre, leading `quote'.
-# @param sep, word separator.
-# @param post, trailing `quote'.
+# @param  text, a std completer argument (current word).
+# @param  fullpart, the full text of the current position.
+# @param  lst, the list to complete from.
+# @param  pre, leading `quote'.
+# @param  sep, word separator.
+# @param  post, trailing `quote'.
 # @return a formatted completer string.
-# @date Sep-15-1999
+# @date   Sep-15-1999
 #
 proc CompleteListFromList {text fullpart lst pre sep post} {
 
@@ -3399,6 +3414,73 @@ proc CompleteListFromList {text fullpart lst pre sep post} {
 	return ""
 }
 
+#**
+# SpecificSwitchCompleter
+# ---
+# @param    text   -- the word to complete.
+# @param    start  -- the char index of text's start in line
+# @param    line   -- the line gathered so far.
+# @param    switch -- the switch to complete for.
+# @return   a std tclreadline formatted completer string.
+# @sa       CompleteWidgetConfigurations
+# @date     Sep-17-1999
+#
+proc SpecificSwitchCompleter {text start line switch} {
+	# TODO:
+	#   go to the `options' man page and look for possible values
+	switch -- ${switch} {
+		-takefocus -
+		-exportselection { return [CompleteBoolean ${text}] }
+		-xscrollcommand -
+		-yscrollcommand {
+			# return [BraceOrCommand ${text} \
+			# ${start} ${end} ${line} ${pos} ${mod}]
+		}
+		-relief {
+			return [CompleteFromList ${text} {
+				raised sunken flat ridge solid groove
+			}]
+		}
+		default { return [DisplayHints <[String range ${prev} 1 end]>] }
+	}
+}
+
+#**
+# CompleteWidgetConfigurations
+# ---
+# @param    text  -- the word to complete.
+# @param    start -- the actual cursor position.
+# @param    line  -- the line gathered so far.
+# @param    lst   -- a list of possible completions.
+# @return   a std tclreadline formatted completer string.
+# @sa       SpecificSwitchCompleter
+# @date     Sep-17-1999
+#
+proc CompleteWidgetConfigurations {text start line lst} {
+	set prev [PreviousWord ${start} ${line}]
+	if {"-" == [string index ${prev} 0]} {
+		return [SpecificSwitchCompleter ${text} ${start} ${line} ${prev}]
+	} else {
+		return [CompleteFromList ${text} \
+		[RemoveUsedOptions ${line} ${lst}]]
+	}
+}
+
+# --------------------------------------
+# === SPECIFIC TK COMMAND COMPLETERS ===
+# --------------------------------------
+
+proc complete(bell) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [CompleteFromList ${text} -displayof] }
+		2 {
+			if {"-displayof" == [PreviousWord ${start} ${line}]} {
+				return [CompleteFromList ${text} [ToplevelWindows]]
+			}
+		}
+	}
+}
+
 proc complete(bind) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 {
@@ -3454,15 +3536,255 @@ proc complete(bindtags) {text start end line pos mod} {
 	return ""
 }
 
-proc CompleteWidgetConfigurations {text start line lst} {
-	prev [PreviousWord ${start} ${line}]
-}
-
 proc complete(button) {text start end line pos mod} {
 	switch -- ${pos} {
 		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
 		default {
-			return [CompleteWidgetConfigurations ${text} {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground -activeforeground -anchor
+				-background -bitmap -borderwidth -cursor
+				-disabledforeground -font -foreground
+				-highlightbackground -highlightcolor
+				-highlightthickness -image -justify
+				-padx -pady -relief -takefocus -text
+				-textvariable -underline -wraplength
+				-command -default -height -state -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(canvas) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-background -borderwidth -cursor -highlightbackground
+				-highlightcolor -highlightthickness -insertbackground
+				-insertborderwidth -insertofftime -insertontime
+				-insertwidth -relief -selectbackground -selectborderwidth
+				-selectforeground -takefocus -xscrollcommand -yscrollcommand
+				-closeenough -confine -height -scrollregion -width
+				-xscrollincrement -yscrollincrement
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(checkbutton) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground activeBackground Foreground 
+				-activeforeground -anchor -background -bitmap
+				-borderwidth -cursor -disabledforeground -font
+				-foreground -highlightbackground -highlightcolor
+				-highlightthickness -image -justify -padx -pady
+				-relief -takefocus -text -textvariable -underline
+				-wraplength -command -height -indicatoron -offvalue
+				-onvalue -selectcolor -selectimage -state -variable
+				-width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(entry) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-background -borderwidth -cursor -exportselection
+				-font -foreground -highlightbackground -highlightcolor
+				-highlightthickness -insertbackground -insertborderwidth
+				-insertofftime -insertontime -insertwidth -justify -relief
+				-selectbackground -selectborderwidth -selectforeground
+				-takefocus -textvariable -xscrollcommand -show -state
+				-width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(frame) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-borderwidth -cursor -highlightbackground -highlightcolor
+				-highlightthickness -relief -takefocus -background
+				-class -colormap -container -height -visual -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(label) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-anchor -background -bitmap -borderwidth -cursor -font
+				-foreground -highlightbackground -highlightcolor
+				-highlightthickness -image -justify -padx -pady -relief
+				-takefocus -text -textvariable -underline -wraplength
+				-height -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(listbox) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-background -borderwidth -cursor -exportselection -font
+				-foreground -height -highlightbackground -highlightcolor
+				-highlightthickness -relief -selectbackground
+				-selectborderwidth -selectforeground -setgrid -takefocus
+				-width -xscrollcommand -yscrollcommand -height -selectmode
+				-width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(menu) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground -activeborderwidth -activeforeground
+				-background -borderwidth -cursor -disabledforeground
+				-font -foreground -relief -takefocus -postcommand
+				-selectcolor -tearoff -tearoffcommand -title -type
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(menubutton) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground -activeforeground -anchor -background
+				-bitmap -borderwidth -cursor -disabledforeground -font
+				-foreground -highlightbackground -highlightcolor
+				-highlightthickness -image -justify -padx -pady -relief
+				-takefocus -text -textvariable -underline -wraplength
+				-direction -height -indicatoron -menu -state -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(message) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-anchor -background -borderwidth -cursor -font -foreground
+				-highlightbackground -highlightcolor -highlightthickness
+				-padx -pady -relief -takefocus -text -textvariable -width 
+				-aspect -justify -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(radiobutton) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground -activeforeground -anchor -background
+				-bitmap -borderwidth -cursor -disabledforeground -font
+				-foreground -highlightbackground -highlightcolor
+				-highlightthickness -image -justify -padx -pady -relief
+				-takefocus -text -textvariable -underline -wraplength -command
+				-height -indicatoron -selectcolor -selectimage -state -value
+				-variable -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(scale) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground -background -borderwidth -cursor -font
+				-foreground -highlightbackground -highlightcolor
+				-highlightthickness -orient -relief -repeatdelay
+				-repeatinterval -takefocus -troughcolor -bigincrement
+				-command -digits -from -label -length -resolution
+				-showvalue -sliderlength -sliderrelief -state -tickinterval
+				-to -variable -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(scrollbar) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-activebackground -background -borderwidth -cursor
+				-highlightbackground -highlightcolor -highlightthickness
+				-jump -orient -relief -repeatdelay -repeatinterval
+				-takefocus -troughcolor -activerelief -command
+				-elementborderwidth -width
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(text) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-background -borderwidth -cursor -exportselection -font
+				-foreground -highlightbackground -highlightcolor
+				-highlightthickness -insertbackground -insertborderwidth
+				-insertofftime -insertontime -insertwidth -padx -pady
+				-relief -selectbackground -selectborderwidth
+				-selectforeground -setgrid -takefocus -xscrollcommand
+				-yscrollcommand -height -spacing1 -spacing2 -spacing3
+				-state -tabs -width -wrap
+			}]
+		}
+	}
+	return ""
+}
+
+proc complete(toplevel) {text start end line pos mod} {
+	switch -- ${pos} {
+		1 { return [EventuallyInsertLeadingDot ${text} <pathName>] }
+		default {
+			return [CompleteWidgetConfigurations ${text} ${start} ${line} {
+				-borderwidth -cursor -highlightbackground -highlightcolor
+				-highlightthickness -relief -takefocus -background
+				-class -colormap -container -height -menu -screen
+				-use -visual -width
 			}]
 		}
 	}
@@ -3470,7 +3792,7 @@ proc complete(button) {text start end line pos mod} {
 }
 
 proc complete(image) {text start end line pos mod} {
-	set sub [Lindex ${line} 1]
+set sub [Lindex ${line} 1]
 	switch -- ${pos} {
 		1 { return [CompleteFromList ${text} [TrySubCmds image]] }
 		2 {
