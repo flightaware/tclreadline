@@ -1,6 +1,6 @@
 dnl -*- autoconf -*-
 dnl FILE: "/home/joze/src/tclreadline/configure.in"
-dnl LAST MODIFICATION: "Don, 20 Jul 2000 03:30:38 +0200 (joze)"
+dnl LAST MODIFICATION: "Don, 27 Jul 2000 15:10:24 +0200 (joze)"
 dnl (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 dnl $Id$
 dnl ---
@@ -17,7 +17,7 @@ AC_CONFIG_AUX_DIR(./aux)
 
 MAJOR=2
 MINOR=0
-PATCHLEVEL=1
+PATCHLEVEL=2
 VERSION=$MAJOR.$MINOR
 PATCHLEVEL_STR=$VERSION.$PATCHLEVEL
 
@@ -184,7 +184,7 @@ AC_ARG_WITH(tlib-library,
     for tlib in ncurses termlib termcap curses; do
 	brk=yes
 	AC_CHECK_LIB($tlib, tputs, , brk=no)
-	if test $brk == "yes"; then
+	if test $brk = "yes"; then
 	    HAVE_TLIB=yes
 	    break
 	fi

@@ -1,4 +1,9 @@
 
+2000-07-27  Johannes Zellner <johannes@zellner.org>
+
+     * configure.in: changed a == to = in a sh test
+     (reported by "Daniel O'Connor" <darius@dons.net.au>)
+
 2000-07-03  Johannes Zellner <johannes@zellner.org>
 
      * Makefile.am: included EXTRA_DIST so that it compiles from `dist'
