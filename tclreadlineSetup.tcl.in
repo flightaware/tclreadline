@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
-# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Fri Sep  3 16:16:44 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Sat Sep  4 07:35:09 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -746,7 +746,7 @@ proc ScriptCompleter {part start end line} {
 
                 if {[catch [list set script_result \
                     [complete(${cmd}) $part \
-                    $start $end $line $pos $mod]] msg]
+                    $start $end $line $pos $mod]] ::tclreadline::errorMsg]
                 } {
                     error "error during evaluation of `complete(${cmd})'"
                 }
@@ -792,11 +792,12 @@ proc Setup {args} {
                 variable prompt_string
                 set base [file tail [info nameofexecutable]]
 
-                if {$base == "tclsh" && [info exists tcl_version]} {
+                if {[string match tclsh* $base] && [info exists tcl_version]} {
                     set prompt_string \
-                        "\[0;91m$base$tcl_version\[0m"
-                } elseif {$base == "wish" && [info exists tk_version]} {
-                    set prompt_string "\[0;94m$base$tk_version\[0m"
+                        "\[0;91mtclsh$tcl_version\[0m"
+                } elseif {[string match wish* $base] \
+                    && [info exists tk_version]} {
+                    set prompt_string "\[0;94mwish$tk_version\[0m"
                 } else {
                     set prompt_string "\[0;91m$base\[0m"
                 }
@@ -830,8 +831,8 @@ proc Setup {args} {
                 if {[catch {
                     ::tclreadline::readline write \
                     [::tclreadline::HistoryFileGet]
-                } msg]} {
-                    puts stderr $msg
+                } ::tclreadline::errorMsg]} {
+                    puts stderr $::tclreadline::errorMsg
                 }
 
                 if [catch "eval ::tclreadline::Exit $args" message] {
@@ -862,9 +863,9 @@ proc Setup {args} {
             set historyfile  .tclsh-history
         }
     }
-    set msg [readline initialize $historyfile]
-    if {$msg != ""} {
-        puts stderr "$msg"
+    set ::tclreadline::errorMsg [readline initialize $historyfile]
+    if {$::tclreadline::errorMsg != ""} {
+        puts stderr $::tclreadline::errorMsg
     }
 
     InitCmds
@@ -920,8 +921,9 @@ proc Loop {args} {
                     append LINE "\n"
                     append LINE [tclreadline::readline read ${prompt2}]
                 }
-            } msg]} {
-                puts stderr [list tclreadline::Loop: error. $msg]
+            } ::tclreadline::errorMsg]} {
+                puts stderr [list tclreadline::Loop: error. \
+                $::tclreadline::errorMsg]
                 continue
             }
 
@@ -934,8 +936,8 @@ proc Loop {args} {
                     puts $result
                 }
                 set result ""
-            } msg] {
-                puts stderr $msg
+            } ::tclreadline::errorMsg] {
+                puts stderr $::tclreadline::errorMsg
                 puts stderr [list while evaluating $LINE]
             }
 
@@ -2156,7 +2158,7 @@ proc complete(unset) {text start end line pos mod} {
 
 # generic widget configuration
 
-proc TrySubCmds cmd {
+proc TrySubCmds {cmd} {
     set trystring ____
     set result ""
     if [catch {set result [${cmd} ${trystring}]} msg] {
@@ -2171,11 +2173,21 @@ proc TrySubCmds cmd {
                 }
 
             }
+        } else {
+            # check, if it's a blt error msg ...
+            #
+            set msglst [split ${msg} \n]
+            foreach line ${msglst} {
+                if {[regexp "${cmd}\[ \t\]\+\(\[^ \t\]*\)\[^:\]*$" \
+                    ${line} all sub]} {
+                    lappend result [list ${sub}]
+                }
+            }
         }
     }
     return ${result}
 }
-        
+
 proc WidgetList {pattern} {
     regsub {^([^\.])} ${pattern} {\.\1} pattern
     if {[winfo exists ${pattern}]} {
