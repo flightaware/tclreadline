@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Wed Sep  8 21:06:25 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Mon Sep 13 18:09:41 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -150,7 +150,9 @@ TERM_LIB             = @TERM_LIB@
 #----------------------------------------------------------------
 
 
-CC = @CC@
+CC   = @CC@
+DEFS = @DEFS@
+
 CC_SWITCHES = $(CFLAGS) $(SHLIB_CFLAGS) -I$(TOP_DIR) \
         -I$(TCL_INCLUDE_DIR) -I$(READLINE_INCLUDE_DIR)
 
@@ -167,6 +169,7 @@ SOURCES = \
     pkgIndex.tcl.in \
     sample.tclshrc \
     sources \
+    config.h.in \
     tclreadline.c \
     tclreadline.h.in \
     tclreadline.n.in \
@@ -243,7 +246,7 @@ clean:
 distclean: clean
 	rm -f \
 	Makefile *.so *.sl pkgIndex.tcl tclreadlineInit.tcl \
-        tclreadlineSetup.tcl tclreadline.h tclreadline.n \
+        tclreadlineSetup.tcl config.h tclreadline.h tclreadline.n \
  	tclreadlineConfig.sh config.status config.log config.cache
 
 depend:
@@ -252,12 +255,8 @@ depend:
 configure: configure.in
 	autoconf
 
-.c.o:
-	$(CC) -c $(CC_SWITCHES) $<
-
 tclreadline.o:	$(TOP_DIR)/tclreadline.c Makefile
-	$(CC) -c $(CC_SWITCHES) $(TOP_DIR)/tclreadline.c
-
+	$(CC) -c $(CC_SWITCHES) $(DEFS) $(TOP_DIR)/tclreadline.c
 
 ctags:
 	ctags -R

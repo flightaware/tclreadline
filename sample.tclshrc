@@ -1,6 +1,6 @@
 #!/bin/sh
 # FILE: "/diska/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Wed Sep  8 18:10:30 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep 13 18:21:52 1999 (joze)"
 # (C) 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ft=tcl: \
@@ -51,7 +51,7 @@ if {$tcl_interactive} {
 
     # disable tclreadline's script completer
     #
-    ::tclreadline::readline customcompleter ""
+    # ::tclreadline::readline customcompleter ""
 
     # go to tclrealdine's main loop.
     #

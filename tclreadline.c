@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Mon Sep 13 02:21:35 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Mon Sep 13 18:04:01 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -28,6 +28,10 @@
 
     ================================================================== */  
 
+#ifdef HAVE_CONFIG_H
+#   include "config.h"
+#endif
+
 #include <tcl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +45,15 @@
  * in readline.h
  */
 void rl_extend_line_buffer(int len);
+
+#ifdef EXECUTING_MACRO_HACK
+/**
+ * this prototype is private in readline's file `macro.c'.
+ * We need it here to decide, if we should read more
+ * characters from a macro. Dirty, but it should work.
+ */
+extern char* _rl_executing_macro;
+#endif
 
 #include "tclreadline.h"
 
@@ -71,14 +84,10 @@ char* stripwhite(char* in);
 char* TclReadlineQuote(char* text, char* quotechars);
 int TclReadlineCmd(ClientData clientData, Tcl_Interp* interp,
     int argc, char** argv);
-int TclReadlineEventHook(void);
 void TclReadlineReadHandler(ClientData clientData, int mask);
-void TclReadlineWriteHandler(ClientData clientData, int mask);
 void TclReadlineLineCompleteHandler(char* ptr);
 int Tclreadline_SafeInit(Tcl_Interp* interp);
 int Tclreadline_Init(Tcl_Interp* interp);
-char *TclReadlineFilenameQuotingFunction(
-    char *text, int match_type, char* quote_ptr);
 int TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
 int blank_line(char* str);
 char** TclReadlineCompletion(char* text, int start, int end);
@@ -176,7 +185,6 @@ TclReadlineCmd(
         char* expansion = (char*) NULL;
         int status;
         
-#if 1
         tclrl_line_complete = LINE_PENDING;
         tclrl_state = TCL_OK;
         rl_callback_handler_install(argc == 3 ? argv[2] : "%",
@@ -184,10 +192,6 @@ TclReadlineCmd(
 
         Tcl_CreateFileHandler(0, TCL_READABLE,
                 TclReadlineReadHandler, (ClientData) NULL);
-        /*
-        Tcl_CreateFileHandler(1, TCL_WRITABLE,
-                TclReadlineWriteHandler, (ClientData) NULL);
-        */
 
         /**
          * Main Loop.
@@ -199,12 +203,8 @@ TclReadlineCmd(
         while (LINE_PENDING == tclrl_line_complete
             && TCL_OK == tclrl_state && !rl_done) {
             Tcl_DoOneEvent(TCL_ALL_EVENTS);
-            /*
-            Tcl_DoOneEvent(0);
-            fprintf (stderr, "(TclReadlineCmd) \n");
-            rl_inhibit_completion = 0;
-            */
         }
+
         Tcl_DeleteFileHandler(0);
 
         if (TCL_OK != tclrl_state)
@@ -214,10 +214,6 @@ TclReadlineCmd(
 	    Tcl_Eval(interp, tclrl_eof_string);
             return tclrl_state;
 	}
-#else
-        rl_event_hook = TclReadlineEventHook;
-        tclrl_line = readline(argc == 3 ? argv[2] : "%");
-#endif
 
         status = history_expand(tclrl_line, &expansion);
         if (status >= 1) {
@@ -327,48 +323,20 @@ BAD_COMMAND:
 
 }
 
-int TclReadlineEventHook(void)
-{
-    Tcl_DoOneEvent(TCL_ALL_EVENTS | TCL_DONT_WAIT);
-    /*
-        TCL_DONT_WAIT
-        TCL_WINDOW_EVENTS
-        TCL_FILE_EVENTS
-        TCL_TIMER_EVENTS
-        TCL_IDLE_EVENTS
-        TCL_ALL_EVENTS
-    */
-    return TCL_OK;
-}
 void
 TclReadlineReadHandler(ClientData clientData, int mask)
 {
-#if 0
-    fprintf(stderr, "(TclReadlineReadHandler) mask = %d\n",  mask);
-#endif
     if (mask & TCL_READABLE) {
-        /*
-        fprintf(stderr, "(TclReadlineReadHandler) mask = readable\n");
-        rl_event_hook = TclReadlineEventHook;
-        while (!rl_done) {
-        */
+        rl_callback_read_char();
+#ifdef EXECUTING_MACRO_HACK
+        /**
+         * check, if we're inside a macro and
+         * if so, read all macro characters.
+         */
+        while (_rl_executing_macro) {
             rl_callback_read_char();
-        /*
         }
-        fflush(stdin);
-        */
-    }
-}
-
-void
-TclReadlineWriteHandler(ClientData clientData, int mask)
-{
-    if (mask & TCL_WRITABLE) {
-        /*
-        fprintf(stderr, "(TclReadlineReadHandler) mask = writable\n");
-        */
-        fflush(stdout);
-        rl_redisplay();
+#endif
     }
 }
 
@@ -430,38 +398,6 @@ Tclreadline_Init(Tcl_Interp *interp)
     return Tcl_PkgProvide(interp, "tclreadline", TCLRL_VERSION);
 }
 
-#if 0
-char *
-TclReadlineFilenameQuotingFunction
-(char *filename, int match_type, char* quote_ptr)
-{
-    char *res = (char*) malloc(sizeof(char) * (strlen(filename) + 2));
-    int i = 0;
-    fprintf (stderr, "(TclReadlineFilenameQuotingFunction) \n");
-    if (quote_ptr && *quote_ptr) {
-        *res = *quote_ptr;                     /* leading quote */
-        i++;
-    }
-    strcpy (res + i, filename);              /* name          */
-#if 0
-    fprintf (stderr, "(Tclreadline_Init) filename=|%s|\n", filename);
-    fprintf (stderr, "(Tclreadline_Init) *quote_ptr=|%c|\n", *quote_ptr);
-#endif
-    if (quote_ptr && '{' == *quote_ptr) {
-        *quote_ptr = '}';
-    }
-    return res;
-
-#if 0
-    switch (match_type) {
-        case SINGLE_MATCH:
-            break;
-        default:
-    }
-#endif
-}
-#endif
-
 int
 TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 {
@@ -481,8 +417,10 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
     /* rl_basic_word_break_characters = " \t\n\\@$}=;|&[]"; */
     /* besser (11. Sept) 3. (removed }) */
     rl_basic_word_break_characters = " \t\n\\@$=;|&[]";
-    // rl_basic_quote_characters = "\"{"; // XXX ??? XXX
-    // rl_completer_quote_characters = "\"";
+#if 0
+    rl_basic_quote_characters = "\"{"; // XXX ??? XXX
+    rl_completer_quote_characters = "\"";
+#endif
     /*
     rl_filename_quote_characters
     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -529,29 +467,7 @@ TclReadlineCompletion(char* text, int start, int end)
 {
     char** matches = (char**) NULL;
     int status;
-    // rl_attempted_completion_over = 0;
     rl_completion_append_character = ' '; /* reset, just in case ... */
-
-#if 0
-    fprintf(stderr, "DEBUG> TclReadlineCompletion: text=|%s|\n", text);
-    fprintf(stderr, "DEBUG> TclReadlineCompletion: start=|%d|\n", start);
-    fprintf(stderr, "DEBUG> TclReadlineCompletion: end=|%d|\n", end);
-#endif
-
-#if 0
-    char* history_event = (char*) NULL;
-    if (text) {
-        if ('!' == text[0])
-            history_event = strdup(text);
-        else if (start && rl_line_buffer[start - 1] == '!' /* for '$' */) {
-            int len = strlen(text);
-            history_event = strncpy((char*) malloc(sizeof(char) * (len + 1)),
-                rl_line_buffer[start - 1], len);
-            history_event[len] = '\0'; /* terminate */
-        }
-    }
-    if (history_event)
-#endif
 
     if (text && ('!' == text[0]
             || (start && rl_line_buffer[start - 1] == '!' /* for '$' */))) {
@@ -564,7 +480,6 @@ TclReadlineCompletion(char* text, int start, int end)
             rl_end = strlen(expansion);
             rl_point += strlen(expansion) - oldlen;
             FREE(expansion);
-            /* rl_redisplay(); */
             /*
              * TODO:
              * because we return 0 == matches,
@@ -584,15 +499,6 @@ TclReadlineCompletion(char* text, int start, int end)
         char* quoted_text = TclReadlineQuote(text, "$[]{}\"");
         char* quoted_rl_line_buffer
             = TclReadlineQuote(rl_line_buffer, "$[]{}\"");
-#if 0
-        fprintf (stderr, "(TclReadlineCompletion) rl_line_buffer = |%s|\n",
-            rl_line_buffer);
-        fprintf (stderr, "(TclReadlineCompletion) quoted_rl_line_buffer = |%s|\n",
-            quoted_rl_line_buffer);
-        fprintf (stderr, "(TclReadlineCompletion) text = |%s|\n", text);
-        fprintf (stderr, "(TclReadlineCompletion) quoted_text = |%s|\n",
-            quoted_text);
-#endif
         sprintf(start_s, "%d", start);
         sprintf(end_s, "%d", end);
         Tcl_ResetResult(tclrl_interp); /* clear result space */
@@ -608,30 +514,21 @@ TclReadlineCompletion(char* text, int start, int end)
                 " \"", quoted_rl_line_buffer, "\"' failed.", (char*) NULL);
             return matches;
         }
-#if 0
-        fprintf(stderr, "\nscript returned |%s|\n",
-            Tcl_GetStringResult(tclrl_interp));
-#endif
         obj = Tcl_GetObjResult(tclrl_interp);
         status = Tcl_ListObjGetElements(tclrl_interp, obj, &objc, &objv);
         if (TCL_OK != status)
             return matches;
-        /* fprintf (stderr, "(TclReadlineCompletion) objc = %d\n", objc); */
+
         if (objc) {
             int i, length;
             matches = (char**) MALLOC(sizeof(char*) * (objc + 1));
             for (i = 0; i < objc; i++) {
                 matches[i] = strdup(Tcl_GetStringFromObj(objv[i], &length));
                 if (1 == objc && !strlen(matches[i])) {
-                    // rl_attempted_completion_over = 1;
                     FREE(matches[i]);
                     FREE(matches);
                     return (char**) NULL;
                 }
-                /*
-                fprintf (stderr, "(TclReadlineCompletion) len[%s]=%d\n",
-                    matches[i], strlen(matches[i]));
-                */
             }
 
             /**
@@ -655,13 +552,6 @@ TclReadlineCompletion(char* text, int start, int end)
     if (!matches && tclrl_use_builtin_completer) {
         matches = completion_matches(text, TclReadline0generator);
     }
-#if 0
-    {
-        char **ptr;
-        for (ptr = matches; ptr && *ptr; ptr++)
-            fprintf (stderr, "(TclReadlineCompletion) |%s|\n", *ptr);
-    }
-#endif
     
     return matches;
 }
@@ -720,10 +610,6 @@ TclReadlineKnownCommands(char* text, int state, int mode)
 
             local_line = strdup(rl_line_buffer);
             sub = TclReadlineParse(args, sizeof(args), local_line);
-            /*
-             * fprintf (stderr, "(TclReadlineKnownCommands) state=%d\n", state);
-             * fprintf (stderr, "(TclReadlineKnownCommands) text = |%s|\n", text);
-             */
 
             if (0 == sub || (1 == sub && '\0' != text[0])) {
                 if (!state) {

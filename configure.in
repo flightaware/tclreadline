@@ -1,6 +1,6 @@
 # -*- autoconf -*-
 # FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Wed Sep  8 18:18:02 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep 13 17:51:49 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -34,6 +34,7 @@ dnl	to configure the system for the local environment.
 AC_REVISION($Revision$)
 
 AC_INIT(tclreadline.c)
+AC_CONFIG_HEADER(config.h)
 
 TCLREADLINE_MAJOR_VERSION=0
 TCLREADLINE_MINOR_VERSION=9
@@ -349,8 +350,9 @@ fi
 # systems it is.)
 # ---
 
-TERM_LIB=""
-AC_CHECK_LIB(readline, tputs, termcaps=yes, termcaps=no)
+# TERM_LIB=""
+# AC_CHECK_LIB(readline, tputs, termcaps=yes, termcaps=no)
+termcaps=no
 if test "$termcaps" = "no"; then
 
     # ---
@@ -390,15 +392,29 @@ if test "$alternate" = "no"; then
 fi
 
 
+# check for readline's (macro.c) private variable
+# _rl_executing_macro.
+
+AC_MSG_CHECKING([for _rl_executing_macro in -lreadline])
+AC_TRY_LINK(,[
+extern char* _rl_executing_macro;
+int main () {
+    _rl_executing_macro = (char*) 0;
+    return 0;
+}],
+    AC_MSG_RESULT(yes); AC_DEFINE_UNQUOTED(EXECUTING_MACRO_HACK, 1),
+    AC_MSG_RESULT(no))
+
+
 AC_MSG_CHECKING([for the readline version number])
 AC_TRY_RUN([
 #include <stdio.h>
 int main () {
-    FILE *fp = fopen ("conftestversion", "w");
+    FILE *fp = fopen("conftestversion", "w");
     extern char *rl_library_version;
-    fprintf (fp, "%s", rl_library_version);
-    close (fp);
-    return (0);
+    fprintf(fp, "%s", rl_library_version);
+    close(fp);
+    return 0;
 }],
     READLINE_VERSION=`cat conftestversion`
     AC_MSG_RESULT($READLINE_VERSION),

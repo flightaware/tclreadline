@@ -1,8 +1,8 @@
 
  /* ==================================================================
    
-    FILE: "/diska/home/joze/src/tclreadline/tclreadline.h.in"
-    LAST MODIFICATION: "Mon Sep 13 17:52:25 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/config.h.in"
+    LAST MODIFICATION: "Mon Sep 13 17:51:29 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     vim:set ft=c:
@@ -30,12 +30,5 @@
 
     ================================================================== */  
 
-static char *TCLRL_VERSION = "@TCLREADLINE_VERSION@";
 
-static char *TCLRL_LIBRARY = "@TCLREADLINE_LIBRARY@";
-
-/**
- * NOTE, that PATCHLEVEL is the complete version string.
- */
-static char *TCLRL_PATCHLEVEL = "@TCLREADLINE_PATCHLEVEL_STR@";
-
+#undef EXECUTING_MACRO_HACK
