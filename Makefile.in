@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Thu, 23 Mar 2000 23:26:56 +0100 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Fri, 24 Mar 2000 01:50:54 +0100 (joze)"
 # (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -169,6 +169,7 @@ TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl tclreadlineCompleter.tcl
 
 SOURCES = \
     GPL \
+    AUTHORS \
     Makefile.in \
     README \
     configure.in \
