@@ -1,6 +1,6 @@
 # -*- autoconf -*-
-# FILE: "/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Sun Aug 22 18:32:26 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/configure.in"
+# LAST MODIFICATION: "Mon Aug 23 10:59:40 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -57,7 +57,7 @@ TCLREADLINE_LPATH="$TCLREADLINE_LPATH /lib /usr/lib /usr/local/lib"
 
 AC_ARG_WITH(
     tcl,
-    [  --with-tcl=DIR          use Tcl 8.x binaries from DIR],
+    [  --with-tcl=DIR          where to look for tclConfig.sh],
     tcl_search=$withval,
     tcl_search=""
 )
