@@ -1,8 +1,8 @@
 
  /* ==================================================================
    
-    FILE: "/home/joze/src/tclreadline/TODO"
-    LAST MODIFICATION: "Sat Aug 28 23:20:25 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/TODO"
+    LAST MODIFICATION: "Thu Sep  2 04:06:52 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -40,3 +40,9 @@
        z.B.: `set' könnte für alle Variblennamen completen.
 
     +  history_expansion mit <Tab> (z.B. !$).
+
+    +  ist $bla das erste Wort eines Befehls, so sollte vor 
+       der completion die Variable ersetzt werden, um den
+       completer herauszufinden.
+
+    +  den script completern den level mitgeben ?

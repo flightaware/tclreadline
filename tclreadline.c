@@ -1,8 +1,8 @@
 
  /* ==================================================================
 
-    FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Tue Aug 31 03:22:55 1999 (joze)"
+    FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFICATION: "Wed Sep  1 18:58:04 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -36,6 +36,12 @@
 #include <readline.h>
 #include <history.h>
 
+/**
+ * this prototype is missing
+ * in readline.h
+ */
+void rl_extend_line_buffer(int len);
+
 #include "tclreadline.h"
 
 #define MALLOC(size) Tcl_Alloc((int) size)
@@ -65,7 +71,9 @@ char* stripwhite(char* in);
 char* TclReadlineQuote(char* text, char* quotechars);
 int TclReadlineCmd(ClientData clientData, Tcl_Interp* interp,
     int argc, char** argv);
-void TclReadlineDataAvailableHandler(ClientData clientData, int mask);
+int TclReadlineEventHook(void);
+void TclReadlineReadHandler(ClientData clientData, int mask);
+void TclReadlineWriteHandler(ClientData clientData, int mask);
 void TclReadlineLineCompleteHandler(char* ptr);
 int Tclreadline_SafeInit(Tcl_Interp* interp);
 int Tclreadline_Init(Tcl_Interp* interp);
@@ -168,13 +176,18 @@ TclReadlineCmd(
         char* expansion = (char*) NULL;
         int status;
         
+#if 1
         tclrl_line_complete = LINE_PENDING;
         tclrl_state = TCL_OK;
         rl_callback_handler_install(argc == 3 ? argv[2] : "%",
                 TclReadlineLineCompleteHandler);
 
         Tcl_CreateFileHandler(0, TCL_READABLE,
-                TclReadlineDataAvailableHandler, (ClientData) NULL);
+                TclReadlineReadHandler, (ClientData) NULL);
+        /*
+        Tcl_CreateFileHandler(1, TCL_WRITABLE,
+                TclReadlineWriteHandler, (ClientData) NULL);
+        */
 
         /**
          * Main Loop.
@@ -185,8 +198,10 @@ TclReadlineCmd(
          */
         while (LINE_PENDING == tclrl_line_complete
             && TCL_OK == tclrl_state && !rl_done) {
-            Tcl_DoOneEvent(0);
+            Tcl_DoOneEvent(TCL_ALL_EVENTS);
             /*
+            Tcl_DoOneEvent(0);
+            fprintf (stderr, "(TclReadlineCmd) \n");
             rl_inhibit_completion = 0;
             */
         }
@@ -199,6 +214,10 @@ TclReadlineCmd(
 	    Tcl_Eval(interp, tclrl_eof_string);
             return tclrl_state;
 	}
+#else
+        rl_event_hook = TclReadlineEventHook;
+        tclrl_line = readline(argc == 3 ? argv[2] : "%");
+#endif
 
         status = history_expand(tclrl_line, &expansion);
         if (status >= 1) {
@@ -308,14 +327,47 @@ BAD_COMMAND:
 
 }
 
+int TclReadlineEventHook(void)
+{
+    Tcl_DoOneEvent(TCL_ALL_EVENTS | TCL_DONT_WAIT);
+    /*
+        TCL_DONT_WAIT
+        TCL_WINDOW_EVENTS
+        TCL_FILE_EVENTS
+        TCL_TIMER_EVENTS
+        TCL_IDLE_EVENTS
+        TCL_ALL_EVENTS
+    */
+}
 void
-TclReadlineDataAvailableHandler(ClientData clientData, int mask)
+TclReadlineReadHandler(ClientData clientData, int mask)
 {
 #if 0
-    fprintf(stderr, "(TclReadlineDataAvailableHandler) mask = %d\n",  mask);
+    fprintf(stderr, "(TclReadlineReadHandler) mask = %d\n",  mask);
 #endif
     if (mask & TCL_READABLE) {
-        rl_callback_read_char();
+        /*
+        fprintf(stderr, "(TclReadlineReadHandler) mask = readable\n");
+        rl_event_hook = TclReadlineEventHook;
+        while (!rl_done) {
+        */
+            rl_callback_read_char();
+        /*
+        }
+        fflush(stdin);
+        */
+    }
+}
+
+void
+TclReadlineWriteHandler(ClientData clientData, int mask)
+{
+    if (mask & TCL_WRITABLE) {
+        /*
+        fprintf(stderr, "(TclReadlineReadHandler) mask = writable\n");
+        */
+        fflush(stdout);
+        rl_redisplay();
     }
 }
 
