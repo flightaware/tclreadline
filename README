@@ -1,6 +1,6 @@
 
     FILE: "/diska/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Mon Aug 23 17:46:01 1999 (joze)"
+    LAST MODIFICATION: "Mon Aug 23 19:42:31 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -104,5 +104,5 @@ tclreadline-0.8: (May 1999)
     - adapted for tcl8.1.
     - minor bug fixes.
 
-tclreadline-0.7: (Mar 1999)
+tclreadline-0.7: (Feb 1999)
     first `public release'.
