@@ -177,6 +177,14 @@ Ring the terminal bell, obeying the setting of bell-style
 -- audible or visible.
 
 .TP 5
+\fB::tclreadline::text\fP
+Return the current input.
+
+.TP 5
+\fB::tclreadline::readline update\fP
+Redraw the current input line.
+
+.TP 5
 \fB::tclreadline::Print\fP [\fIyes / no\fP]
 turns on or off the default behavior of tclsh to print the result of
 every command. This is turned on by default, so it will just behave
