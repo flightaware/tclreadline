@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Wed Aug 25 16:53:28 1999 (joze)"
+    LAST MODIFICATION: "Fri Aug 27 16:18:44 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---

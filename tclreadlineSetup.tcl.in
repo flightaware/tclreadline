@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Wed Aug 25 14:49:37 1999 (joze)"
+# LAST MODIFICATION: "Fri Aug 27 16:08:15 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -217,6 +217,13 @@ proc tclreadline::ScriptCompleter {part start end line} {
     # puts stderr "(ScriptCompleter) |$part| $start $end |$line|"
     variable known_cmds
     if {{$} == [string index $part 0]} {
+        # check for a !$ history event
+        #
+        if {$start > 0} {
+            if {{!} == [string index $line [expr $start - 1]]} {
+                return ""
+            }
+        }
         # variable completion. Check first, if the
         # variable starts with a plain `$' or should
         # be enclosed in braces.
