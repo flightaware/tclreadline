@@ -1,6 +1,6 @@
 #!/usr/locanl/bin/tclsh
 # FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Mon Sep  6 11:21:53 1999 (joze)"
+# LAST MODIFICATION: "Mon Sep  6 14:07:26 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -225,7 +225,7 @@ proc unknown args {
 
 namespace eval tclreadline {
 
-namespace export Setup Glob Loop InitCmds InitTclCmds InitTkCmds Print ls
+namespace export Setup Glob Loop InitTclCmds InitTkCmds Print ls
 
 proc FirstNonOption {line} {
     set expr_pos 1
@@ -387,23 +387,19 @@ proc Quote {value left} {
 }
 
 proc InChannelId {text} {
-    return [ChannelId ${text} <inChannel> {stdin}]
+    return [ChannelId ${text} inChannel {stdin}]
 }
 
 proc OutChannelId {text} {
-    return [ChannelId ${text} <outChannel> {stdout stderr}]
+    return [ChannelId ${text} outChannel {stdout stderr}]
 }
 
-proc ChannelId {text {default <channelId>} {chs {stdin stdout stderr}}} {
-    if {[llength ${text}]} {
-        set channel [AttemptFromList $text ${chs}]
-        if {[llength [lindex ${channel} 0]]} {
-            return ${channel}
-        } else {
-            return ""
-        }
-    }
-    return ${default}
+proc ChannelId {text {default channelId} {chs {stdin stdout stderr}}} {
+     if {[llength [set channel [MenuFromList ${text} ${chs}]]]} {
+         return ${channel}
+     } else {
+         return [Menu ${default}]
+     }
 }
 
 proc QuoteQuotes {line} {
@@ -915,7 +911,7 @@ proc Setup {args} {
         puts stderr $::tclreadline::errorMsg
     }
 
-    InitCmds
+    # InitCmds
 
     rename Setup ""
 }
@@ -1004,128 +1000,127 @@ proc Print {args} {
     }
     return $PRINT
 }
-
-proc InitCmds {} {
-    global tcl_version tk_version
-    if {[info exists tcl_version]} {
-        InitTclCmds
-    }
-    if {[info exists tk_version]} {
-        InitTkCmds
-    }
-    rename InitCmds ""
-}
-
-proc InitTclCmds {} {
-    variable known_cmds
-    foreach line {
-        "after option ?arg arg ...?"
-        "append varName ?value value ...?"
-        "array option arrayName ?arg ...?"
-        "bgerror"
-        "break"
-        "catch command ?varName?"
-        "cd"
-        "clock"
-        "close <channelId>"
-        "concat"
-        "continue"
-        "eof <channelId>"
-        "error message ?errorInfo? ?errorCode?"
-        "eval arg ?arg ...?"
-        "exec ?switches? arg ?arg ...?"
-        "exit ?returnCode?"
-        "expr arg ?arg ...?"
-        "fblocked <channelId>"
-        "fconfigure <channelId> ?optionName? ?value? ?optionName value?..."
-        "fcopy input output ?-size size? ?-command callback?"
-        "file"
-        "fileevent channelId event ?script?"
-        "flush channelId"
-        "for start test next command"
-        "foreach varList list ?varList list ...? command"
-        "format formatString ?arg arg ...?"
-        "gets channelId ?varName?"
-        "glob"
-        "global varName ?varName ...?"
-        "incr varName ?increment?"
-        "info option ?arg arg ...?"
-        "interp cmd ?arg ...?"
-        "join list ?joinString?"
-        "lappend varName ?value value ...?"
-        "lindex list index"
-        "linsert list <index> <element> ?element ...?"
-        "list"
-        "llength list"
-        "lrange list first last"
-        "lreplace list first last ?element element ...?"
-        "lsearch ?mode? list pattern"
-        "lsort ?options? list"
-        "namespace"
-        "package option ?arg arg ...?"
-        "proc name args body"
-        "read ?-nonewline? channelId"
-        "regexp ?switches? exp string ?matchVar? ?subMatchVar subMatchVar ...?"
-        "rename oldName newName"
-        "scan <string> <format> ?varName varName ...?"
-        "set varName ?newValue?"
-        "split <string> ?splitChars?"
-        "subst ?-nobackslashes? ?-nocommands? ?-novariables? string"
-        "switch ?switches? string pattern body ... ?default body?"
-        "time <command> ?count?"
-        "unknown <cmdName> ?arg? ?...?"
-        "uplevel ?level? command ?arg ...?"
-        "vwait name"
-        "while test command"
-    } {
-        readline add $line
-        set known_cmds([lindex $line 0]) ${line}
-    }
-    rename InitTclCmds ""
-}
-
-proc InitTkCmds {} {
-    variable known_cmds
-    foreach line {
-        "bind window ?pattern? ?command?"
-        "bindtags window ?tags?"
-        "button pathName ?options?"
-        "canvas pathName ?options?"
-        "checkbutton pathName ?options?"
-        "clipboard option ?arg arg ...?"
-        "entry pathName ?options?"
-        "event option ?arg1?"
-        "font option ?arg?"
-        "frame pathName ?options?"
-        "grab option ?arg arg ...?"
-        "grid option arg ?arg ...?"
-        "image option ?args?"
-        "label pathName ?options?"
-        "listbox pathName ?options?"
-        "lower window ?belowThis?"
-        "menu pathName ?options?"
-        "menubutton pathName ?options?"
-        "message pathName ?options?"
-        "option cmd arg ?arg ...?"
-        "pack option arg ?arg ...?"
-        "radiobutton pathName ?options?"
-        "raise window ?aboveThis?"
-        "scale pathName ?options?"
-        "scrollbar pathName ?options?"
-        "selection option ?arg arg ...?"
-        "send ?options? interpName arg ?arg ...?"
-        "text pathName ?options?"
-        "tk option ?arg?"
-        "tkwait variable|visibility|window name"
-        "toplevel pathName ?options?"
-        "winfo option ?arg?"
-        "wm option window ?arg ...?"
-    } {
-        readline add $line
-        set known_cmds([lindex $line 0]) ${line}
-    }
-    rename InitTkCmds ""
-}
+# 
+# 
+# proc InitCmds {} {
+#     # XXX
+#     return 
+#     # XXX
+#     global tcl_version tk_version
+#     if {[info exists tcl_version]} {
+#         InitTclCmds
+#     }
+#     if {[info exists tk_version]} {
+#         InitTkCmds
+#     }
+#     rename InitCmds ""
+# }
+# 
+# proc InitTclCmds {} {
+#     variable known_cmds
+#     foreach line {
+#         "after option ?arg arg ...?"
+#         "append varName ?value value ...?"
+#         "array option arrayName ?arg ...?"
+#         "bgerror"
+#         "break"
+#         "catch command ?varName?"
+#         "cd"
+#         "clock"
+#         "close <channelId>"
+#         "concat"
+#         "continue"
+#         "eof <channelId>"
+#         "error message ?errorInfo? ?errorCode?"
+#         "eval arg ?arg ...?"
+#         "exec ?switches? arg ?arg ...?"
+#         "exit ?returnCode?"
+#         "fblocked <channelId>"
+#         "for start test next command"
+#         "foreach varList list ?varList list ...? command"
+#         "format formatString ?arg arg ...?"
+#         "gets channelId ?varName?"
+#         "glob"
+#         "global varName ?varName ...?"
+#         "incr varName ?increment?"
+#         "info option ?arg arg ...?"
+#         "interp cmd ?arg ...?"
+#         "join list ?joinString?"
+#         "lappend varName ?value value ...?"
+#         "lindex list index"
+#         "linsert list <index> <element> ?element ...?"
+#         "list"
+#         "llength list"
+#         "lrange list first last"
+#         "lreplace list first last ?element element ...?"
+#         "lsearch ?mode? list pattern"
+#         "lsort ?options? list"
+#         "namespace"
+#         "package option ?arg arg ...?"
+#         "proc name args body"
+#         "read ?-nonewline? channelId"
+#         "regexp ?switches? exp string ?matchVar? ?subMatchVar subMatchVar ...?"
+#         "rename oldName newName"
+#         "scan <string> <format> ?varName varName ...?"
+#         "set varName ?newValue?"
+#         "split <string> ?splitChars?"
+#         "subst ?-nobackslashes? ?-nocommands? ?-novariables? string"
+#         "switch ?switches? string pattern body ... ?default body?"
+#         "time <command> ?count?"
+#         "unknown <cmdName> ?arg? ?...?"
+#         "uplevel ?level? command ?arg ...?"
+#         "vwait name"
+#         "while test command"
+#     } {
+#         readline add $line
+#         set known_cmds([lindex $line 0]) ${line}
+#     }
+#     rename InitTclCmds ""
+# }
+# 
+# proc InitTkCmds {} {
+#     variable known_cmds
+#     foreach line {
+#         "bind window ?pattern? ?command?"
+#         "bindtags window ?tags?"
+#         "button pathName ?options?"
+#         "canvas pathName ?options?"
+#         "checkbutton pathName ?options?"
+#         "clipboard option ?arg arg ...?"
+#         "entry pathName ?options?"
+#         "event option ?arg1?"
+#         "font option ?arg?"
+#         "frame pathName ?options?"
+#         "grab option ?arg arg ...?"
+#         "grid option arg ?arg ...?"
+#         "image option ?args?"
+#         "label pathName ?options?"
+#         "listbox pathName ?options?"
+#         "lower window ?belowThis?"
+#         "menu pathName ?options?"
+#         "menubutton pathName ?options?"
+#         "message pathName ?options?"
+#         "option cmd arg ?arg ...?"
+#         "pack option arg ?arg ...?"
+#         "radiobutton pathName ?options?"
+#         "raise window ?aboveThis?"
+#         "scale pathName ?options?"
+#         "scrollbar pathName ?options?"
+#         "selection option ?arg arg ...?"
+#         "send ?options? interpName arg ?arg ...?"
+#         "text pathName ?options?"
+#         "tk option ?arg?"
+#         "tkwait variable|visibility|window name"
+#         "toplevel pathName ?options?"
+#         "winfo option ?arg?"
+#         "wm option window ?arg ...?"
+#     } {
+#         readline add $line
+#         set known_cmds([lindex $line 0]) ${line}
+#     }
+#     rename InitTkCmds ""
+# }
+# 
 
 
 # explicit command completers
@@ -1235,78 +1230,74 @@ proc complete(binary) {text start end line pos mod} {
         }
         2 {
             switch -- $cmd {
-                format - { return [Menu formatString] }
-                scan - { return [Menu string] }
+                format { return [Menu formatString] }
+                scan   { return [Menu string] }
             }
         }
         3 {
             switch -- $cmd {
-                format - { return [Menu ?arg?] }
-                scan - { return [Menu formatString] }
+                format { return [Menu ?arg?] }
+                scan   { return [Menu formatString] }
             }
         }
         default {
             switch -- $cmd {
-                format - { return [Menu ?arg?] }
-                scan - { return [Menu ?varName?] }
+                format { return [Menu ?arg?] }
+                scan   { return [Menu ?varName?] }
             }
         }
     }
+    return ""
 }
 
 proc complete(clock) {text start end line pos mod} {
-    if {1 == $pos} {
-        set cmds {clicks format scan seconds}
-        return [AttemptFromList $text $cmds]
-    } elseif {2 == $pos} {
-        set cmd [lindex $line 1]
-        switch -- $cmd {
-            clicks {}
-            format {
-                if {"" == [lindex $line 2]} {
-                    return <clockValue>
-                }
-            }
-            scan {
-                if {"" == [lindex $line 2]} {
-                    return <dateString>
-                }
-            }
-            seconds {}
+    set cmd [lindex $line 1]
+    switch -- $pos {
+        1 {
+            return [AttemptFromList $text {clicks format scan seconds}]
         }
-    } elseif {3 == $pos} {
-        set cmd [lindex $line 1]
-        switch -- $cmd {
-            clicks {}
-            format {
-                set sub [lindex $line 3]
-                set subcmds {-fmt -gmt}
-                return [AttemptFromList $text $subcmds]
+        2 {
+            switch -- $cmd {
+                format  { return [Menu clockValue] }
+                scan    { return [Menu dateString] }
+                clicks  -
+                seconds {}
             }
-            scan {
-                set sub [lindex $line 3]
-                set subcmds {-base -gmt}
-                return [AttemptFromList $text $subcmds]
+        }
+        3 {
+            switch -- $cmd {
+                format {
+                    set sub [lindex $line 3]
+                    set subcmds {-fmt -gmt}
+                    return [AttemptFromList $text $subcmds]
+                }
+                scan {
+                    set sub [lindex $line 3]
+                    set subcmds {-base -gmt}
+                    return [AttemptFromList $text $subcmds]
+                }
+                clicks  -
+                seconds {}
             }
-            seconds {}
         }
     }
     return ""
 }
 
 proc complete(encoding) {text start end line pos mod} {
-    if {1 == $pos} {
-        set cmds {convertfrom convertto names system}
-        return [AttemptFromList $text $cmds]
-    } elseif {2 == $pos} {
-        set cmd [lindex $line 1]
-        switch -- $cmd {
-            names {}
-            convertfrom -
-            convertto -
-            system {
-                set enc [encoding names]
-                return [AttemptFromList ${text} ${enc}]
+    set cmd [lindex $line 1]
+    switch -- $pos {
+        1 {
+            return [AttemptFromList $text {convertfrom convertto names system}]
+        }
+        2 {
+            switch -- $cmd {
+                names {}
+                convertfrom -
+                convertto -
+                system {
+                    return [AttemptFromList ${text} [encoding names]]
+                }
             }
         }
     }
@@ -1327,147 +1318,151 @@ proc complete(expr) {text start end line pos mod} {
 }
 
 proc complete(fconfigure) {text start end line pos mod} {
-    if {1 == $pos} {
-        return [ChannelId ${mod}]
-    } else {
-        set option [PreviousWord ${start} ${line}]
-        switch -- $option {
-            -blocking {
-                return [AttemptFromList ${text} {yes no}]
-            }
-            -buffering {
-                return [AttemptFromList ${text} {full line none}]
-            }
-            -buffersize {
-                if {![llength ${text}} {
-                    return <newSize>
+    set cmd [lindex $line 1]
+    switch -- $pos {
+        1 {
+            return [ChannelId ${mod}]
+        }
+        default {
+            set option [PreviousWord ${start} ${line}]
+            switch -- $option {
+                -blocking {
+                    return [AttemptFromList ${text} {yes no}]
+                }
+                -buffering {
+                    return [AttemptFromList ${text} {full line none}]
+                }
+                -buffersize {
+                    if {![llength ${text}]} {
+                        return [Menu newSize]
+                    }
+                }
+                -encoding {
+                    return [AttemptFromList ${text} [encoding names]]
+                }
+                -eofchar {
+                    return [Menu {\{inChar\ outChar\}}]
+                }
+                -translation {
+                    return [AttemptFromList ${text} {auto binary cr crlf lf}]
+                }
+                default {return [AttemptFromList $text {
+                    -blocking -buffering -buffersize
+                    -encoding -eofchar -translation}]
                 }
             }
-            -encoding {
-                set enc [encoding names]
-                return [AttemptFromList ${text} ${enc}]
-            }
-            -eofchar {
-                if {![llength ${text}]} {
-                    return [list {{<inChar> <outChar>}}]
-                }
-            }
-            -translation {
-                return [AttemptFromList ${text} {auto binary cr crlf lf}]
-            }
         }
-        set cmds {
-            -blocking
-            -buffering
-            -buffersize
-            -encoding
-            -eofchar
-            -translation
-        }
-        return [AttemptFromList $text $cmds]
     }
     return ""
 }
 
 proc complete(fcopy) {text start end line pos mod} {
-    if {1 == $pos} {
-        return [InChannelId ${mod}]
-    } elseif {2 == $pos} {
-        return [OutChannelId ${mod}]
-    } else {
-        set option [PreviousWord ${start} ${line}]
-        switch -- $option {
-            -size {
-                if {![llength ${mod}]} { return <size> }
-            }
-            -command {
-                if {![llength ${mod}]} { return <callback> }
+    switch -- $pos {
+        1 {
+            return [InChannelId ${mod}]
+        }
+        2 {
+            return [OutChannelId ${mod}]
+        }
+        default {
+            set option [PreviousWord ${start} ${line}]
+            switch -- $option {
+                -size    { return [Menu size] }
+                -command { return [Menu callback] }
+                default  { return [AttemptFromList $text {-size -command}] }
             }
         }
-        return [AttemptFromList $text {-size -command}]
     }
     return ""
 }
 
 proc complete(file) {text start end line pos mod} {
-    if {1 == $pos} {
-        set cmds {
-            atime attributes copy delete dirname executable exists
-            extension isdirectory isfile join lstat mtime mkdir
-            nativename owned pathtype readable readlink rename
-            rootname size split stat tail type volumes writable
-        }
-        return [AttemptFromList $text $cmds]
-    } elseif {2 == $pos} {
-        set cmd [lindex $line 1]
-        switch -- $cmd {
-            atime -
-            attributes -
-            dirname -
-            executable -
-            exists -
-            extension -
-            isdirectory -
-            isfile -
-            join -
-            lstat -
-            mtime -
-            mkdir -
-            nativename -
-            owned -
-            pathtype -
-            readable -
-            readlink -
-            rootname -
-            size -
-            split -
-            stat -
-            tail -
-            type -
-            volumes -
-            writable {
-                return ""
+    switch -- $pos {
+        1 {
+            set cmds {
+                atime attributes copy delete dirname executable exists
+                extension isdirectory isfile join lstat mtime mkdir
+                nativename owned pathtype readable readlink rename
+                rootname size split stat tail type volumes writable
             }
+            return [AttemptFromList $text $cmds]
+        }
+        2 {
+            set cmd [lindex $line 1]
+            switch -- $cmd {
+                atime -
+                attributes -
+                dirname -
+                executable -
+                exists -
+                extension -
+                isdirectory -
+                isfile -
+                join -
+                lstat -
+                mtime -
+                mkdir -
+                nativename -
+                owned -
+                pathtype -
+                readable -
+                readlink -
+                rootname -
+                size -
+                split -
+                stat -
+                tail -
+                type -
+                volumes -
+                writable {
+                    return ""
+                }
 
-            copy -
-            delete -
-            rename {
-                set match [AttemptFromList ${mod} {-force}]
-                if {[llength ${match}] && [llength ${mod}]} {
-                    return ${match}
-                } else {
+                copy -
+                delete -
+                rename {
+                #    set match [MenuFromList ${mod} {-force}]
                     return ""
                 }
             }
         }
     }
+    return ""
 }
 
 proc complete(fileevent) {text start end line pos mod} {
-    if {1 == $pos} {
-        return [ChannelId ${mod}]
-    } elseif {2 == $pos} {
-        return [AttemptFromList ${mod} {readable writable}]
+    switch -- $pos {
+        1 {
+            return [ChannelId ${mod}]
+        }
+        2 {
+            return [CompleteFromList ${mod} {readable writable}]
+        }
     }
+    return ""
 }
 
 proc complete(flush) {text start end line pos mod} {
-    if {1 == $pos} {
-        return [ChannelId ${mod}]
+    switch -- $pos {
+        1 { return [ChannelId ${mod}] }
     }
+    return ""
 }
 
 proc complete(gets) {text start end line pos mod} {
-    if {1 == $pos} {
-        return [InChannelId ${mod}]
+    switch -- $pos {
+        1 { return [InChannelId ${mod}] }
     }
+    return ""
 }
 
 proc complete(glob) {text start end line pos mod} {
-    if {1 == $pos} {
-        set matches [AttemptFromList ${mod} {-nocomplain --}]
-        if {[llength [string trim ${mod}]] && [llength ${matches}]} {
-            return ${matches}
+    switch -- $pos {
+        1 {
+            set matches [AttemptFromList ${mod} {-nocomplain --}]
+            if {[llength [string trim ${mod}]] && [llength ${matches}]} {
+                return ${matches}
+            }
         }
     }
     return ""
