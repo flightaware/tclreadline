@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/diska/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Wed Sep  1 18:58:04 1999 (joze)"
+    LAST MODIFICATION: "Wed Sep  8 17:47:13 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -287,7 +287,7 @@ TclReadlineCmd(
             if (!blank_line(argv[2]))
                 tclrl_custom_completer = stripwhite(strdup(argv[2]));
         }
-        Tcl_AppendResult (interp, tclrl_custom_completer, (char*) NULL);
+        Tcl_AppendResult(interp, tclrl_custom_completer, (char*) NULL);
     } else if (c == 'b'  && strncmp(argv[1], "builtincompleter", length) == 0) {
         int bool = tclrl_use_builtin_completer;
         if (3 != argc && 2 != argc)

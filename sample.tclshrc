@@ -1,6 +1,6 @@
 #!/bin/sh
-# FILE: "/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Sat Aug 28 23:41:17 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/sample.tclshrc"
+# LAST MODIFICATION: "Wed Sep  8 18:10:30 1999 (joze)"
 # (C) 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ft=tcl: \
@@ -48,6 +48,10 @@ if {$tcl_interactive} {
     # store maximal this much lines in the history file
     #
     set tclreadline::historyLength 200
+
+    # disable tclreadline's script completer
+    #
+    ::tclreadline::readline customcompleter ""
 
     # go to tclrealdine's main loop.
     #

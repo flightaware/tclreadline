@@ -1,6 +1,6 @@
 # -*- autoconf -*-
 # FILE: "/diska/home/joze/src/tclreadline/configure.in"
-# LAST MODIFICATION: "Mon Sep  6 11:30:15 1999 (joze)"
+# LAST MODIFICATION: "Wed Sep  8 18:18:02 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -76,7 +76,10 @@ done
 if test -z "$TCL_LIB_DIR"; then
     AC_MSG_ERROR(Can't find Tcl libraries.  Use --with-tcl to specify the directory containing tclConfig.sh on your system.)
 else
+    . $TCL_LIB_DIR/tclConfig.sh
     AC_MSG_RESULT($TCL_LIB_DIR/tclConfig.sh)
+    AC_MSG_CHECKING([for your tcl version])
+    AC_MSG_RESULT([$TCL_VERSION, patchlevel $TCL_PATCH_LEVEL])
 fi
 
 #--------------------------------------------------------------------
@@ -85,8 +88,6 @@ fi
 #   Makefile.
 #--------------------------------------------------------------------
 
-file=$TCL_LIB_DIR/tclConfig.sh
-. $file
 
 SHLIB_CFLAGS=$TCL_SHLIB_CFLAGS
 SHLIB_LD=$TCL_SHLIB_LD

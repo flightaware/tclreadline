@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
-# FILE: "/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
-# LAST MODIFICATION: "Sun Aug 29 08:11:24 1999 (joze)"
+# FILE: "/diska/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
+# LAST MODIFICATION: "Wed Sep  8 18:09:57 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -42,6 +42,9 @@ proc ::tclreadline::Init {} {
 }
 
 tclreadline::Init
+::tclreadline::readline customcompleter ::tclreadline::ScriptCompleter
 
 source [file join [file dirname [info script]] tclreadlineSetup.tcl]
 
+set auto_index(::tclreadline::ScriptCompleter) \
+[list source [file join [file dirname [info script]] tclreadlineCompleter.tcl]]

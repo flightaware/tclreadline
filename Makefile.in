@@ -1,6 +1,6 @@
 # -*- make -*-
 # FILE: "/diska/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Mon Aug 30 14:13:02 1999 (joze)"
+# LAST MODIFICATION: "Wed Sep  8 18:22:32 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -157,7 +157,7 @@ CC_SWITCHES = $(CFLAGS) $(SHLIB_CFLAGS) -I$(TOP_DIR) \
 OBJS = tclreadline.o
 
 CSRCS = $(TOP_DIR)/tclreadline.c
-TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl
+TCLFILES = tclreadlineInit.tcl tclreadlineSetup.tcl tclreadlineCompleter.tcl
 
 SOURCES = \
     GPL \
@@ -172,7 +172,8 @@ SOURCES = \
     tclreadline.n.in \
     tclreadlineConfig.sh.in \
     tclreadlineInit.tcl.in \
-    tclreadlineSetup.tcl.in
+    tclreadlineSetup.tcl.in \
+    tclreadlineCompleter.tcl
 
 MISC = TODO
 
@@ -212,13 +213,17 @@ install-binaries: $(TCLREADLINE_LIB_FILE)
 	chmod 555 $(LIBRARY_INSTALL_DIR)/$(TCLREADLINE_LIB_FILE)
 
 
-install-libraries: tclreadlineInit.tcl tclreadlineSetup.tcl pkgIndex.tcl \
-                   tclreadlineConfig.sh
+install-libraries: tclreadlineInit.tcl tclreadlineSetup.tcl \
+                   tclreadlineCompleter.tcl pkgIndex.tcl tclreadlineConfig.sh
 	@$(MKINSTALLDIRS) $(LIBRARY_INSTALL_DIR)
-	$(INSTALL_DATA) tclreadlineInit.tcl $(LIBRARY_INSTALL_DIR)
-	$(INSTALL_DATA) tclreadlineSetup.tcl $(LIBRARY_INSTALL_DIR)
-	$(INSTALL_DATA) pkgIndex.tcl $(LIBRARY_INSTALL_DIR)
-	$(INSTALL_DATA) tclreadlineConfig.sh $(LIBRARY_INSTALL_DIR)
+	for f in \
+            tclreadlineInit.tcl \
+            tclreadlineSetup.tcl \
+            tclreadlineCompleter.tcl \
+            pkgIndex.tcl \
+            tclreadlineConfig.sh; do \
+            $(INSTALL_DATA) $f $(LIBRARY_INSTALL_DIR) \
+        done
 
 FORCE:
 
