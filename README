@@ -1,5 +1,5 @@
-FILE: "/home/joze/src/tclreadline/README"
-LAST MODIFICATION: "Sat, 25 Mar 2000 21:47:01 +0100 (joze)"
+FILE: "/disk01/home/joze/src/tclreadline/README"
+LAST MODIFICATION: "Sun, 02 Jul 2000 00:24:48 +0200 (joze)"
 (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
 $Id$
 ---
@@ -48,6 +48,7 @@ Before trying to compile tclreadline you should do the following things:
 
     (c) The usual ./configure; make; make install sequence should do the rest.
 
+####### DISABLED ########
     (d) Optionally (or additionally) you can build the executables
         tclshrl and / or wishrl which are a readline enhanced replacement
         for tclsh and wish. To compile these executable you should type
@@ -65,6 +66,7 @@ Before trying to compile tclreadline you should do the following things:
             make install-shells
         Building these executables is discouraged but necessary
         on systems which don't support shared libs.
+####### DISABLED ########
 
 
 4. Using tclreadline for interactive tcl scripting.

@@ -1,20 +1,4 @@
-
- /* ==================================================================
-   
-    FILE: "/home/joze/src/tclreadline/TODO"
-    LAST MODIFICATION: "Sat, 25 Mar 2000 20:46:31 +0100 (joze)"
-    (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
-    $Id$
-    ---
-
-    tclreadline -- gnu readline for tcl
-    http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>
-
-    This software is copyright under the BSD license.
-
-    ================================================================== */  
-
+    +  reimplement wishrl & tclshrl
 
     +  history_truncate_file(int n, char* historyfile)
        verwenden, um nur eine begrenze Zahl zu schreiben.
