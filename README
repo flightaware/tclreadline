@@ -1,6 +1,6 @@
 
     FILE: "/home/joze/src/tclreadline/README"
-    LAST MODIFICATION: "Sun Aug 22 23:24:34 1999 (joze)"
+    LAST MODIFICATION: "Mon Aug 23 00:21:24 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -83,16 +83,26 @@ tclreadline-0.9: (Aug 1999)
         - tclreadline::readline customcompleter
         - tclreadline::readline builtincompleter
         - tclreadline::readline eofchar
-        - variable, array and '[' command completion.
+        - variable, array and '[' command completion by the script
+          tclreadline::ScriptCompleter. See the man page or try
+          typing "puts $env<TAB>" ... Command completion currently only
+          works, if a '[' preceeds immediately a non-white character.
+        - the redefinition of the command `cd' was removed due to 
+          multiple requests. This redefinition can be found in the
+          file `sample.tclshrc' and can be uncommented, if desired. 
+        - the definition of the command `ls' was moved outside the
+          proc tclreadline::Setup and can be used with the command
+          namespace import tclreadline::ls (see sample.tclshrc).
 
     bug fixes:
-        - history entries.
-        - macro mappings didn't work. (only on hitting
+        - lines added to tcl's history. (were only in readline's hist.)
+        - macro mappings didn't work. (only when hitting
           mapped characters more than once.)
         - minor fixes in configure.in
 
-tclreadline-0.8:
-    minor bug fixes.
+tclreadline-0.8: (May 1999)
+    - adapted for tcl8.1.
+    - minor bug fixes.
 
-tclreadline-0.7:
+tclreadline-0.7: (Mar 1999)
     first `public release'.

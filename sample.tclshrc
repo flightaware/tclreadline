@@ -1,6 +1,6 @@
 #!/bin/sh
-# FILE: "/diska/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Fri Aug 20 15:39:58 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/sample.tclshrc"
+# LAST MODIFICATION: "Mon Aug 23 00:00:23 1999 (joze)"
 # (C) 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # vim:set ft=tcl: \
@@ -8,9 +8,44 @@ exec tclsh "$0" "$@"
 
 
 if {$tcl_interactive} {
+
     package require tclreadline
-    namespace import ::tclreadline::Print
-#    ::tclreadline::Print no
+
+    # uncomment the following if block, if you
+    # want `ls' executed after every `cd'. (This was
+    # the default up to 0.8 == tclreadline_version.)
+    #
+    # if {"" == [info procs cd]} {
+    #     catch {rename ::tclreadline::Cd ""}
+    #     rename cd ::tclreadline::Cd
+    #     proc cd {args} {
+    #         if {[catch {eval ::tclreadline::Cd $args} message]} {
+    #             puts stderr "$message"
+    #         }
+    #         ls
+    #     }
+    # }
+
+    # uncomment the following line to use
+    # tclreadline's fancy ls proc.
+    #
+    # namespace import ::tclreadline::ls
+
+    # tclreadline::Print is on (`yes') by default.
+    # This mimics the command echoing like in the
+    # non-readline interactive tclsh.
+    # If you don't like this, uncomment the following
+    # line.
+    #
+    # ::tclreadline::Print no
+
+    # uncomment the folling line, if you want
+    # to change tclreadline's print behaviour
+    # frequently with less typing.
+    #
+    # namespace import ::tclreadline::Print
+
+    # go to tclrealdine's main loop.
     ::tclreadline::Loop
 }
 

@@ -2,7 +2,7 @@
 
 .\" (C) 1999 by Johannes Zellner
 .\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Sun Aug 22 23:24:34 1999 (joze)"
+.\" LAST MODIFICATION: "Mon Aug 23 00:15:10 1999 (joze)"
 .\" (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 .\" $Id$
 .\" ---
@@ -123,7 +123,7 @@ The custom completer could return a string like "$bl $black $blue", which
 will complete "$b" to "$bl" (the longest match) and offer a list of two
 further matches "$black" and "$blue".
 
-For further reference, see the proc tclreadline::script_completer in
+For further reference, see the proc tclreadline::ScriptCompleter in
 the file tclreadlineSetup.tcl.
 
 .TP 5
@@ -168,13 +168,19 @@ turns on or off the default behavior of tclsh to print the result of
 every command. This is turned on by default, so it will just behave
 as the tclsh w/o tclreadline. Turning off might be useful, when reading
 binary data for example. If \fB::tclreadline::Print\fP is called w/o
-arguments, it just returns the current setting.
+arguments, it returns the current setting.
 
 .TP 5
 \fB::tclreadline::Loop\fP
 enter the tclreadline main loop. This command is typically called from
 the startup resource file (something .tclshrc, depending on the interpreter
-you use). \fB::tclreadline::Loop\fP will normally not return.
+you use, see the file `sample.tclshrc'). The main loop sets up some
+completion characteristics as variable -- try something like "puts $b<TAB>" -- 
+and command completion -- try "puts [in<TAB>".
+\fB::tclreadline::Loop\fP will normally not return. 
+If you want to write your own main loop and/or own custom completers,
+it is probably a good idea to start with tclreadline::Loop
+(see the file tclreadlineSetup.tcl).
 
 .TP 5
 \fB::tclreadline::prompt1\fP
@@ -280,9 +286,15 @@ David Engel <dlengel@home.com>, <david@debian.org>
 .SH DEBIAN PACKAGE
 David Engel <dlengel@home.com>, <david@debian.org>
 
-.SH HISTORY
+.SH DISCLAIMER
+
 This version of \fBtclreadline\fP is still a development version.
 Pretty a lot of features and ideas are not implemented yet. The
 reason for this is the lack of time and manpower.
 So you are welcome to modify and contribute to the code.
 If you have suggestions, please let me know.
+
+\fBtclreadline\fP comes with the GPL (GNU General Public License).
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
