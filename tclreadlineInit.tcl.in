@@ -1,23 +1,53 @@
 #!/usr/local/bin/tclsh
-# ==================================================================
-# FILE: "/home/joze/tmp/tclreadline/tclreadlineInit.tcl.in"
-# LAST MODIFIED: "Sat Oct 03 02:31:48 1998 (joze)"
-# (c) 1998 by Johannes Zellner
+#
+# FILE: "/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
+# LAST MODIFIED: "Sun Feb 28 15:28:36 1999 (joze)"
+# (C) 1998, 1999 by Johannes Zellner
 # Johannes.Zellner@physik.uni-karlsruhe.de
 # $Id$
-# ==================================================================
+# ---
+#
+# tclreadline -- gnu readline for tcl
+# Copyright (C) 1999  Johannes Zellner
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Johannes.Zellner@physik.uni-karlsruhe.de
+# http://krisal.physik.uni-karlsruhe.de/~joze
+#
+# ================================================================== 
 
 package provide tclreadline @TCLREADLINE_VERSION@
 
 namespace eval tclreadline:: {
-
-    proc Init {} {
-        catch {load @TERMCAP_LOAD_PATH@}
-        catch {load @READLINE_LOAD_PATH@}
-        if {[catch {load @TCLREADLINE_LIB_FILE@} msg]} {
-            puts stderr $msg
-            exit 2
-        }
-    }
-
+    namespace export Init
 }
+
+proc ::tclreadline::Init {} {
+    
+    global tclreadline_version
+    global tclreadline_library
+    
+    set tclreadline_version @TCLREADLINE_VERSION@
+    set tclreadline_library @TCLREADLINE_LIBRARY@
+
+    catch {load @TERMCAP_LOAD_PATH@}
+    catch {load @READLINE_LOAD_PATH@}
+    if [catch {load @TCLREADLINE_LIBRARY@/@TCLREADLINE_LIB_FILE@} msg] {
+        puts stderr $msg
+        exit 2
+    }
+}
+

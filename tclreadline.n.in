@@ -1,0 +1,194 @@
+.TH tclreadline 1 "@TCLREADLINE_VERSION@" "Johannes Zellner"
+
+.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
+.\" LAST MODIFIED: "Sun Feb 28 17:46:54 1999 (joze)"
+.\" (C) 1999 by Johannes Zellner
+.\" Johannes.Zellner@physik.uni-karlsruhe.de
+.\" $Id$
+.\" ---
+.\"
+.\" tclreadline -- display 2-D data of arbitrary format
+.\" Copyright (C) 1999  Johannes Zellner
+.\"
+.\" This program is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License
+.\" as published by the Free Software Foundation; either version 2
+.\" of the License, or (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+.\"
+.\" Johannes.Zellner@physik.uni-karlsruhe.de
+.\" http://krisal.physik.uni-karlsruhe.de/~joze
+
+
+.SH NAME
+tclreadline \- gnu readline for the tcl scripting language
+
+
+.SH SYNOPSIS
+.TP 6
+\fB::tclreadline::readline\fP \fIcommand\fP [\fIoptions\fP]
+
+
+.SH DESCRIPTION
+
+The \fBtclreadline\fP package makes the gnu readline available
+to the scripting language tcl. The package is thought primarily
+for developers, who want to use the line editing and history expansion
+capabilities of the gnu readline while interactively developing
+tcl scripts. The tclreadline can also be used for tcl scripts
+which want to use a shell like input interface. In this case the
+\fB::tclreadline::read\fP command has to be called explicitly. This 
+command will print a prompt and return the line which was typed
+by the user.
+
+.PP
+
+The advantage of \fBtclreadline\fP is that it uses the callback
+handler mechanism of the gnu readline while it processes tcl
+events. This way X events from a wish gui will processed as
+well as events from the \fPtclreadline\fP line interface.
+
+
+.\".SH SOURCE FILES
+
+
+.SH COMMANDS
+
+If you want to use \fBtclreadline\fP as a line interface
+for developing tcl scripts, you probably don't have to read
+this section.
+
+.PP
+The following list will give all commands, which are currently
+implemented in the shared lib (e.g. libtclreadline0.7.so).
+Additional commands were introduced in a startup script
+\fBtclreadlineSetup.tcl\fP, which lives in the tclreadline
+installation directory.
+(typically something like /usr/local/lib/tclreadline ..)
+These commands are primarily for internal use and not documented here.
+
+Note that all commands reside in the namespace \fB::tclreadline::\fP.
+
+
+.TP 5
+\fB::tclreadline::readline add\fP \fIstring\fP
+adds a string to the completer. If the string contains white
+spaces, each of the words will be completed consecutively when
+hitting <Tab>. Example:
+
+    ::tclreadline::readline add "button pathName ?options?"
+
+typing but<Tab> will complete to button. Hitting <Tab> again
+will complete to "button pathName".  ...
+
+.TP 5
+\fB::tclreadline::readline complete\fP \fIstring\fP
+returns 1 if \fIstring\fP is a complete tcl command and 0 otherwise.
+
+.TP 5
+\fB::tclreadline::readline initialize\fP \fIhistoryfile\fP
+initialize the tclreadline interface and read the history from
+the \fIhistoryfile\fP. On succes an empty string is returned.
+This command has to be called before any other tclreadline commands.
+
+
+.TP 5
+\fB::tclreadline::readline read\fP \fIprompt\fP
+prints the \fIprompt\fP to stdout and enters the tclreadline event
+loop. Both readline and X events are processed. Returns the
+(eventually history-expanded) input string.
+
+
+.TP 5
+\fB::tclreadline::readline write\fP \fIhistoryfile\fP
+writes the history to the \fIhistoryfile\fP. This command is called
+automatically from the internal routine ::tclreadline::Exit.
+
+
+.\".SH "EXAMPLES"
+
+
+.\".SH "ENVIRONMENT VARIABLES"
+
+.SH VARIABLES
+
+The global variable \fBtclreadline_version\fP holds the version number
+of the tclreadline package.
+
+.SH FILES
+
+the \fB.tclshrc\fP file in the HOME directory, which
+is read on tclsh startup. Alternatively, the name of this initialization
+file might be \fB.wishrc\fP ... depending on what interpreter you use.
+These files should typically contain something like
+
+.EQ
+    if {$tcl_interactive} {
+        package require tclreadline
+        ::tclreadline::Loop
+    }
+.EN
+
+which will enter the tclreadline main loop.
+
+.PP
+the \fB.tclsh-history\fP file in the HOME directory. On startup
+commands will be read from this file. On exit, the readline history
+is written to this file. Note that if you abort tclsh with <cntrl-c>
+no history is written. For the future it is planned to set up a signal
+handler, which will write the history on <ctrl-c> before exiting.
+
+.PP
+the \fB.inputrc\fP file in the users HOME directory. This file
+is used normally for all programs which use the gnu readline (e.g.  bash).
+The `global' readline settings there will be valid also for
+\fBtclreadline\fP. Additionally the .inputrc might hold conditional
+settings for the implementation name \fBtclreadline\fP. Example of 
+some lines in your .inputrc:
+
+.EQ
+    $if tclreadline
+    "\C-xp": "puts $env(PATH)"
+    $endif
+.EN
+
+For further documentation pleas refer to the gnu readline documentation.
+
+.SH BUGS
+probably.
+
+
+.SH "SEE ALSO"
+The official \fBtclreadline\fP web site at:
+
+.PP
+.RS 4
+http://krisal.physik.uni-karlsruhe.de/tclreadline/index.html
+.RE
+
+
+.SH AUTHOR(S)
+Johannes Zellner
+.br
+<Johannes.Zellner@physik.uni-karlsruhe.de>
+.br
+If you want to be listed here, you have to contribute to the code :-)
+(see below).
+
+
+.SH HISTORY
+This version of \fBtclreadline\fP is still a development version.
+Pretty a lot of features and ideas are not implemented yet. The
+reason for this is the lack of time and manpower.
+So you are welcome to modify and contribute to the code.
+If you have suggestions, please let me know.
+
+

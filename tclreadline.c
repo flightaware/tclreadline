@@ -1,10 +1,33 @@
-/* 
- * FILE: "/home/joze/tmp/tclreadline/tclreadline.c"
- * LAST MODIFIED: "Sat Oct 03 03:06:54 1998 (joze)"
- * (c) 1998 by Johannes Zellner
- * Johannes.Zellner@physik.uni-karlsruhe.de
- * $Id$
- */
+
+ /* ==================================================================
+    FILE: "/home/joze/src/tclreadline/tclreadline.c"
+    LAST MODIFIED: "Sun Feb 28 15:01:31 1999 (joze)"
+    (C) 1998, 1999 by Johannes Zellner
+    Johannes.Zellner@physik.uni-karlsruhe.de
+    $Id$
+    ---
+
+    tclreadline -- gnu readline for tcl
+    Copyright (C) 1999  Johannes Zellner
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+    Johannes.Zellner@physik.uni-karlsruhe.de
+    http://krisal.physik.uni-karlsruhe.de/~joze
+    ================================================================== */  
+
 
 #include <tcl.h>
 #include <stdio.h>
@@ -12,6 +35,8 @@
 #include <string.h>
 #include <readline.h>
 #include <history.h>
+
+#include <tclreadline.h>
 
 #define MALLOC(size) Tcl_Alloc ((int) size)
 #define FREE(ptr) if (ptr) Tcl_Free ((char *) ptr)
@@ -52,9 +77,6 @@ do {                    \
 
 
 
-    /*
-extern char *rl_readline_name = "tclreadline";
-    */
 
 
 /*
@@ -77,6 +99,12 @@ int	TclReadlineParse	(char **args, int maxargs, char *buf);
 
 static int line_complete = 0;
 static char *line = (char *) NULL;
+
+
+/*
+ * Script to set the tclreadline library path in the
+ * variable global "tclreadline_library"
+ */
 
 
 
@@ -157,6 +185,14 @@ int TclReadlineCmd (clientData, interp, argc, argv)
             Tcl_AppendResult (interp, "unable to add command \"",
                     argv[2], "\"\n", (char *) NULL);
     }
+    else if (c == 'c'  && strncmp (argv[1], "complete", length) == 0) {
+        if (argc != 3)
+            goto BAD_COMMAND;
+        else if (Tcl_CommandComplete (argv[2]))
+            Tcl_AppendResult (interp, "1", (char *) NULL);
+        else
+            Tcl_AppendResult (interp, "0", (char *) NULL);
+    }
     else
         goto BAD_COMMAND;
 
@@ -167,7 +203,7 @@ BAD_COMMAND:
     Tcl_AppendResult (interp,
             "wrong # args: should be \"readline option ?arg ...?\"",
 	    (char *) NULL);
-    return TCL_ERROR;
+    return (TCL_ERROR);
 
 }
 
@@ -194,6 +230,7 @@ int Tclreadline_SafeInit (Tcl_Interp *interp)
 
 int Tclreadline_Init (Tcl_Interp *interp)
 {
+    
     Tcl_CreateCommand (interp, "::tclreadline::readline", TclReadlineCmd,
 	    (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
 
@@ -203,10 +240,8 @@ int Tclreadline_Init (Tcl_Interp *interp)
 char *TclReadlineInitialize (char *historyfile)
 {
 
+    rl_readline_name = "tclreadline";
     using_history ();
-    /*
-    rl_event_hook = TclReadlineEventHook;
-    */
 
     /*
      * try to read historyfile in home

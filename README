@@ -1,0 +1,63 @@
+
+tclreadline
+
+$Id$
+
+1. Introduction
+---------------
+
+This directory contains the sources and documentation for tclreadline,
+which builds a connection between tcl and the gnu readline.
+The information here corresponds to release 0.7 (initial developers release).
+
+2. Documentation
+----------------
+
+The "doc" subdirectory in this release contains the reference manual entries
+for tclreadline.  If you only want to use tclreadline as a tool for interactive
+script development,  you don't have to read this manual page at all.  Simply
+change your .tclshrc according to the next section.
+
+3. Compiling and installing tclreadline
+-------------------------------
+
+This release will probably only build under UNIX (Linux).
+
+Before trying to compile tclreadline you should do the following things:
+
+    (a) Make sure you have tcl 8.0 or higher.  I've tested tclreadline
+        with tcl 8.0.3 and 8.0.4.  tclreadline relies on a proper tcl
+        installation:
+        It uses the tclConfig.sh file, which should reside somewhere
+        in /usr/local/lib/ or /usr/local/lib/tcl8.0/...
+
+ /* ==================================================================
+   
+    FILE: "/home/joze/src/tclreadline/README"
+    LAST MODIFIED: "Sun Feb 28 15:04:28 1999 (joze)"
+    (C) 1998, 1999 by Johannes Zellner
+    Johannes.Zellner@physik.uni-karlsruhe.de
+    $Id$
+    ---
+
+    tclreadline -- gnu readline for tcl
+    Copyright (C) 1999  Johannes Zellner
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+    Johannes.Zellner@physik.uni-karlsruhe.de
+    http://krisal.physik.uni-karlsruhe.de/~joze
+
+    ================================================================== */  
