@@ -146,6 +146,10 @@ int TclReadlineCmd (clientData, interp, argc, argv)
 
         Tcl_DeleteFileHandler (0);
 
+	if (line_complete < 0) {
+	    Tcl_Eval(interp, "exit");
+	}
+
         status = history_expand (line, &expansion);
         if (status == 1)
             printf ("%s\n", expansion);
@@ -214,7 +218,10 @@ void TclReadlineDataAvailableHandler (ClientData clientData, int mask)
 
 void TclReadlineLineCompleteHandler (char *ptr)
 {
-    if (ptr && *ptr) {
+    if (!ptr) {
+        line_complete = -1;
+        rl_callback_handler_remove ();
+    } else if (*ptr) {
         line_complete = 1;
         rl_callback_handler_remove ();
         line = ptr;
