@@ -1,6 +1,6 @@
 # -*- make -*-
-# FILE: "/home/joze/src/tclreadline/Makefile.in"
-# LAST MODIFICATION: "Thu Dec 16 22:09:55 1999 (joze)"
+# FILE: "/disk01/home/joze/src/tclreadline/Makefile.in"
+# LAST MODIFICATION: "Thu Dec 16 23:12:50 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -220,7 +220,7 @@ tclshrl: $(OBJS) tclshrl.o
 	$(CC) -o tclshrl tclshrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TCL_LIB_SPEC)
 
 wishrl: $(OBJS) wishrl.o
-	$(CC) -o wishrl wishrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TK_LIB_SPEC)
+	$(CC) -o wishrl wishrl.o $(OBJS) $(TERMLIB_DIR) $(READLINE_LIB) $(TERMLIB) $(TK_LIB_SPEC) $(TCL_LIB_SPEC)
 
 install: install-binaries install-libraries install-man
 
