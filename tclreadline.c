@@ -2,7 +2,7 @@
  /* ==================================================================
 
     FILE: "/home/joze/src/tclreadline/tclreadline.c"
-    LAST MODIFICATION: "Sun Aug 22 21:26:05 1999 (joze)"
+    LAST MODIFICATION: "Tue Aug 24 03:11:24 1999 (joze)"
     (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
     $Id$
     ---
@@ -325,15 +325,18 @@ Tclreadline_Init(Tcl_Interp *interp)
 char*
 TclReadlineInitialize(char* historyfile)
 {
-
     rl_readline_name = "tclreadline";
+    /* rl_special_prefixes = "${\""; */
     rl_special_prefixes = "${";
-    using_history();
     /**
      * default is " \t\n\"\\'`@$><=;|&{("
-     * removed "{(.
+     * removed "{("
+     * added "[]}"
      */
-    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&";
+    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&[]}";
+    /* rl_completer_quote_characters = "\""; */
+
+    using_history();
     if (!tclrl_eof_string)
         tclrl_eof_string = strdup("puts {}; exit");
 
@@ -383,11 +386,11 @@ TclReadlineCompletion(char* text, int start, int end)
         /*
         fprintf (stderr, "(TclReadlineCompletion) rl_line_buffer = |%s|\n",
             rl_line_buffer);
+        fprintf (stderr, "(TclReadlineCompletion) quoted_rl_line_buffer = |%s|\n",
+            quoted_rl_line_buffer);
         fprintf (stderr, "(TclReadlineCompletion) text = |%s|\n", text);
         fprintf (stderr, "(TclReadlineCompletion) quoted_text = |%s|\n",
             quoted_text);
-        fprintf (stderr, "(TclReadlineCompletion) quoted_rl_line_buffer = |%s|\n",
-            quoted_rl_line_buffer);
         */
         sprintf(start_s, "%d", start);
         sprintf(end_s, "%d", end);

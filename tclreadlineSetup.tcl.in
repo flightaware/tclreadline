@@ -1,6 +1,6 @@
 #!/usr/local/bin/tclsh
-# FILE: "/diska/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
-# LAST MODIFICATION: "Mon Aug 23 17:34:09 1999 (joze)"
+# FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
+# LAST MODIFICATION: "Tue Aug 24 03:04:10 1999 (joze)"
 # (C) 1998, 1999 by Johannes Zellner, <johannes@zellner.org>
 # $Id$
 # ---
@@ -143,6 +143,7 @@ namespace eval tclreadline:: {
 # --> [tclreadline::GetCommon ${str}] == "tcl"
 #
 proc tclreadline::GetCommon {str} {
+    # puts stderr str=$str
     set match0 [lindex ${str} 0]
     set len0 [string length $match0]
     set no_matches [llength ${str}]
@@ -160,10 +161,61 @@ proc tclreadline::GetCommon {str} {
             append part $char
         }
     }
+    # puts stderr part=$part
     return ${part}
 }
 
+proc tclreadline::SubCmd {start line} {
+    set depth 0
+    for {set i $start} {$i > 0} {incr i -1} {
+        set c [string index $line $i]
+        if {{;} == $c} {
+            incr i; # discard command break character
+            return [list [expr $start - $i] [string range $line $i end]]
+        } elseif {{]} == $c} {
+            incr depth
+        } elseif {{[} == $c} {
+            incr depth -1
+            if {$depth < 0} {
+                incr i; # discard command break character
+                return [list [expr $start - $i] [string range $line $i end]]
+            }
+        }
+    }
+    return ""
+}
+
+# % p<TAB>
+# % bla put<TAB> $b
+# % put<TAB> $b
+# part  == put
+# start == 0
+# end   == 3
+# line  == "put $b"
+# [PartPosition] should return 0
+#
+proc tclreadline::PartPosition {part start end line} {
+    incr start -1
+    # puts stderr "(tclreadline::PartPosition) line=|$line|" 
+    # puts stderr "(tclreadline::PartPosition) start=$start"
+    set line [string range $line 0 $start]
+    regsub -all -- \" $line {\"} line
+    # puts stderr "(tclreadline::PartPosition) line=|$line|" 
+    set result [llength $line]
+    # puts stderr $result
+    return $result
+}
+
+# if the line entered so far is
+# % puts $b<TAB>
+# part  == $b
+# start == 5
+# end   == 7
+# line  == "$puts $b"
+#
 proc tclreadline::ScriptCompleter {part start end line} {
+    # puts stderr "(ScriptCompleter) |$part| $start $end |$line|"
+    variable known_cmds
     if {{$} == [string index $part 0]} {
         # variable completion. Check first, if the
         # variable starts with a plain `$' or should
@@ -207,20 +259,59 @@ proc tclreadline::ScriptCompleter {part start end line} {
         } else {
             return ""; # nothing to complete
         }
-    } elseif {{[} == [string index $part 0]} {
-        set cmd [string range $part 1 end]
-        set matches [info commands "${cmd}*"]
+    # SCENARIO:
+    #
+    # % puts bla; put<TAB> $b
+    # part  == put
+    # start == 10
+    # end   == 13
+    # line  == "puts bla; put $b"
+    # [SubCmd] --> {1 " put $b"} == sub
+    # new_start = [lindex $sub 0] == 1
+    # new_end   = [expr $end - ($start - $new_start)] == 4
+    # new_part  == $part == put
+    # new_line  = [lindex $sub 1] == " put $b"
+    # 
+    } elseif {"" != [set sub [tclreadline::SubCmd $start $line]]} {
+        set new_start [lindex $sub 0]
+        set new_end [expr $end - ($start - $new_start)]
+        set new_line [lindex $sub 1]
+        # puts stderr "(SubCmd) $new_start $new_end $new_line"
+        return \
+            [tclreadline::ScriptCompleter $part $new_start $new_end $new_line]
+    } elseif {0 == [set pos [tclreadline::PartPosition $part $start $end $line]]} {
+        # puts stderr "(PartPosition) $part $start $end $line"
+        set matches [array names known_cmds "[string trim ${part}]*"]
+        # puts matches=|$matches|
         if {1 == [llength $matches]} { ; # unique match
-            return [join [list "\[" $matches] ""]
+            return $matches
         } elseif {"" != $matches} {
-            return "${part} ${matches}"
+            set common [tclreadline::GetCommon ${matches}]
+            # puts stderr common=|$common|
+            if {"" == $common} {
+                return "[list $part] ${matches}"
+            } else {
+                return "$common ${matches}"
+            }
         } else {
             return ""; # nothing to complete
         }
     } else {
-        return ""
+        # try to use $pos further ...
+        regsub -all -- \" $line {\"} thisline
+        set cmd [lindex $thisline 0]
+        if {"" != [array names known_cmds $cmd]} {
+            set current [lindex $known_cmds($cmd) $pos]
+            if {"" != $current && "" == [string trim $part]} {
+                return $current
+            } else {
+                return ""
+            }
+        } else {
+            return ""
+        }
     }
-    return "NOTREACHED (this is probably an error)"
+    return "{NOTREACHED (this is probably an error)}"
 }
 
 proc tclreadline::ls {args} {
@@ -406,108 +497,119 @@ proc ::tclreadline::InitCmds {} {
 }
 
 proc ::tclreadline::InitTclCmds {} {
-::tclreadline::readline add "after option ?arg arg ...?"
-::tclreadline::readline add "append varName ?value value ...?"
-::tclreadline::readline add "array option arrayName ?arg ...?"
-::tclreadline::readline add "binary option ?arg arg ...?"
-::tclreadline::readline add "catch command ?varName?"
-::tclreadline::readline add "clock option ?arg ...?"
-::tclreadline::readline add "close channelId"
-::tclreadline::readline add "eof channelId"
-::tclreadline::readline add "error message ?errorInfo? ?errorCode?"
-::tclreadline::readline add "eval arg ?arg ...?"
-::tclreadline::readline add "exec ?switches? arg ?arg ...?"
-::tclreadline::readline add "expr arg ?arg ...?"
-::tclreadline::readline add "fblocked channelId"
-::tclreadline::readline add "fconfigure channelId ?optionName? ?value? ?optionName value?..."
-::tclreadline::readline add "fcopy input output ?-size size? ?-command callback?"
-::tclreadline::readline add "file option ?arg ...?"
-::tclreadline::readline add "fileevent channelId event ?script?"
-::tclreadline::readline add "flush channelId"
-::tclreadline::readline add "for start test next command"
-::tclreadline::readline add "foreach varList list ?varList list ...? command"
-::tclreadline::readline add "format formatString ?arg arg ...?"
-::tclreadline::readline add "gets channelId ?varName?"
-::tclreadline::readline add "glob ?switches? name ?name ...?"
-::tclreadline::readline add "global varName ?varName ...?"
-::tclreadline::readline add "incr varName ?increment?"
-::tclreadline::readline add "info option ?arg arg ...?"
-::tclreadline::readline add "interp cmd ?arg ...?"
-::tclreadline::readline add "join list ?joinString?"
-::tclreadline::readline add "lappend varName ?value value ...?"
-::tclreadline::readline add "lindex list index"
-::tclreadline::readline add "linsert list index element ?element ...?"
-::tclreadline::readline add "llength list"
-::tclreadline::readline add "load fileName ?packageName? ?interp?"
-::tclreadline::readline add "lrange list first last"
-::tclreadline::readline add "lreplace list first last ?element element ...?"
-::tclreadline::readline add "lsearch ?mode? list pattern"
-::tclreadline::readline add "lsort ?options? list"
-::tclreadline::readline add "namespace subcommand ?arg ...?"
-::tclreadline::readline add "open fileName ?access? ?permissions?"
-::tclreadline::readline add "package option ?arg arg ...?"
-::tclreadline::readline add "proc name args body"
-::tclreadline::readline add "puts ?-nonewline? ?channelId? string"
-::tclreadline::readline add "read ?-nonewline? channelId"
-::tclreadline::readline add "regexp ?switches? exp string ?matchVar? ?subMatchVar subMatchVar ...?"
-::tclreadline::readline add "regsub ?switches? exp string subSpec varName"
-::tclreadline::readline add "rename oldName newName"
-::tclreadline::readline add "scan string format ?varName varName ...?"
-::tclreadline::readline add "seek channelId offset ?origin?"
-::tclreadline::readline add "set varName ?newValue?"
-::tclreadline::readline add "socket ?-myaddr addr? ?-myport myport? ?-async? host port"
-::tclreadline::readline add "socket -server command ?-myaddr addr? port"
-::tclreadline::readline add "source fileName"
-::tclreadline::readline add "split string ?splitChars?"
-::tclreadline::readline add "string option arg ?arg ...?"
-::tclreadline::readline add "subst ?-nobackslashes? ?-nocommands? ?-novariables? string"
-::tclreadline::readline add "switch ?switches? string pattern body ... ?default body?"
-::tclreadline::readline add "tell channelId"
-::tclreadline::readline add "time command ?count?"
-::tclreadline::readline add "trace option \[arg arg ...\]"
-::tclreadline::readline add "unset varName ?varName ...?"
-::tclreadline::readline add "uplevel ?level? command ?arg ...?"
-::tclreadline::readline add "upvar ?level? otherVar localVar ?otherVar localVar ...?"
-::tclreadline::readline add "vwait name"
-::tclreadline::readline add "while test command"
-rename tclreadline::InitTclCmds ""
-
+    variable known_cmds
+    foreach line {
+        "after option ?arg arg ...?"
+        "append varName ?value value ...?"
+        "array option arrayName ?arg ...?"
+        "binary option ?arg arg ...?"
+        "catch command ?varName?"
+        "clock option ?arg ...?"
+        "close channelId"
+        "eof channelId"
+        "error message ?errorInfo? ?errorCode?"
+        "eval arg ?arg ...?"
+        "exec ?switches? arg ?arg ...?"
+        "expr arg ?arg ...?"
+        "fblocked channelId"
+        "fconfigure channelId ?optionName? ?value? ?optionName value?..."
+        "fcopy input output ?-size size? ?-command callback?"
+        "file option ?arg ...?"
+        "fileevent channelId event ?script?"
+        "flush channelId"
+        "for start test next command"
+        "foreach varList list ?varList list ...? command"
+        "format formatString ?arg arg ...?"
+        "gets channelId ?varName?"
+        "glob ?switches? name ?name ...?"
+        "global varName ?varName ...?"
+        "incr varName ?increment?"
+        "info option ?arg arg ...?"
+        "interp cmd ?arg ...?"
+        "join list ?joinString?"
+        "lappend varName ?value value ...?"
+        "lindex list index"
+        "linsert list index element ?element ...?"
+        "llength list"
+        "load fileName ?packageName? ?interp?"
+        "lrange list first last"
+        "lreplace list first last ?element element ...?"
+        "lsearch ?mode? list pattern"
+        "lsort ?options? list"
+        "namespace subcommand ?arg ...?"
+        "open fileName ?access? ?permissions?"
+        "package option ?arg arg ...?"
+        "proc name args body"
+        "puts ?-nonewline? ?channelId? string"
+        "read ?-nonewline? channelId"
+        "regexp ?switches? exp string ?matchVar? ?subMatchVar subMatchVar ...?"
+        "regsub ?switches? exp string subSpec varName"
+        "rename oldName newName"
+        "scan string format ?varName varName ...?"
+        "seek channelId offset ?origin?"
+        "set varName ?newValue?"
+        "socket ?-myaddr addr? ?-myport myport? ?-async? host port"
+        "socket -server command ?-myaddr addr? port"
+        "source fileName"
+        "split string ?splitChars?"
+        "string option arg ?arg ...?"
+        "subst ?-nobackslashes? ?-nocommands? ?-novariables? string"
+        "switch ?switches? string pattern body ... ?default body?"
+        "tell channelId"
+        "time command ?count?"
+        "trace option \[arg arg ...\]"
+        "unset varName ?varName ...?"
+        "uplevel ?level? command ?arg ...?"
+        "upvar ?level? otherVar localVar ?otherVar localVar ...?"
+        "vwait name"
+        "while test command"
+    } {
+        tclreadline::readline add $line
+        set known_cmds([lindex $line 0]) [lrange $line 1 end]
+    }
+    rename tclreadline::InitTclCmds ""
 }
 
 proc ::tclreadline::InitTkCmds {} {
-::tclreadline::readline add "bind window ?pattern? ?command?"
-::tclreadline::readline add "bindtags window ?tags?"
-::tclreadline::readline add "button pathName ?options?"
-::tclreadline::readline add "canvas pathName ?options?"
-::tclreadline::readline add "checkbutton pathName ?options?"
-::tclreadline::readline add "clipboard option ?arg arg ...?"
-::tclreadline::readline add "entry pathName ?options?"
-::tclreadline::readline add "event option ?arg1?"
-::tclreadline::readline add "font option ?arg?"
-::tclreadline::readline add "frame pathName ?options?"
-::tclreadline::readline add "grab option ?arg arg ...?"
-::tclreadline::readline add "grid option arg ?arg ...?"
-::tclreadline::readline add "image option ?args?"
-::tclreadline::readline add "label pathName ?options?"
-::tclreadline::readline add "listbox pathName ?options?"
-::tclreadline::readline add "lower window ?belowThis?"
-::tclreadline::readline add "menu pathName ?options?"
-::tclreadline::readline add "menubutton pathName ?options?"
-::tclreadline::readline add "message pathName ?options?"
-::tclreadline::readline add "option cmd arg ?arg ...?"
-::tclreadline::readline add "pack option arg ?arg ...?"
-::tclreadline::readline add "radiobutton pathName ?options?"
-::tclreadline::readline add "raise window ?aboveThis?"
-::tclreadline::readline add "scale pathName ?options?"
-::tclreadline::readline add "scrollbar pathName ?options?"
-::tclreadline::readline add "selection option ?arg arg ...?"
-::tclreadline::readline add "send ?options? interpName arg ?arg ...?"
-::tclreadline::readline add "text pathName ?options?"
-::tclreadline::readline add "tk option ?arg?"
-::tclreadline::readline add "tkwait variable|visibility|window name"
-::tclreadline::readline add "toplevel pathName ?options?"
-::tclreadline::readline add "winfo option ?arg?"
-::tclreadline::readline add "wm option window ?arg ...?"
+    variable known_cmds
+    foreach line {
+        "bind window ?pattern? ?command?"
+        "bindtags window ?tags?"
+        "button pathName ?options?"
+        "canvas pathName ?options?"
+        "checkbutton pathName ?options?"
+        "clipboard option ?arg arg ...?"
+        "entry pathName ?options?"
+        "event option ?arg1?"
+        "font option ?arg?"
+        "frame pathName ?options?"
+        "grab option ?arg arg ...?"
+        "grid option arg ?arg ...?"
+        "image option ?args?"
+        "label pathName ?options?"
+        "listbox pathName ?options?"
+        "lower window ?belowThis?"
+        "menu pathName ?options?"
+        "menubutton pathName ?options?"
+        "message pathName ?options?"
+        "option cmd arg ?arg ...?"
+        "pack option arg ?arg ...?"
+        "radiobutton pathName ?options?"
+        "raise window ?aboveThis?"
+        "scale pathName ?options?"
+        "scrollbar pathName ?options?"
+        "selection option ?arg arg ...?"
+        "send ?options? interpName arg ?arg ...?"
+        "text pathName ?options?"
+        "tk option ?arg?"
+        "tkwait variable|visibility|window name"
+        "toplevel pathName ?options?"
+        "winfo option ?arg?"
+        "wm option window ?arg ...?"
+    } {
+        tclreadline::readline add $line
+        set known_cmds([lindex $line 0]) [lrange $line 1 end]
+    }
 rename tclreadline::InitTkCmds ""
 }
 
