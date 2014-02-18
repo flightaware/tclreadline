@@ -625,7 +625,7 @@ proc ObjectClassCompleter {text start end line pos resultT} {
 			}
 		}
 	}
-	if {![catch [list set type [image type ${cmd}]]]} {
+	if {![catch {set type [image type $cmd]}]} {
 		switch -- ${type} {
 			photo {
 				set result [PhotoObj ${text} ${start} ${end} ${line} ${pos}]
@@ -1460,7 +1460,7 @@ proc ScriptCompleter {part start end line} {
 			# this can raise an error, if alias is
 			# no valid command.
 			#
-			if {[catch [list set alias [namespace origin $alias]]]} {
+			if {[catch {set alias [namespace origin $alias]}]} {
 				return ""
 			}
 
@@ -3042,7 +3042,7 @@ proc complete(regexp) {text start end line pos mod} {
 proc complete(regsub) {text start end line pos mod} {
 	set prev [PreviousWord ${start} ${line}]
 	if {[llength ${prev}] && "--" != $prev && \
-		("-" == [string index ${prev} 0] || 1 == ${pos)}} {
+		("-" == [string index ${prev} 0] || 1 == ${pos})} {
 		set cmds [RemoveUsedOptions ${line} {
 			-all -nocase --} {--}]
 		if {[llength ${cmds}]} {
@@ -3449,7 +3449,7 @@ proc complete(subst) {text start end line pos mod} {
 proc complete(switch) {text start end line pos mod} {
 	set prev [PreviousWord ${start} ${line}]
 	if {[llength ${prev}] && "--" != ${prev} && \
-		("-" == [string index ${prev} 0] || 1 == ${pos)}} {
+		("-" == [string index ${prev} 0] || 1 == ${pos})} {
 		set cmds [RemoveUsedOptions ${line} {
 			-exact -glob -regexp --} {--}]
 		if {[llength ${cmds}]} {

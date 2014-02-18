@@ -122,32 +122,6 @@ if test -z "$TCL_INCLUDE_DIR"; then
 else
     AC_MSG_RESULT($TCL_INCLUDE_DIR/tcl.h)
 fi
-
-
-# ---
-# check for the terminal library.
-# ---
-
-AC_ARG_WITH(tlib-library,
-    [  --with-tlib-library=DIR
-		  lib spec to tlib (e.g. '-L/usr/local/lib -lncurses')],
-    LIBS="$LIBS $withval",
-    for tlib in ncurses termlib termcap curses; do
-	brk=yes
-	AC_CHECK_LIB($tlib, tputs, , brk=no)
-	if test $brk = "yes"; then
-	    HAVE_TLIB=yes
-	    break
-	fi
-    done
-    if test "x" = "x$HAVE_TLIB"; then
-	AC_MSG_ERROR([
-	    no terminal library found. Please retry with the --with-tlib argument.
-	])
-    fi
-)
-
-
 #--------------------------------------------------------------------
 #   Check for readline.h
 #--------------------------------------------------------------------

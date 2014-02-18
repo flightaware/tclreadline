@@ -1,4 +1,3 @@
-#!/usr/locanl/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineSetup.tcl.in"
 # LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:34 +0100 (joze)"
 # (C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>
@@ -136,7 +135,7 @@ proc Setup {args} {
 	    ::tclreadline::Init
 	}
 
-	if {[catch {set a [::tclreadline::prompt1]}] && [info nameofexecutable] != ""} {
+	if {"" == [info procs ::tclreadline::prompt1] && [info nameofexecutable] != ""} {
 
 	    namespace eval ::tclreadline {
 		variable prompt_string
@@ -169,6 +168,16 @@ proc Setup {args} {
 		}
 	    }
 	    # puts body=[info body ::tclreadline::prompt1]
+	}
+
+	if {"" == [info procs ::tclreadline::prompt2] && [info nameofexecutable] != ""} {
+
+	    if {"" == [info procs ::tclreadline::prompt2]} {
+		proc ::tclreadline::prompt2 {} {
+		    return ">"
+		}
+	    }
+	    # puts body=[info body ::tclreadline::prompt2]
 	}
 
 	if {"" == [info procs exit]} {
@@ -263,22 +272,21 @@ proc Loop {args} {
 
 	while {1} {
 
-	    if [info exists tcl_prompt2] {
-		set prompt2 $tcl_prompt2
-	    } else {
-		set prompt2 ">"
-	    }
-
 	    if {[catch {
 		if {"" != [namespace eval ::tclreadline {info procs prompt1}]} {
-		    set LINE [::tclreadline::readline read \
+		    set ::tclreadline::LINE [::tclreadline::readline read \
 		    [::tclreadline::prompt1]]
 		} else {
-		    set LINE [::tclreadline::readline read %]
+		    set ::tclreadline::LINE [::tclreadline::readline read %]
 		}
-		while {![::tclreadline::readline complete $LINE]} {
-		    append LINE "\n"
-		    append LINE [tclreadline::readline read ${prompt2}]
+		while {![::tclreadline::readline complete $::tclreadline::LINE]} {
+		    append ::tclreadline::LINE "\n"
+		    if {"" != [namespace eval ::tclreadline {info procs prompt2}]} {
+			append ::tclreadline::LINE \
+			    [tclreadline::readline read [::tclreadline::prompt2]]
+		    } else {
+			append ::tclreadline::LINE [tclreadline::readline read >]
+		    }
 		}
 	    } ::tclreadline::errorMsg]} {
 		puts stderr [list tclreadline::Loop: error. \
@@ -294,19 +302,20 @@ proc Loop {args} {
 	    # from tcsh's behaviour, but I found it quite convenient
 	    # while using mshell on os9.
 	    #
-	    if {[string length $LINE] && [history event 0] != $LINE} {
-		history add $LINE
+	    if {[string length $::tclreadline::LINE] && \
+		    [history event 0] != $::tclreadline::LINE} {
+		history add $::tclreadline::LINE
 	    }
 
 	    if [catch {
-		set result [eval $LINE]
-		if {$result != "" && [tclreadline::Print]} {
-		    puts $result
+		set ::tclreadline::result [eval $::tclreadline::LINE]
+		if {$::tclreadline::result != "" && [tclreadline::Print]} {
+		    puts $::tclreadline::result
 		}
-		set result ""
+		set ::tclreadline::result ""
 	    } ::tclreadline::errorMsg] {
 		puts stderr $::tclreadline::errorMsg
-		puts stderr [list while evaluating $LINE]
+		puts stderr [list while evaluating $::tclreadline::LINE]
 	    }
 
 	}

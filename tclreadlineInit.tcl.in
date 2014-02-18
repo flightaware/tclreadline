@@ -1,4 +1,3 @@
-#!/usr/local/bin/tclsh
 # FILE: "/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
 # LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:33 +0100 (joze)"
 # (C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>

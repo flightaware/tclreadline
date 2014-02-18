@@ -49,8 +49,8 @@ static const char* tclrl_library = TCLRL_LIBRARY;
 static const char* tclrl_version_str = TCLRL_VERSION_STR;
 static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
 
-#define MALLOC(size) Tcl_Alloc((int) size)
-#define FREE(ptr) if (ptr) { Tcl_Free((char*) ptr); ptr = 0; }
+#define MALLOC(size) malloc((int) size)
+#define FREE(ptr) if (ptr) { free((char*) ptr); ptr = 0; }
 
 enum {
     _CMD_SET     = (1 << 0),
@@ -745,7 +745,7 @@ TclReadlineCompletion(char* text, int start, int end)
     }
 
     if (!matches && tclrl_use_builtin_completer) {
-	matches = completion_matches(text, TclReadline0generator);
+	matches = rl_completion_matches(text, (rl_compentry_func_t *)TclReadline0generator);
     }
 
     return matches;

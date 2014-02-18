@@ -73,7 +73,7 @@ the readline's documentation.
 
 .PP
 The following list will give all commands, which are currently
-implemented in the shared lib (e.g. libtclreadline@TCLREADLINE_VERSION@.so).
+implemented in the shared lib (e.g. libtclreadline@VERSION@.so).
 Additional commands were introduced in a startup script
 \fBtclreadlineSetup.tcl\fP, which lives in the tclreadline
 installation directory.
@@ -145,7 +145,7 @@ this to an empty value disables any action on eof.
 .TP 5
 \fB::tclreadline::readline initialize\fP \fIhistoryfile\fP
 initialize the tclreadline interface and read the history from
-the \fIhistoryfile\fP. On succes an empty string is returned.
+the \fIhistoryfile\fP. On success an empty string is returned.
 This command has to be called before any other tclreadline commands.
 
 .TP 5
@@ -211,7 +211,7 @@ it is probably a good idea to start with tclreadline::Loop
 \fB::tclreadline::prompt1\fP
 a proc which is called by ::tclreadline::Loop and returns a string
 which will be displayed as the primary prompt. This prompt will be
-something like "[info nameofexecutable] \[[pwd]\]" possibly fancy colored.
+something like "[info nameofexecutable] \\[[pwd]\\]" possibly fancy colored.
 The default proc is defined on entering the ::tclreadline::Loop,
 if it is not already defined. So: If you define your own proc
 ::tclreadline::prompt1 before entering ::tclreadline::Loop, this
@@ -232,6 +232,11 @@ must be enclosed in literal ctrl-a / ctrl-b to tell readline the length
 of the printable prompt. See for example the variable `prompt_string'
 in the file tclreadlineSetup.tcl in your tclreadline installation directory.
 
+.TP 5
+\fB::tclreadline::prompt2\fP
+a proc which is called by ::tclreadline::Loop and returns a string
+which will be displayed as the secondary prompt when interactively
+prompting  for  continuation  of  an incomplete command.
 
 .\" .SH "EXAMPLES"
 
@@ -242,12 +247,12 @@ in the file tclreadlineSetup.tcl in your tclreadline installation directory.
 
 \fItclreadline\fP defines the following variables in the
 namespace \fI::tclreadline\fP:
-(for backwards compatiblity the global variables tclreadline_version,
+(for backwards compatibility the global variables tclreadline_version,
  tclreadline_patchLevel and tclreadline_library are still present).
 
 .TP 5
 \fBtclreadline::version\fP (read-only)
-holds the version string "@TCLREADLINE_VERSION@".
+holds the version string "@VERSION@".
 
 .TP 5
 \fBtclreadline::patchLevel\fP (read-only)
@@ -255,7 +260,7 @@ holds the patch level string "@PATCHLEVEL_STR@".
 
 .TP 5
 \fBtclreadline::library\fP (read-only)
-holds the library string "@TCLREADLINE_LIBRARY@".
+holds the library string "@TCLRL_DIR@".
 
 .TP 5
 \fBtclreadline::license\fP (read-only)
