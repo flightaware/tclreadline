@@ -41,7 +41,7 @@ void rl_extend_line_buffer(int len);
  * We need it here to decide, if we should read more
  * characters from a macro. Dirty, but it should work.
  */
-extern char* _rl_executing_macro;
+extern char* EXECUTING_MACRO_NAME;
 #endif
 
 #include "tclreadline.h"
@@ -234,7 +234,7 @@ static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 
 	    rl_callback_handler_install(
 			       objc == 3 ? Tcl_GetStringFromObj(objv[2], 0)
-			       : "%", TclReadlineLineCompleteHandler);
+			       : "% ", TclReadlineLineCompleteHandler);
 
 	    Tcl_CreateFileHandler(0, TCL_READABLE,
 		TclReadlineReadHandler, (ClientData) NULL);
@@ -249,14 +249,14 @@ static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 	    tclrl_state = LINE_PENDING;
 
 	    while (!TclReadlineLineComplete()) {
-#ifdef EXECUTING_MACRO_HACK
+#ifdef EXECUTING_MACRO_NAME
 		/**
 		 * check first, if more characters are
 		 * available from _rl_executing_macro,
 		 * because Tcl_DoOneEvent() will (naturally)
 		 * not detect this `event'.
 		 */
-		if (_rl_executing_macro)
+		if (EXECUTING_MACRO_NAME)
 		    TclReadlineReadHandler((ClientData) NULL, TCL_READABLE);
 		else
 #endif
@@ -468,17 +468,17 @@ static void
 TclReadlineReadHandler(ClientData clientData, int mask)
 {
     if (mask & TCL_READABLE) {
-#ifdef EXECUTING_MACRO_HACK
+#ifdef EXECUTING_MACRO_NAME
 	do {
 #endif
 	    rl_callback_read_char();
-#ifdef EXECUTING_MACRO_HACK
+#ifdef EXECUTING_MACRO_NAME
 	    /**
 	     * check, if we're inside a macro and
 	     * if so, read all macro characters
 	     * until the next eol.
 	     */
-	} while (_rl_executing_macro && !TclReadlineLineComplete());
+	} while (EXECUTING_MACRO_NAME && !TclReadlineLineComplete());
 #endif
     }
 }
@@ -503,26 +503,29 @@ TclReadlineLineCompleteHandler(char* ptr)
 	char* expansion = (char*) NULL;
 	int status = history_expand(ptr, &expansion);
 
-	if (status >= 1) {
+	if (status >= 2) {
 	    /* TODO: make this a valid tcl output */
 	    printf("%s\n", expansion);
-	} else if (-1 == status) {
+		free(ptr);
+		free(expansion);
+		return;
+	} else if (status <= -1) {
 	    Tcl_AppendResult
-	    (tclrl_interp, "error in history expansion\n", (char*) NULL);
+	    (tclrl_interp, "error in history expansion: ", expansion, "\n", (char*) NULL);
 	    TclReadlineTerminate(TCL_ERROR);
-	}
-	/**
-	 * TODO: status == 2 ...
-	 */
+		free(ptr);
+		free(expansion);
+		return;
+	} else {
+        Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+    }
 
-	Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
-
-#ifdef EXECUTING_MACRO_HACK
+#ifdef EXECUTING_MACRO_NAME
 	/**
 	 * don't stuff macro lines
 	 * into readline's history.
 	 */
-	if(!_rl_executing_macro) {
+	if(!EXECUTING_MACRO_NAME) {
 #endif
 	    /**
 	     * don't stuff empty lines
@@ -537,7 +540,7 @@ TclReadlineLineCompleteHandler(char* ptr)
 	    if (tclrl_last_line)
 		free(tclrl_last_line);
 	    tclrl_last_line = strdup(expansion);
-#ifdef EXECUTING_MACRO_HACK
+#ifdef EXECUTING_MACRO_NAME
 	}
 #endif
 	/**
@@ -699,15 +702,19 @@ TclReadlineCompletion(char* text, int start, int end)
 	state = Tcl_VarEval(tclrl_interp, tclrl_custom_completer,
 	    " \"", quoted_text, "\" ", start_s, " ", end_s,
 	    " \"", quoted_rl_line_buffer, "\"", (char*) NULL);
-	FREE(quoted_text);
-	FREE(quoted_rl_line_buffer);
 	if (TCL_OK != state) {
 	    Tcl_AppendResult (tclrl_interp, " `", tclrl_custom_completer,
 		" \"", quoted_text, "\" ", start_s, " ", end_s,
 		" \"", quoted_rl_line_buffer, "\"' failed.", (char*) NULL);
 	    TclReadlineTerminate(state);
+		free(quoted_text);
+		free(quoted_rl_line_buffer);
 	    return matches;
 	}
+	free(quoted_text);
+	quoted_text = NULL;
+	free(quoted_rl_line_buffer);
+	quoted_rl_line_buffer = NULL;
 	obj = Tcl_GetObjResult(tclrl_interp);
 	status = Tcl_ListObjGetElements(tclrl_interp, obj, &objc, &objv);
 	if (TCL_OK != status)

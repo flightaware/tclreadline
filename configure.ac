@@ -10,7 +10,7 @@ dnl Copyright (c) 1998 - 2001, Johannes Zellner <johannes@zellner.org>
 dnl This software is copyright under the BSD license.
 
 AC_INIT(tclreadline.c)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_PREREQ(2.13)
 AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
@@ -163,29 +163,36 @@ AC_ARG_WITH(readline-library,
     [  --with-readline-library=DIR
 		  lib spec to readline (e.g. '-L/usr/local/lib -lreadline')],
     LIBS="$LIBS $withval",
-    AC_CHECK_LIB(readline, rl_callback_read_char, ,
-	AC_MSG_RESULT([
-	    Your readline version does not support readline's alternate interface.
-	    Please upgrade to readline >= 2.2 and retry.
-	])
-	exit
+    AC_SEARCH_LIBS(rl_callback_read_char, readline, ,
+		AC_MSG_RESULT([
+			Your readline version does not support readline's alternate interface.
+			Please upgrade to readline >= 2.2 and retry.
+		])
+		exit
     )
 )
 
 
 
-# check for readline's (macro.c) private variable
-# _rl_executing_macro.
+# check for readline's rl_executing_macro
+# (could be macro.c's private variable _rl_executing_macro).
 
-AC_MSG_CHECKING([for _rl_executing_macro in -lreadline])
-AC_TRY_LINK(,[
+AC_CHECK_DECL(rl_executing_macro
+, AC_DEFINE(EXECUTING_MACRO_NAME, rl_executing_macro,
+  [ Define the name of the executing macro variable in libreadline. ])
+, AC_MSG_CHECKING([for _rl_executing_macro in -lreadline])
+  AC_TRY_LINK(,[
     extern char* _rl_executing_macro;
     _rl_executing_macro = (char*) 0;
-],
-    AC_MSG_RESULT(yes);
+  ]
+  , AC_MSG_RESULT(yes)
     AC_DEFINE(EXECUTING_MACRO_HACK, 1,
-    [ Define if _rl_executing_macro is resolved in libreadline. ]),
-    AC_MSG_RESULT(no))
+    [ Define if EXECUTING_MACRO_NAME is resolved in libreadline. ])
+    AC_DEFINE(EXECUTING_MACRO_NAME, _rl_executing_macro,
+    [ Define the name of the executing macro variable in libreadline. ])
+  , AC_MSG_RESULT(no))
+, [AC_INCLUDES_DEFAULT
+#include "$READLINE_INCLUDE_DIR/readline.h"])
 
 # check for readline's rl_cleanup_after_signal
 

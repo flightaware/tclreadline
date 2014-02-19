@@ -20,6 +20,7 @@ include_HEADERS = tclreadline.h
 INCLUDES = -I$(TCL_INCLUDE_DIR) -I$(READLINE_INCLUDE_DIR)
 
 ## libtclreadline_la_LIBADD = $(LIBS)
+libtclreadline_la_LIBADD = $(TCL_LIB_SPEC) -lreadline
 libtclreadline_la_LDFLAGS = -release $(MAJOR).$(MINOR).$(PATCHLEVEL)
 
 tclrldir = @TCLRL_DIR@
