@@ -1,23 +1,22 @@
 .TH tclreadline n "@PATCHLEVEL_STR@" "Johannes Zellner"
 
-.\" FILE: "/home/joze/src/tclreadline/tclreadline.n.in"
-.\" LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:33 +0100 (joze)"
-.\" (C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>
+.\" FILE: tclreadline.n.in
 .\" $Id$
 .\" ---
 .\" tclreadline -- gnu readline for tcl
 .\" http://www.zellner.org/tclreadline/
-.\" Copyright (c) 1998 - 2001, Johannes Zellner <johannes@zellner.org>
+.\" Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 .\" This software is copyright under the BSD license.
+.\" ---
 
 
-.\"	# CS - begin code excerpt
+.\" # CS - begin code excerpt
 .de CS
 .RS
 .nf
 .ta .25i .5i .75i 1i
 ..
-.\"	# CE - end code excerpt
+.\" # CE - end code excerpt
 .de CE
 .fi
 .RE
@@ -197,12 +196,12 @@ arguments, it returns the current setting.
 enter the tclreadline main loop. This command is typically called from
 the startup resource file (something .tclshrc, depending on the interpreter
 you use, see the file `sample.tclshrc'). The main loop sets up some
-completion characteristics as variable -- try something like "puts $b<TAB>" -- 
+completion characteristics as variable -- try something like "puts $b<TAB>" --
 and command completion -- try "puts [in<TAB>".
 If the optional argument \fIhistoryfile\fP is given, this file will
 be used for reading and writing the command history instead of the
 default \fB.tclsh-history\fP.
-\fB::tclreadline::Loop\fP will normally not return. 
+\fB::tclreadline::Loop\fP will normally not return.
 If you want to write your own main loop and/or own custom completers,
 it is probably a good idea to start with tclreadline::Loop
 (see the file tclreadlineSetup.tcl).
@@ -299,7 +298,7 @@ the \fB.inputrc\fP file in the users HOME directory. This file
 is used normally for all programs which use the gnu readline (e.g.  bash).
 The `global' readline settings there will be valid also for
 \fBtclreadline\fP. Additionally the .inputrc might hold conditional
-settings for the implementation name \fBtclreadline\fP. Example of 
+settings for the implementation name \fBtclreadline\fP. Example of
 some lines in your .inputrc:
 .CS
     $if tclreadline

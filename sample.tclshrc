@@ -1,9 +1,14 @@
 #!/bin/sh
-# FILE: "/home/joze/src/tclreadline/sample.tclshrc"
-# LAST MODIFICATION: "Thu, 23 Mar 2000 21:13:08 +0100 (joze)"
-# (C) 1998 - 2000 by Johannes Zellner, <johannes@zellner.org>
+# FILE: sample.tclshrc
 # $Id$
-# vim:set ft=tcl: \
+# ---
+# tclreadline -- gnu readline for tcl
+# http://www.zellner.org/tclreadline/
+# Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+# This software is copyright under the BSD license.
+# ---
+
+# exec with tclsh \
 exec tclsh "$0" "$@"
 
 
@@ -58,3 +63,4 @@ if {$tcl_interactive} {
     tclreadline::Loop
 }
 
+# vim:set ft=tcl:

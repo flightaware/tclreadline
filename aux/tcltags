@@ -1,12 +1,16 @@
 #!/usr/local/bin/tclsh
-# FILE: "/home/joze/bin/script/tcltags"
-# LAST MODIFIED: "Mon Sep 28 10:09:29 1998 (joze)"
+# FILE: aux/tcltags
 # $Id$
+# ---
+# tclreadline -- gnu readline for tcl
+# http://www.zellner.org/tclreadline/
+# Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+# This software is copyright under the BSD license.
 # ---
 
 set tags [open "tags" a+]
 #set tags stdout
-#_BoxHandle	Z_Box.c	/^int _BoxHandle (Box *boxPtr, Tcl_Interp *interp, int argc, char **argv)$/;"	f
+#_BoxHandle Z_Box.c /^int _BoxHandle (Box *boxPtr, Tcl_Interp *interp, int argc, char **argv)$/;"   f
 
 foreach file "$argv" {
 

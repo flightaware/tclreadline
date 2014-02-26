@@ -1,19 +1,12 @@
-
  /* ==================================================================
-
-    FILE: "/home/joze/src/tclreadline/wishrl.c"
-    LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:34 +0100 (joze)"
-    (C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>
+    FILE: wishrl.c
     $Id$
     ---
-
     tclreadline -- gnu readline for tcl
     http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2001, Johannes Zellner <johannes@zellner.org>
-
+    Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
     This software is copyright under the BSD license.
-
-    ================================================================== */  
+    ================================================================== */
 
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
@@ -33,16 +26,16 @@ TclreadlineAppInit(Tcl_Interp* interp)
     int status;
 
     if (TCL_ERROR == Tcl_Init(interp)) {
-	return TCL_ERROR;
+        return TCL_ERROR;
     }
     if (TCL_ERROR == Tk_Init(interp)) {
-	return TCL_ERROR;
+        return TCL_ERROR;
     }
     if (TCL_ERROR == Tclreadline_Init(interp)) {
-	return TCL_ERROR;
+        return TCL_ERROR;
     }
     Tcl_StaticPackage(interp, "tclreadline",
-	Tclreadline_Init, Tclreadline_SafeInit);
+    Tclreadline_Init, Tclreadline_SafeInit);
 #if (TCL_MAJOR_VERSION == 7) && (TCL_MINOR_VERSION == 4)
     tcl_RcFileName = "~/.wishrc";
 #else
@@ -50,8 +43,8 @@ TclreadlineAppInit(Tcl_Interp* interp)
 #endif
     sprintf(file, "%s/tclreadlineInit.tcl", TCLRL_LIBRARY);
     if ((status = Tcl_EvalFile(interp, file))) {
-	fprintf(stderr, "(TclreadlineAppInit) unable to eval %s\n", file);
-	exit (1);
+        fprintf(stderr, "(TclreadlineAppInit) unable to eval %s\n", file);
+        exit (1);
     }
     return TCL_OK;
 }

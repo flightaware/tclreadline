@@ -1,14 +1,12 @@
-FILE: "/home/joze/src/tclreadline/README"
-LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:33 +0100 (joze)"
-(C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>
+FILE: README
 $Id$
 ---
-
 tclreadline -- gnu readline for tcl
 http://www.zellner.org/tclreadline/
-Copyright (c) 1998 - 2001, Johannes Zellner <johannes@zellner.org>
-
+Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 This software is copyright under the BSD license.
+---
+
 
 
 tclreadline
@@ -52,16 +50,16 @@ Before trying to compile tclreadline you should do the following things:
         tclshrl and / or wishrl which are a readline enhanced replacement
         for tclsh and wish. To compile these executable you should type
 
-	    ./configure --enable-tclshrl --enable-wishrl
+        ./configure --enable-tclshrl --enable-wishrl
 
-	(or one of these if you want just tclshrl or wishrl).
-	NOTE that these executables need an installed version of
-	tclreadline because they need some script files to run
-	so you can't test tclshrl/wishrl before installing
-	the tclreadline scripts.
+    (or one of these if you want just tclshrl or wishrl).
+    NOTE that these executables need an installed version of
+    tclreadline because they need some script files to run
+    so you can't test tclshrl/wishrl before installing
+    the tclreadline scripts.
 
         Building statically linked executables is DISCOURAGED
-	but necessary on systems which don't support shared libs.
+    but necessary on systems which don't support shared libs.
 
 
 4. Using tclreadline for interactive tcl scripting.
@@ -79,42 +77,42 @@ does the rest.
 -----------------------
 
 tclreadline-1.2 0: (Mar 2000)
-	switched to a BSD type license, introduced a new read-only
-	variable `license' in the tclreadline namespace.
+    switched to a BSD type license, introduced a new read-only
+    variable `license' in the tclreadline namespace.
 
 tclreadline-1.1 0: (Mar 2000)
-	code cleanup and checked that it compiles with tcl8.3
+    code cleanup and checked that it compiles with tcl8.3
 
 tclreadline-1.0.1: (Sep 1999)
 
-	changes:
-	    - tclreadline::readline bell.
+    changes:
+        - tclreadline::readline bell.
           Ring the terminal bell, obeying the setting
-		  of bell-style -- audible or visible.
+          of bell-style -- audible or visible.
 
 
 tclreadline-1.0.0: (Sep 1999)
 
-	note:
-	    - the script completer procs are written.
-		  this is `sort of a first usable release'.
+    note:
+        - the script completer procs are written.
+          this is `sort of a first usable release'.
 
     fixes:
-	    - some minor configure.in fixes.
+        - some minor configure.in fixes.
 
 
 tclreadline-0.9.3: (Sep 1999)
 
     changes:
-	    - tk completion.
-		- multiple fallback completion routines for unknown
-		  commands.
-		- readline reset-terminal sub-function.
+        - tk completion.
+        - multiple fallback completion routines for unknown
+          commands.
+        - readline reset-terminal sub-function.
 
     fixes:
-	    - another revision of procession events and macros.
-		  includes a hack using a readline's internal
-		  variable _rl_executing_macro.
+        - another revision of procession events and macros.
+          includes a hack using a readline's internal
+          variable _rl_executing_macro.
 
 
 tclreadline-0.9.2: (Aug 1999)
@@ -163,9 +161,9 @@ tclreadline-0.9: (Aug 1999)
           tclreadline::ScriptCompleter. See the man page or try
           typing "puts $env<TAB>" ... Command completion currently only
           works, if a '[' preceeds immediately a non-white character.
-        - the redefinition of the command `cd' was removed due to 
+        - the redefinition of the command `cd' was removed due to
           multiple requests. This redefinition can be found in the
-          file `sample.tclshrc' and can be uncommented, if desired. 
+          file `sample.tclshrc' and can be uncommented, if desired.
         - the definition of the command `ls' was moved outside the
           proc tclreadline::Setup and can be used with the command
           namespace import tclreadline::ls (see sample.tclshrc).

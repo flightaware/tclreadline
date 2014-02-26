@@ -1,16 +1,12 @@
-
  /* ==================================================================
-    FILE: "/home/joze/src/tclreadline/tclreadline.h.in"
-    LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:33 +0100 (joze)"
-    (C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>
+    FILE: tclreadline.h.in
     $Id$
-    vim:set ft=c:
     ---
     tclreadline -- gnu readline for tcl
     http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2001, Johannes Zellner <johannes@zellner.org>
+    Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
     This software is copyright under the BSD license.
-    ================================================================== */  
+    ================================================================== */
 
 #ifndef TCLREADLINE_H_
 #define TCLREADLINE_H_

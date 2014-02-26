@@ -1,12 +1,11 @@
-# FILE: "/home/joze/src/tclreadline/tclreadlineInit.tcl.in"
-# LAST MODIFICATION: "Mit, 10 Jan 2001 06:29:33 +0100 (joze)"
-# (C) 1998 - 2001 by Johannes Zellner, <johannes@zellner.org>
+# FILE: tclreadlineInit.tcl.in
 # $Id$
 # ---
 # tclreadline -- gnu readline for tcl
 # http://www.zellner.org/tclreadline/
-# Copyright (c) 1998 - 2001, Johannes Zellner <johannes@zellner.org>
+# Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 # This software is copyright under the BSD license.
+# ---
 
 package provide tclreadline @VERSION@
 
@@ -16,12 +15,12 @@ namespace eval tclreadline:: {
 
 proc ::tclreadline::Init {} {
     uplevel #0 {
-	if ![info exists tclreadline::library] {
-	    if [catch {load [file join @TCLRL_LIBDIR@ libtclreadline[info sharedlibextension]]} msg] {
-		puts stderr $msg
-		exit 2
-	    }
-	}
+    if ![info exists tclreadline::library] {
+        if [catch {load [file join @TCLRL_LIBDIR@ libtclreadline[info sharedlibextension]]} msg] {
+        puts stderr $msg
+        exit 2
+        }
+    }
     }
 }
 
