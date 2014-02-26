@@ -415,7 +415,7 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
              * settings -- audible or visible.
              */
 
-            ding();
+            rl_ding();
             break;
 
         case TCLRL_UPDATE:
