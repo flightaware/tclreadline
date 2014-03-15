@@ -10,6 +10,7 @@
 
 package provide tclreadline @VERSION@
 
+rename unknown _unknown
 proc unknown args {
 
     global auto_noexec auto_noload env unknown_pending tcl_interactive
@@ -310,11 +311,7 @@ namespace eval tclreadline {
         if {![info exists PRINT]} {
             set PRINT yes
         }
-        if [regexp -nocase \(true\|yes\|1\) $args] {
-            set PRINT yes
-        } elseif [regexp -nocase \(false\|no\|0\) $args] {
-            set PRINT no
-        }
+        catch {set PRINT [expr {$args ? "yes" : "no"}]}
         return $PRINT
     }
 
