@@ -15,12 +15,12 @@ namespace eval tclreadline:: {
 
 proc ::tclreadline::Init {} {
     uplevel #0 {
-    if ![info exists tclreadline::library] {
-        if [catch {load [file join @TCLRL_LIBDIR@ libtclreadline[info sharedlibextension]]} msg] {
-        puts stderr $msg
-        exit 2
+        if {![info exists tclreadline::library]} {
+            if {[catch {load [file join @TCLRL_LIBDIR@ libtclreadline[info sharedlibextension]]} msg]} {
+                puts stderr $msg
+                exit 2
+            }
         }
-    }
     }
 }
 
@@ -30,4 +30,4 @@ tclreadline::Init
 source [file join [file dirname [info script]] tclreadlineSetup.tcl]
 
 set auto_index(::tclreadline::ScriptCompleter) \
-[list source [file join [file dirname [info script]] tclreadlineCompleter.tcl]]
+    [list source [file join [file dirname [info script]] tclreadlineCompleter.tcl]]
