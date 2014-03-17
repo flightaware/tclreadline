@@ -1,11 +1,11 @@
-FILE: README
-$Id$
----
-tclreadline -- gnu readline for tcl
-http://www.zellner.org/tclreadline/
-Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
-This software is copyright under the BSD license.
----
+# FILE: README
+# $Id$
+# ---
+# tclreadline -- gnu readline for tcl
+# http://www.zellner.org/tclreadline/
+# Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+# This software is copyright under the BSD license.
+# ---
 
 
 
@@ -73,7 +73,7 @@ start your favorite interpreter. The tclreadlineSetup.tcl script
 does the rest.
 
 
-4. History and Changes.
+5. History and Changes.
 -----------------------
 
 tclreadline-1.2 0: (Mar 2000)
@@ -182,3 +182,4 @@ tclreadline-0.8: (May 1999)
 
 tclreadline-0.7: (Feb 1999)
     first `public release'.
+

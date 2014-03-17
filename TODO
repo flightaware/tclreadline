@@ -1,16 +1,15 @@
-    +  reimplement wishrl & tclshrl
+* detect availability of rl_extend_line_buffer() in configure
+  (for tclreadline.c)
 
-    +  history_truncate_file(int n, char* historyfile)
-       verwenden, um nur eine begrenze Zahl zu schreiben.
-
-    +  wenn nur ein array Element von a vorliegt,
-       wird trotzdem nur auf $a( completed. --> ändern.
-
-    +  history_expansion mit <Tab> (z.B. !$).
-
-    +  ist $bla das erste Wort eines Befehls, so sollte vor 
-       der completion die Variable ersetzt werden, um den
-       completer herauszufinden.
-
-    +  den script completern den level mitgeben ?
+* translate those
+  +  reimplement wishrl & tclshrl
+  +  history_truncate_file(int n, char* historyfile)
+     verwenden, um nur eine begrenze Zahl zu schreiben.
+  +  wenn nur ein array Element von a vorliegt,
+     wird trotzdem nur auf $a( completed. --> ändern.
+  +  history_expansion mit <Tab> (z.B. !$).
+  +  ist $bla das erste Wort eines Befehls, so sollte vor 
+     der completion die Variable ersetzt werden, um den
+     completer herauszufinden.
+  +  den script completern den level mitgeben ?
 
