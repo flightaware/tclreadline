@@ -1,23 +1,20 @@
- /* ==================================================================
-    FILE: tclshrl.c
-    $Id$
-    ---
-    tclreadline -- gnu readline for tcl
-    http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
-    This software is copyright under the BSD license.
-    ================================================================== */
+ /* ================================================================== *
+  * FILE: tclshrl.c
+  * $Id$
+  * ---
+  * tclreadline -- gnu readline for tcl
+  * http://www.zellner.org/tclreadline/
+  * Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+  * This software is copyright under the BSD license.
+  * ================================================================== */
 
 #ifdef HAVE_CONFIG_H
-#   include "config.h"
+#  include "config.h"
 #endif
 
+#include <stdlib.h>
 #include <tcl.h>
 #include <tclreadline.h>
-
-#if 0
-#include <assert.h>
-#endif
 
 extern int Tclreadline_Init(Tcl_Interp *interp);
 extern int Tclreadline_SafeInit(Tcl_Interp *interp);
@@ -27,9 +24,6 @@ TclreadlineAppInit(Tcl_Interp* interp)
 {
     char file[0xff];
     int status;
-#if 0
-    assert(Tcl_InitStubs(interp, TCL_VERSION, 0));
-#endif
     if (TCL_ERROR == Tcl_Init(interp)) {
         return TCL_ERROR;
     }
@@ -37,7 +31,7 @@ TclreadlineAppInit(Tcl_Interp* interp)
         return TCL_ERROR;
     }
     Tcl_StaticPackage(interp, "tclreadline",
-    Tclreadline_Init, Tclreadline_SafeInit);
+                      Tclreadline_Init, Tclreadline_SafeInit);
 #if (TCL_MAJOR_VERSION == 7) && (TCL_MINOR_VERSION == 4)
     tcl_RcFileName = "~/.tclshrc";
 #else
@@ -46,7 +40,7 @@ TclreadlineAppInit(Tcl_Interp* interp)
     sprintf(file, "%s/tclreadlineInit.tcl", TCLRL_LIBRARY);
     if ((status = Tcl_EvalFile(interp, file))) {
         fprintf(stderr, "(TclreadlineAppInit) unable to eval %s\n", file);
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     return TCL_OK;
 }
@@ -55,5 +49,5 @@ int
 main(int argc, char *argv[])
 {
     Tcl_Main(argc, argv, TclreadlineAppInit);
-    return 0;
+    return EXIT_SUCCESS;
 }

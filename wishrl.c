@@ -1,17 +1,18 @@
- /* ==================================================================
-    FILE: wishrl.c
-    $Id$
-    ---
-    tclreadline -- gnu readline for tcl
-    http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
-    This software is copyright under the BSD license.
-    ================================================================== */
+ /* ================================================================== *
+  * FILE: wishrl.c
+  * $Id$
+  * ---
+  * tclreadline -- gnu readline for tcl
+  * http://www.zellner.org/tclreadline/
+  * Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+  * This software is copyright under the BSD license.
+  * ================================================================== */
 
 #ifdef HAVE_CONFIG_H
-#   include "config.h"
+#  include "config.h"
 #endif
 
+#include <stdlib.h>
 #include <tcl.h>
 #include <tk.h>
 #include <tclreadline.h>
@@ -44,7 +45,7 @@ TclreadlineAppInit(Tcl_Interp* interp)
     sprintf(file, "%s/tclreadlineInit.tcl", TCLRL_LIBRARY);
     if ((status = Tcl_EvalFile(interp, file))) {
         fprintf(stderr, "(TclreadlineAppInit) unable to eval %s\n", file);
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     return TCL_OK;
 }
@@ -53,5 +54,5 @@ int
 main(int argc, char *argv[])
 {
     Tk_Main(argc, argv, TclreadlineAppInit);
-    return 0;
+    return EXIT_SUCCESS;
 }

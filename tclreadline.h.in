@@ -1,12 +1,12 @@
- /* ==================================================================
-    FILE: tclreadline.h.in
-    $Id$
-    ---
-    tclreadline -- gnu readline for tcl
-    http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
-    This software is copyright under the BSD license.
-    ================================================================== */
+ /* ================================================================== *
+  * FILE: tclreadline.h.in
+  * $Id$
+  * ---
+  * tclreadline -- gnu readline for tcl
+  * http://www.zellner.org/tclreadline/
+  * Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+  * This software is copyright under the BSD license.
+  * ================================================================== */
 
 #ifndef TCLREADLINE_H_
 #define TCLREADLINE_H_

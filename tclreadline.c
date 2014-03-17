@@ -1,12 +1,12 @@
- /* ==================================================================
-    FILE: tclreadline.c
-    $Id$
-    ---
-    tclreadline -- gnu readline for tcl
-    http://www.zellner.org/tclreadline/
-    Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
-    This software is copyright under the BSD license.
-    ================================================================== */
+ /* ================================================================== *
+  * FILE: tclreadline.c
+  * $Id$
+  * ---
+  * tclreadline -- gnu readline for tcl
+  * http://www.zellner.org/tclreadline/
+  * Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+  * This software is copyright under the BSD license.
+  * ================================================================== */
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -50,8 +50,8 @@ static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
 #define FREE(ptr) free(ptr); ptr = NULL
 
 enum {
-    _CMD_SET     = (1 << 0),
-    _CMD_GET     = (1 << 1)
+    _CMD_SET = (1 << 0),
+    _CMD_GET = (1 << 1)
 };
 
 
@@ -64,41 +64,43 @@ typedef struct cmds_t {
 
 #define ISWHITE(c) ((' ' == c) || ('\t' == c) || ('\n' == c))
 
-/* forward declarations. */
-static char* stripleft(char* in);
-static char* stripright(char* in);
-static char* stripwhite(char* in);
-static int TclReadlineLineComplete(void);
-static void TclReadlineTerminate(int state);
-static char* TclReadlineQuote(char* text, char* quotechars);
-static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
-                   Tcl_Obj *CONST objv[]);
-static void TclReadlineReadHandler(ClientData clientData, int mask);
-static void TclReadlineLineCompleteHandler(char* ptr);
-static int TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
-static int blank_line(char* str);
+/**
+ * forward declarations
+ */
+static char*  stripleft(char* in);
+static char*  stripright(char* in);
+static char*  stripwhite(char* in);
+static int    TclReadlineLineComplete(void);
+static void   TclReadlineTerminate(int state);
+static char*  TclReadlineQuote(char* text, char* quotechars);
+static int    TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
+                             Tcl_Obj *CONST objv[]);
+static void   TclReadlineReadHandler(ClientData clientData, int mask);
+static void   TclReadlineLineCompleteHandler(char* ptr);
+static int    TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
+static int    blank_line(char* str);
 static char** TclReadlineCompletion(char* text, int start, int end);
-static char* TclReadline0generator(char* text, int state);
-static char* TclReadlineKnownCommands(char* text, int state, int mode);
-static int TclReadlineParse(char** args, int maxargs, char* buf);
+static char*  TclReadline0generator(char* text, int state);
+static char*  TclReadlineKnownCommands(char* text, int state, int mode);
+static int    TclReadlineParse(char** args, int maxargs, char* buf);
 
 
 enum {
-    LINE_PENDING = -1,
-    LINE_EOF = (1 << 8),
+    LINE_PENDING  = -1,
+    LINE_EOF      = (1 << 8),
     LINE_COMPLETE = (1 << 9)
 };
 
 /**
  * global variables
  */
-static int tclrl_state = TCL_OK;
-static char* tclrl_eof_string = (char*) NULL;
-static char* tclrl_custom_completer = (char*) NULL;
-static char* tclrl_last_line = (char*) NULL;
-static int tclrl_use_builtin_completer = 1;
-static int tclrl_history_length = -1;
-Tcl_Interp* tclrl_interp = (Tcl_Interp*) NULL;
+static int   tclrl_state                 = TCL_OK;
+static char* tclrl_eof_string            = (char*) NULL;
+static char* tclrl_custom_completer      = (char*) NULL;
+static char* tclrl_last_line             = (char*) NULL;
+static int   tclrl_use_builtin_completer = 1;
+static int   tclrl_history_length        = -1;
+Tcl_Interp*  tclrl_interp                = (Tcl_Interp*) NULL;
 
 static char* tclrl_license =
 "   Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>\n"
