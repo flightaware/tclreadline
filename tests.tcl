@@ -28,8 +28,6 @@ package require tcltest
     ![catch { package require TclOO 1.0 }]
 }]
 
-
-
 set prompt {% }
 set tclshrc [file join $::env(HOME) .tclshrc]
 
@@ -56,7 +54,7 @@ proc setup {} {
     } {SIGINT SIGHUP}
 
     puts \n----
-    uplevel #0 spawn tclsh
+    uplevel #0 spawn [info nameofexecutable]
     send "package require tclreadline\r"
     expect -exact $::prompt
     send "::tclreadline::Loop\r"
