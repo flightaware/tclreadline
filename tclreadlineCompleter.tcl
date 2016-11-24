@@ -1094,7 +1094,7 @@ namespace eval tclreadline {
             foreach name $namespaces {
                 regsub "^::" $name "" name
                 if {[string length $name]} {
-                    lappend new $name::
+                    lappend new ${name}::
                 }
             }
             set namespaces $new
