@@ -1378,6 +1378,8 @@ namespace eval tclreadline {
                     return ""
                 }
 
+                set full_path $alias
+
                 # strip leading ::'s.
                 #
                 regsub -all {^::} $alias {} alias
@@ -1385,20 +1387,48 @@ namespace eval tclreadline {
                 set alias [namespace tail $alias]
             # }
 
-            # try first a specific completer, then, and only then
-            # the tclreadline_complete_unknown.
+            # try first a specific completer, then an OO completer if
+            # appropriate, then, and only then, tclreadline_complete_unknown.
             #
-            foreach cmd [list $alias tclreadline_complete_unknown] {
-                if {"" != [namespace eval ::tclreadline::${namespc} \
-                               [list info procs complete($cmd)]]} {
+            set completers [list $alias tclreadline_complete_unknown]
+            set is_object 0
+            if {![catch {package present TclOO}]} {
+                if {[info object isa object $full_path]} {
+                    set completers [linsert $completers 1 _tcloo]
+                    set is_object 1
+                }
+            }
+            if {![catch {package present Itcl}] ||
+                    ![catch {package present itcl}]} {
+                if {[::itcl::find objects $full_path] eq $full_path} {
+                    set completers [linsert $completers 1 _itcl]
+                    set is_object 1
+                }
+            }
+
+            foreach cmd $completers {
+                # Set the namespace for the current command. This is to make it
+                # possible for generic object completers, which are defined in
+                # ::tclreadline, to coexist with the hypothetical future
+                # completers for specific objects defined in
+                # ::tclreadline::somepackage.
+                set namespc_cc $namespc
+                if {$is_object && [string match _* $cmd]} {
+                    set namespc_cc ""
+                }
+
+                if {"" != [namespace eval \
+                        ::tclreadline::${namespc_cc} \
+                                [list info procs complete($cmd)]]} {
                     # to be more error-proof, we check here,
                     # if complete($cmd) takes exactly 5 arguments.
                     #
                     if {6 != [set arguments \
-                                  [llength \
-                                       [namespace eval ::tclreadline::${namespc} \
+                            [llength \
+                                    [namespace eval ::tclreadline::${namespc_cc} \
                                             [list info args complete($cmd)]]]]} {
-                        error "complete($cmd) takes $arguments arguments, but should take exactly 6"
+                        error "complete($cmd) takes $arguments arguments,\
+                                but should take exactly 6"
                     }
 
                     # remove leading quotes
@@ -1406,9 +1436,9 @@ namespace eval tclreadline {
                     set mod [StripPrefix $part]
 
                     if {[catch {set script_result \
-                                    [namespace eval ::tclreadline::${namespc} \
-                                         [list complete($cmd) $part $start $end $line $pos $mod]]} \
-                             ::tclreadline::errorMsg]} {
+                            [namespace eval ::tclreadline::${namespc_cc} \
+                                    [list complete($cmd) $part $start $end $line $pos $mod]]} \
+                                    ::tclreadline::errorMsg]} {
                         error "error during evaluation of `complete($cmd)'"
                     }
                     if {![string length $script_result]
@@ -2217,8 +2247,9 @@ namespace eval tclreadline {
             1 {
                 set cmds {
                     args body cmdcount commands complete default exists
-                    globals hostname level library loaded locals nameofexecutable
-                    patchlevel procs script sharedlibextension tclversion vars
+                    globals hostname level library loaded locals
+                    nameofexecutable object patchlevel procs script
+                    sharedlibextension tclversion vars
                 }
                 return [CompleteFromList $text $cmds]
             }
@@ -2228,9 +2259,23 @@ namespace eval tclreadline {
                     body     -
                     default  -
                     procs    { return [complete(proc) $text 0 0 $line 1 $mod] }
+                    class    {
+                        set subcmds {
+                            call constructor definition destructor filters
+                            forward instances methods methodtype mixins
+                            subclasses superclasses variables
+                        }
+                    }
                     complete { return [DisplayHints <command>] }
                     level    { return [DisplayHints ?number?] }
                     loaded   { return [DisplayHints ?interp?] }
+                    object   {
+                        set subcmds {
+                            call class definition filters forward isa methods
+                            methodtype mixins namespace variables vars
+                        }
+                        return [CompleteFromList $text $subcmds]
+                    }
                     commands -
                     exists   -
                     globals  -
@@ -2248,6 +2293,9 @@ namespace eval tclreadline {
             }
             3 {
                 switch -- $cmd {
+                    object {
+                        return [VarCompletion $text]
+                    }
                     default {
                         set proc [Lindex $line 2]
                         return [CompleteFromList $text \
@@ -3564,6 +3612,100 @@ namespace eval tclreadline {
         }
         return ""
     }
+
+    # --- TclOO PACKAGE ---
+    proc complete(_tcloo) {text start end line pos mod} {
+        # Resolve object name. A full-on [subst] without -nocommands may seem
+        # excessive but this mirrors what ScriptCompleter does.
+        set obj [uplevel [info level] [list subst [Lindex $line 0]]]
+        switch -- $pos {
+            0 {
+                return ""
+            }
+            1 {
+                return [CompleteFromList $text [info object methods $obj -all]]
+            }
+            default {
+                set method [Lindex $line 1]
+                set cls [info object class $obj]
+                if {$method in [info object methods $obj]} {
+                    set method_args \
+                            [Lindex [info object definition $obj $method] 0]
+                } elseif {$method in [info class methods $cls]} {
+                    set method_args \
+                            [Lindex [info class definition $cls $method] 0]
+                } else {
+                    return ""
+                }
+                set len [Llength $method_args]
+                set arg_pos [expr { $pos - 2 }]
+                if {($len > 0) && ($arg_pos < $len)} {
+                    set arg [Lindex $method_args $pos-2]
+                    return [DisplayHints [list <$arg>]]
+                } else {
+                    return ""
+                } 
+            }
+        }
+        error "this should never be reached"
+    }
+    # --- END OF TclOO PACKAGE ---
+
+    # --- itcl PACKAGE ---
+    proc complete(_itcl) {text start end line pos mod} {
+        set obj [uplevel [info level] [list subst [Lindex $line 0]]]
+
+        switch -- $pos {
+            0 {
+                return ""
+            }
+            1 {
+                set methods info
+                foreach method [$obj info function] {
+                    lappend methods [namespace tail $method]
+                }
+                return [CompleteFromList $text $methods]
+            }
+            default {
+                set method [Lindex $line 1]
+                switch -- $method {
+                    cget -
+                    configure {
+                        if {$pos % 2 == 0} {
+                            set option_names {}
+                            foreach option [$obj configure] {
+                                lappend option_names [Lindex $option 0]
+                            }
+                            return [CompleteFromList $text $option_names]
+                        } else {
+                            return ""
+                        }
+                    }
+                    info {
+                        set subcmds {class inherit heritage function variable}
+                        return [CompleteFromList $text $subcmds]
+                    }
+                    default {
+                        if {[catch {
+                            set method_args [$obj info function $method -args]
+                        }]} {
+                            return ""
+                        }
+                        set len [Llength $method_args]
+                        set arg_pos [expr { $pos - 2 }]
+                        if {($len > 0) && ($arg_pos < $len)} {
+                            set arg [Lindex $method_args $pos-2]
+                            return [DisplayHints [list <$arg>]]
+                        } else {
+                            return ""
+                        }
+                    }
+                }
+            }
+        }
+        error "this should never be reached"
+    }
+    # --- END OF itcl PACKAGE ---
 
     # -------------------------------------
     #                  TK
