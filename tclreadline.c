@@ -636,7 +636,7 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
      * directory. If this failes, this
      * is *not* an error.
      */
-    rl_attempted_completion_function = (CPPFunction *) TclReadlineCompletion;
+    rl_attempted_completion_function = (rl_completion_func_t *) TclReadlineCompletion;
     if (read_history(historyfile)) {
         if (write_history(historyfile)) {
             Tcl_AppendResult (interp, "warning: `",
