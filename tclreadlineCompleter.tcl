@@ -2243,72 +2243,75 @@ namespace eval tclreadline {
 
     proc complete(info) {text start end line pos mod} {
         set cmd [Lindex $line 1]
+        set tcloo 0
+        if {![catch {package present TclOO 1.0}]} {
+            set tcloo 1
+        }
         switch -- $pos {
             1 {
                 set cmds {
                     args body cmdcount commands complete default exists
                     globals hostname level library loaded locals
-                    nameofexecutable object patchlevel procs script
+                    nameofexecutable patchlevel procs script
                     sharedlibextension tclversion vars
                 }
-                return [CompleteFromList $text $cmds]
+                if {$tcloo} {
+                    lappend cmds class object
+                }
+                return [CompleteFromList $text [lsort $cmds]]
             }
             2 {
-                switch -- $cmd {
-                    args     -
-                    body     -
-                    default  -
-                    procs    { return [complete(proc) $text 0 0 $line 1 $mod] }
-                    class    {
-                        set subcmds {
-                            call constructor definition destructor filters
-                            forward instances methods methodtype mixins
-                            subclasses superclasses variables
-                        }
+                if {$tcloo && ($cmd eq "class")} {
+                    set subcmds {
+                        call constructor definition destructor filters forward
+                        instances methods methodtype mixins subclasses
+                        superclasses variables 
                     }
-                    complete { return [DisplayHints <command>] }
-                    level    { return [DisplayHints ?number?] }
-                    loaded   { return [DisplayHints ?interp?] }
-                    object   {
-                        set subcmds {
-                            call class definition filters forward isa methods
-                            methodtype mixins namespace variables vars
-                        }
-                        return [CompleteFromList $text $subcmds]
+                    return [CompleteFromList $text $subcmds]
+                } elseif {$tcloo && ($cmd eq "object")} {
+                    set subcmds {
+                        call class definition filters forward isa methods
+                        methodtype mixins namespace variables vars
                     }
-                    commands -
-                    exists   -
-                    globals  -
-                    locals   -
-                    vars     {
-                        if {"exists" == $cmd} {
-                            set do vars
-                        } else {
-                            set do $cmd
+                    return [CompleteFromList $text $subcmds]
+                } else {
+                    switch -- $cmd {
+                        args     -
+                        body     -
+                        default  -
+                        procs    {
+                            return [complete(proc) $text 0 0 $line 1 $mod]
                         }
-                        return [CompleteFromList $text \
-                                    [uplevel [info level] info $do]]
+                        complete { return [DisplayHints <command>] }
+                        level    { return [DisplayHints ?number?] }
+                        loaded   { return [DisplayHints ?interp?] }
+                        commands -
+                        exists   -
+                        globals  -
+                        locals   -
+                        vars     {
+                            if {"exists" == $cmd} {
+                                set do vars
+                            } else {
+                                set do $cmd
+                            }
+                            return [CompleteFromList $text \
+                                        [uplevel [info level] info $do]]
+                        }
                     }
                 }
             }
             3 {
-                switch -- $cmd {
-                    object {
-                        return [VarCompletion $text]
-                    }
-                    default {
-                        set proc [Lindex $line 2]
-                        return [CompleteFromList $text \
-                                    [uplevel [info level] info args $proc]]
-                    }
-                    default {}
+                if {$tcloo && ($cmd eq "object")} {
+                    return [VarCompletion $text]
+                } else {
+                    set proc [Lindex $line 2]
+                    return [CompleteFromList $text \
+                                [uplevel [info level] info args $proc]]
                 }
             }
             4 {
-                switch -- $cmd {
-                    default { return [VarCompletion $text] }
-                    default {}
-                }
+                return [VarCompletion $text]
             }
         }
         return ""
