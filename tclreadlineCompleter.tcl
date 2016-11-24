@@ -1392,14 +1392,14 @@ namespace eval tclreadline {
             #
             set completers [list $alias tclreadline_complete_unknown]
             set is_object 0
-            if {![catch {package present TclOO}]} {
+            if {![catch {package present TclOO 1.0}]} {
                 if {[info object isa object $full_path]} {
                     set completers [linsert $completers 1 _tcloo]
                     set is_object 1
                 }
             }
-            if {![catch {package present Itcl}] ||
-                    ![catch {package present itcl}]} {
+            if {![catch {package present Itcl 3.0}] ||
+                    ![catch {package present itcl 4.0}]} {
                 if {[::itcl::find objects $full_path] eq $full_path} {
                     set completers [linsert $completers 1 _itcl]
                     set is_object 1
@@ -3644,7 +3644,7 @@ namespace eval tclreadline {
                     return [DisplayHints [list <$arg>]]
                 } else {
                     return ""
-                } 
+                }
             }
         }
         error "this should never be reached"
