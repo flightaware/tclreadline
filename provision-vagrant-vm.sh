@@ -1,12 +1,15 @@
 #! /bin/sh
-sudo apt-get install -y
-        autoconf
-        build-essential
-        expect
-        libreadline6
-        libreadline6-dev
-        libtool
-        tcl
+set -e
+sudo apt-get update
+sudo apt-get install -y \
+        autoconf \
+        build-essential \
+        expect \
+        itcl3 \
+        libreadline6 \
+        libreadline6-dev \
+        libtool \
+        tcl \
         tcl-dev
 cd /vagrant
 autoreconf -fvi
