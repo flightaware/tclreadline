@@ -19,7 +19,7 @@ package require tcltest
     ![catch { package require Itcl 3.0 }]
 }]
 ::tcltest::testConstraint itcl4 [expr {
-    ![catch { package require itcl }]
+    ![catch { package require itcl 4.0 }]
 }]
 ::tcltest::testConstraint itcl [expr {
     [::tcltest::testConstraint itcl3] || [::tcltest::testConstraint itcl4]
