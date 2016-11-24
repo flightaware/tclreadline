@@ -484,6 +484,9 @@ TclReadlineReadHandler(ClientData clientData, int mask)
 static void
 TclReadlineLineCompleteHandler(char* ptr)
 {
+
+    Tcl_ResetResult(tclrl_interp); /* clear result space */
+
     if (!ptr) { /* <c-d> */
 
         TclReadlineTerminate(LINE_EOF);
