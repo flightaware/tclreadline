@@ -1,0 +1,11 @@
+config.h
+config.log
+config.status
+configure
+pkgIndex.tcl
+tclreadline.h
+tclreadline.n
+tclreadlineInit.tcl
+tclreadlineSetup.tcl
+Makefile
+Makefile.in
