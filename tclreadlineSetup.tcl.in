@@ -289,6 +289,10 @@ namespace eval tclreadline {
                 if {[string length $::tclreadline::LINE]
                         && [history event 0] != $::tclreadline::LINE} {
                     history add $::tclreadline::LINE
+                    if {[catch {::tclreadline::readline write [::tclreadline::HistoryFileGet]} \
+                             ::tclreadline::errorMsg]} {
+                        puts stderr $::tclreadline::errorMsg
+                    }
                 }
 
                 if {[catch {
