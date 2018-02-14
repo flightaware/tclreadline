@@ -289,7 +289,8 @@ namespace eval tclreadline {
                 if {[string length $::tclreadline::LINE]
                         && [history event 0] != $::tclreadline::LINE} {
                     history add $::tclreadline::LINE
-                    if {[info exists ::tclreadline::autosave] && $::tclreadline::autosave == 1 && \
+                    if {[info exists ::tclreadline::autosave] && \
+			    [string is true -strict $::tclreadline::autosave] && \
 			    [catch {::tclreadline::readline write [::tclreadline::HistoryFileGet]} \
                              ::tclreadline::errorMsg]} {
                         puts stderr $::tclreadline::errorMsg
