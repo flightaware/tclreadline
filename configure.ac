@@ -107,7 +107,7 @@ AC_ARG_WITH(tcl-includes,
 
 AC_MSG_CHECKING([where to look for tcl.h])
 TCL_INCLUDE_DIR=""
-for dir in $tcl_includes $prefix/include/ /usr/include; do
+for dir in $tcl_includes $prefix/include/ ${TCL_INCLUDE_SPEC#-I} /usr/include; do
     if test -r $dir/tcl.h; then
         TCL_INCLUDE_DIR=$dir
         break
