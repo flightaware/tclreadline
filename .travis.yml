@@ -15,8 +15,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y lib64readline6-dev; fi
 
 script:
-  - cd tnm
   - autoreconf -vi
-  - if [ -f /usr/local/lib/tclConfig.sh ]; then ./configure --enable-maintainer-mode --with-readline-includes=/usr/local/Cellar/readline/7.0.3_1/include --with-readline-library=/usr/local/Cellar/readline/7.0.3_1/lib --prefix=/usr/local --with-tcl=/usr/local/lib; else ./configure --enable-maintainer-mode; fi
+  - if [ -f /usr/local/lib/tclConfig.sh ]; then ./configure --with-readline-includes=/usr/local/Cellar/readline/7.0.3_1/include --with-readline-library=/usr/local/Cellar/readline/7.0.3_1/lib --with-tcl=/usr/local/lib; else ./configure; fi
   - make
   - sudo make install
