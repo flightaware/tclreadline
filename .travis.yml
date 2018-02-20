@@ -1,0 +1,21 @@
+language: c
+
+sudo: true
+
+os:
+  - linux
+  - osx
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tcl-tk; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force --overwrite tcl-tk; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install readline; fi
+
+script:
+  - cd tnm
+  - autoreconf -vi
+  - if [ -f /usr/local/lib/tclConfig.sh ]; then ./configure --enable-maintainer-mode --with-readline-includes=/usr/local/Cellar/readline/7.0.3_1/include --with-readline-library=/usr/local/Cellar/readline/7.0.3_1/lib --prefix=/usr/local --with-tcl=/usr/local/lib; else ./configure --enable-maintainer-mode; fi
+  - make
+  - sudo make install
+  
