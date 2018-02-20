@@ -58,6 +58,10 @@ if {$tcl_interactive} {
     #
     # ::tclreadline::readline customcompleter ""
 
+    # automatically save the history after every
+    # command (instead of when cleanly exiting)
+    set tclreadline::autosave 1
+
     # go to tclrealdine's main loop.
     #
     tclreadline::Loop
