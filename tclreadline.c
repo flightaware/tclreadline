@@ -868,7 +868,7 @@ TclReadlineParse(char** args, int maxargs, char* buf)
 {
     int nr = 0;
 
-    while (*buf != '\0' && nr < maxargs) {
+    while (*buf != '\0' && nr < maxargs - 1) {
         /*
          * Strip whitespace.  Use nulls, so
          * that the previous argument is terminated
@@ -887,7 +887,7 @@ TclReadlineParse(char** args, int maxargs, char* buf)
             buf++;
     }
 
-    *args = '\0';
+    *args = NULL;
     return nr;
 }
 
