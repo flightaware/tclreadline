@@ -19,6 +19,9 @@ FILE=tclreadline.c
 
 DIE=0
 
+# optionally feature libtoolize
+(libtoolize --version)  < /dev/null > /dev/null 2>&1 && libtoolize --install
+
 (autoconf --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "You must have autoconf installed to compile $PROJECT."
