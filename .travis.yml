@@ -18,8 +18,7 @@ before_install:
 script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then autoreconf -vi; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./configure --with-readline-includes=/usr/local/Cellar/readline/7.0.3_1/include --with-readline-library=/usr/local/Cellar/readline/7.0.3_1/lib --with-tcl=/usr/local/lib; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cat ./autogen.sh; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then libtoolize --install; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then /usr/bin/libtoolize --install; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then /bin/sh -x ./autogen.sh; fi
   - make
   - sudo make install
