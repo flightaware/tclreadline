@@ -8,15 +8,16 @@ dnl Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 dnl This software is copyright under the BSD license.
 dnl ---
 
-AC_INIT(tclreadline.c)
+AC_INIT([tclreadline], [2.3.1])
+AC_CONFIG_SRCDIR([tclreadline.c])
 AC_CONFIG_HEADERS(config.h)
 AC_PREREQ(2.13)
 AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
 
-MAJOR=2
-MINOR=3
-PATCHLEVEL=1
+MAJOR="`echo 'AC_PACKAGE_VERSION' | cut -d. -f 1`"
+MINOR="`echo 'AC_PACKAGE_VERSION' | cut -d. -f 2`"
+PATCHLEVEL="`echo 'AC_PACKAGE_VERSION' | cut -d. -f 3`"
 VERSION=$MAJOR.$MINOR
 PATCHLEVEL_STR=$VERSION.$PATCHLEVEL
 
@@ -26,7 +27,7 @@ AC_SUBST(PATCHLEVEL)
 AC_SUBST(VERSION)
 AC_SUBST(PATCHLEVEL_STR)
 
-AM_INIT_AUTOMAKE(tclreadline, $PATCHLEVEL_STR)
+AM_INIT_AUTOMAKE
 
 
 AC_PROG_MAKE_SET
