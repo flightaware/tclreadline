@@ -79,6 +79,38 @@ if test $TCL_MAJOR_VERSION -lt 8; then
 fi
 
 
+# -- WHICH TK TO USE
+AC_ARG_WITH(
+    tk,
+    [  --with-tk=DIR          where to look for tkConfig.sh],
+    tk_search=$withval,
+    tk_search=""
+)
+
+AC_MSG_CHECKING([which tkConfig.sh to use])
+TK_LIB_DIR=""
+for dir in $tk_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
+    if test -r $dir/tkConfig.sh; then
+        TK_LIB_DIR=$dir
+        break
+    fi
+done
+
+if test -z "$TK_LIB_DIR"; then
+    AC_MSG_ERROR(Can't find Tk libraries.  Use --with-tk to specify the directory containing tkConfig.sh on your system.)
+fi
+
+. $TK_LIB_DIR/tkConfig.sh
+AC_MSG_RESULT($TK_LIB_DIR/tkConfig.sh)
+AC_MSG_CHECKING([for your tk version])
+AC_MSG_RESULT([$TK_VERSION, patchlevel $TK_PATCH_LEVEL])
+
+# Check, if tk_version is > 8.0
+if test $TK_MAJOR_VERSION -lt 8; then
+    AC_MSG_ERROR(need tk 8.0 or higher.)
+fi
+
+
 # -----------------------------------------------------------------------
 #   Set up a new default --prefix.
 # -----------------------------------------------------------------------
@@ -246,7 +278,7 @@ AC_ARG_ENABLE(wishrl,
         yes)
         enable_static=true
         dnl source the tkConfig.sh which defines TK_LIB_SPEC
-        . $TCL_LIB_DIR/tkConfig.sh
+        . $TK_LIB_DIR/tkConfig.sh
         AC_SUBST(TK_LIB_SPEC)
         ;;
         no)  enable_static=false ;;
