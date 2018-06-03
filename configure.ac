@@ -89,7 +89,7 @@ AC_ARG_WITH(
 
 AC_MSG_CHECKING([which tkConfig.sh to use])
 TK_LIB_DIR=""
-for dir in $tk_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
+for dir in $tk_search $tcl_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
     if test -r $dir/tkConfig.sh; then
         TK_LIB_DIR=$dir
         break
