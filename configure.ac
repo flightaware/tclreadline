@@ -87,29 +87,32 @@ AC_ARG_WITH(
     tk_search=""
 )
 
-AC_MSG_CHECKING([which tkConfig.sh to use])
-TK_LIB_DIR=""
-for dir in $tk_search $tcl_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
-    if test -r $dir/tkConfig.sh; then
-        TK_LIB_DIR=$dir
-        break
+if test x$tk_search != xno; then
+
+    AC_MSG_CHECKING([which tkConfig.sh to use])
+    TK_LIB_DIR=""
+    for dir in $tk_search $tcl_search /usr/lib /usr/local/lib $exec_prefix/lib /usr/local/lib/unix /opt/tcl/lib; do
+        if test -r $dir/tkConfig.sh; then
+            TK_LIB_DIR=$dir
+            break
+        fi
+    done
+
+    if test -z "$TK_LIB_DIR"; then
+        AC_MSG_ERROR(Can't find Tk libraries.  Use --with-tk to specify the directory containing tkConfig.sh on your system.)
     fi
-done
 
-if test -z "$TK_LIB_DIR"; then
-    AC_MSG_ERROR(Can't find Tk libraries.  Use --with-tk to specify the directory containing tkConfig.sh on your system.)
+    . $TK_LIB_DIR/tkConfig.sh
+    AC_MSG_RESULT($TK_LIB_DIR/tkConfig.sh)
+    AC_MSG_CHECKING([for your tk version])
+    AC_MSG_RESULT([$TK_VERSION, patchlevel $TK_PATCH_LEVEL])
+
+    # Check, if tk_version is > 8.0
+    if test $TK_MAJOR_VERSION -lt 8; then
+        AC_MSG_ERROR(need tk 8.0 or higher.)
+    fi
+    
 fi
-
-. $TK_LIB_DIR/tkConfig.sh
-AC_MSG_RESULT($TK_LIB_DIR/tkConfig.sh)
-AC_MSG_CHECKING([for your tk version])
-AC_MSG_RESULT([$TK_VERSION, patchlevel $TK_PATCH_LEVEL])
-
-# Check, if tk_version is > 8.0
-if test $TK_MAJOR_VERSION -lt 8; then
-    AC_MSG_ERROR(need tk 8.0 or higher.)
-fi
-
 
 # -----------------------------------------------------------------------
 #   Set up a new default --prefix.
