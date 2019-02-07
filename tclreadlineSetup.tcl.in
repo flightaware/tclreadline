@@ -161,7 +161,7 @@ namespace eval tclreadline {
                                 set normalized_home [file normalize $env(HOME)]
                             }
                             if {[string equal -length [string length $normalized_home] $pwd $normalized_home]} {
-                                set pwd [string replace $pwd 0 [string length $normalized_home] "~"]
+                                set pwd [file join "~" [string range $pwd [string length $normalized_home] end]]
                             }
                         }
                         return "$prompt_string \[$pwd\] "
