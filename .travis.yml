@@ -25,7 +25,7 @@ before_install:
 
 script:
   - autoreconf -vif
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./configure --with-readline-includes=/usr/local/Cellar/readline/7.0.3_1/include --with-readline-library=/usr/local/Cellar/readline/7.0.3_1/lib --with-tcl=/usr/local/opt/tcl-tk; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./configure --with-readline-includes=/usr/local/Cellar/readline/7.0.3_1/include --with-readline-library=/usr/local/Cellar/readline/7.0.3_1/lib --with-tcl=/usr/local/opt/tcl-tk/lib --with-tcl-includes=/usr/local/opt/tcl-tk/include; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then /usr/bin/libtoolize --install; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then /bin/sh -x ./autogen.sh; fi
   - make
