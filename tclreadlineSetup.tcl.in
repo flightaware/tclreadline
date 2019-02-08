@@ -155,8 +155,14 @@ namespace eval tclreadline {
                             set pwd "unable to get pwd"
                         }
 
-                        if [info exists env(HOME)] {
-                            regsub $env(HOME) $pwd "~" pwd
+                        if {[info exists env(HOME)]} {
+                            variable normalized_home
+                            if {![info exists normalized_home]} {
+                                set normalized_home [file normalize $env(HOME)]
+                            }
+                            if {[string equal -length [string length $normalized_home] $pwd $normalized_home]} {
+                                set pwd "~[string range $pwd [string length $normalized_home] end]"
+                            }
                         }
                         return "$prompt_string \[$pwd\] "
                     }
