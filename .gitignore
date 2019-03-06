@@ -1,7 +1,6 @@
 config.h
 config.log
 config.status
-configure
 pkgIndex.tcl
 tclreadline.h
 tclreadline.n
