@@ -744,7 +744,6 @@ _LT_CONFIG_SAVE_COMMANDS([
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
@@ -754,7 +753,7 @@ _LT_COPYING
 _LT_LIBTOOL_TAGS
 
 # Configured defaults for sys_lib_dlsearch_path munging.
-: \${LT_SYS_LIBRARY_PATH="$LT_SYS_LIBRARY_PATH"}
+: \${LT_SYS_LIBRARY_PATH="$configure_time_lt_sys_library_path"}
 
 # ### BEGIN LIBTOOL CONFIG
 _LT_LIBTOOL_CONFIG_VARS
@@ -765,8 +764,12 @@ _LT_EOF
 
     cat <<'_LT_EOF' >> "$cfgfile"
 
+# ### BEGIN FUNCTIONS SHARED WITH CONFIGURE
+
 _LT_PREPARE_MUNGE_PATH_LIST
 _LT_PREPARE_CC_BASENAME
+
+# ### END FUNCTIONS SHARED WITH CONFIGURE
 
 _LT_EOF
 
@@ -2267,7 +2270,7 @@ func_munge_path_list ()
     x)
         ;;
     *:)
-        eval @S|@1=\"`$ECHO @S|@2 | $SED 's/:/ /g'` \$@S|@1\"
+        eval @S|@1=\"`$ECHO @S|@2 | $SED 's/:/ /g'` \@S|@@S|@1\"
         ;;
     x:*)
         eval @S|@1=\"\@S|@@S|@1 `$ECHO @S|@2 | $SED 's/:/ /g'`\"
@@ -2897,6 +2900,18 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   dynamic_linker='GNU/Linux ld.so'
   ;;
 
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
+  ;;
+
 netbsd*)
   version_type=sunos
   need_lib_prefix=no
@@ -3111,12 +3126,14 @@ if test set = "${lt_cv_sys_lib_dlsearch_path_spec+set}"; then
   sys_lib_dlsearch_path_spec=$lt_cv_sys_lib_dlsearch_path_spec
 fi
 
-# lt_cv_sys_lib... is unaugmented for libtool script decls...
-lt_cv_sys_lib_dlsearch_path_spec=$sys_lib_dlsearch_path_spec
+# remember unaugmented sys_lib_dlsearch_path content for libtool script decls...
+configure_time_dlsearch_path=$sys_lib_dlsearch_path_spec
 
-# ..but sys_lib_... needs LT_SYS_LIBRARY_PATH munging for
-# LT_SYS_DLSEARCH_PATH macro in ltdl.m4 to work with the correct paths:
+# ... but it needs LT_SYS_LIBRARY_PATH munging for other configure-time code
 func_munge_path_list sys_lib_dlsearch_path_spec "$LT_SYS_LIBRARY_PATH"
+
+# to be used as default LT_SYS_LIBRARY_PATH value in generated libtool
+configure_time_lt_sys_library_path=$LT_SYS_LIBRARY_PATH
 
 _LT_DECL([], [variables_saved_for_relink], [1],
     [Variables whose values should be saved in libtool wrapper scripts and
@@ -3150,8 +3167,10 @@ _LT_DECL([], [hardcode_into_libs], [0],
     [Whether we should hardcode library paths into libraries])
 _LT_DECL([], [sys_lib_search_path_spec], [2],
     [Compile-time system search path for libraries])
-_LT_DECL([sys_lib_dlsearch_path_spec], [lt_cv_sys_lib_dlsearch_path_spec], [2],
-    [Run-time system search path for libraries])
+_LT_DECL([sys_lib_dlsearch_path_spec], [configure_time_dlsearch_path], [2],
+    [Detected run-time system search path for libraries])
+_LT_DECL([], [configure_time_lt_sys_library_path], [2],
+    [Explicit LT_SYS_LIBRARY_PATH set during ./configure time])
 ])# _LT_SYS_DYNAMIC_LINKER
 
 
@@ -3552,7 +3571,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
   else
@@ -4430,7 +4449,7 @@ m4_if([$1], [CXX], [
 	    ;;
 	esac
 	;;
-      netbsd*)
+      netbsd* | netbsdelf*-gnu)
 	;;
       *qnx* | *nto*)
         # QNX uses GNU C++, but need to define -shared option too, otherwise
@@ -4942,6 +4961,9 @@ m4_if([$1], [CXX], [
       ;;
     esac
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    _LT_TAGVAR(link_all_deplibs, $1)=no
+    ;;
   *)
     _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
     ;;
@@ -5003,6 +5025,9 @@ dnl Note also adjust exclude_expsyms for C++ above.
     ;;
   openbsd* | bitrig*)
     with_gnu_ld=no
+    ;;
+  linux* | k*bsd*-gnu | gnu*)
+    _LT_TAGVAR(link_all_deplibs, $1)=no
     ;;
   esac
 
@@ -5258,7 +5283,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -5779,6 +5804,7 @@ _LT_EOF
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           _LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	_LT_TAGVAR(link_all_deplibs, $1)=no
       else
 	_LT_TAGVAR(archive_cmds, $1)='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	_LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -5800,7 +5826,7 @@ _LT_EOF
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -8928,15 +8954,15 @@ m4_define([lt_dict_filter],
 
 # @configure_input@
 
-# serial 4171 ltversion.m4
+# serial 4179 ltversion.m4
 # This file is part of GNU Libtool
 
-m4_define([LT_PACKAGE_VERSION], [2.4.5])
-m4_define([LT_PACKAGE_REVISION], [2.4.5])
+m4_define([LT_PACKAGE_VERSION], [2.4.6])
+m4_define([LT_PACKAGE_REVISION], [2.4.6])
 
 AC_DEFUN([LTVERSION_VERSION],
-[macro_version='2.4.5'
-macro_revision='2.4.5'
+[macro_version='2.4.6'
+macro_revision='2.4.6'
 _LT_DECL(, macro_version, 0, [Which release of libtool.m4 was used?])
 _LT_DECL(, macro_revision, 0)
 ])
