@@ -47,7 +47,7 @@ static const char* tclrl_version_str = TCLRL_VERSION_STR;
 static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
 
 #define MALLOC(size) malloc(size)
-#define FREE(ptr) free(ptr); ptr = NULL
+#define FREE(ptr) do {free(ptr); ptr = NULL;} while (0)
 
 enum {
     _CMD_SET = (1 << 0),
