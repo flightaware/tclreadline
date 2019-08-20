@@ -46,7 +46,7 @@ which want to use a shell like input interface. In this case the
 
 The advantage of \fBtclreadline\fP is that it uses the callback
 handler mechanism of the gnu readline while it processes tcl
-events. This way X events from a wish gui will processed as
+events. This way X events from a wish gui will be processed as
 well as events from the \fPtclreadline\fP line interface.
 
 .PP
