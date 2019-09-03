@@ -4,7 +4,7 @@
 # $Id$
 # ---
 # tclreadline -- gnu readline for tcl
-# http://www.zellner.org/tclreadline/
+# https://github.com/flightaware/tclreadline/
 # Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 # Copyright (c) 2016, dbohdan <dbohdan@dbohdan.com>
 # This software is copyright under the BSD license.

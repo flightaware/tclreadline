@@ -3,7 +3,7 @@ dnl FILE: configure.in
 dnl $Id$
 dnl ---
 dnl tclreadline -- gnu readline for tcl
-dnl http://www.zellner.org/tclreadline/
+dnl https://github.com/flightaware/tclreadline/
 dnl Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 dnl This software is copyright under the BSD license.
 dnl ---
