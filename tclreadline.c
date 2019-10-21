@@ -563,6 +563,9 @@ int
 Tclreadline_Init(Tcl_Interp *interp)
 {
     int status;
+ #ifdef USE_TCL_STUBS
+     Tcl_InitStubs(interp, "8.6", 0);
+#endif
     Tcl_CreateObjCommand(interp, "::tclreadline::readline", TclReadlineCmd,
         (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
     tclrl_interp = interp;
