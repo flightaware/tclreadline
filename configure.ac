@@ -8,7 +8,7 @@ dnl Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 dnl This software is copyright under the BSD license.
 dnl ---
 
-AC_INIT([tclreadline], [2.3.6])
+AC_INIT([tclreadline], [2.3.7])
 AC_CONFIG_SRCDIR([tclreadline.c])
 AC_CONFIG_HEADERS(config.h)
 AC_PREREQ(2.13)
@@ -258,6 +258,20 @@ int main () {
     AC_MSG_RESULT(no cross compiling)
 )
 
+AC_ARG_ENABLE(tclstub,
+    [  --enable-tclstub        build with TCL stub library],
+    [dnl action if given
+    case "${enableval}" in
+        yes) enable_tclstub=true ;; 
+        no)  enable_tclstub=false ;;
+        *)   AC_MSG_ERROR(bad value ${enableval} for --enable-tclstub) ;;
+    esac
+    ],
+    [dnl action if not given
+    enable_tclstub=false
+    ]
+)
+AM_CONDITIONAL(USE_TCL_STUBS, test x$enable_tclstub = xtrue)
 
 AC_ARG_ENABLE(tclshrl,
     [  --enable-tclshrl        build statically linked tclshrl],
@@ -294,8 +308,8 @@ AC_ARG_ENABLE(wishrl,
 )
 AM_CONDITIONAL(STATIC_WISHRL, test x$enable_static = xtrue)
 
-
 AC_SUBST(TCL_INCLUDE_DIR)
+AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(READLINE_INCLUDE_DIR)
 AC_OUTPUT(Makefile tclreadline.h tclreadlineInit.tcl tclreadlineSetup.tcl tclreadline.n pkgIndex.tcl)
