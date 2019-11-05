@@ -2,7 +2,7 @@
 # tclreadline configure for FreeBSD
 #
 
-libtoolize --force
+libtoolize --force --install --copy
 aclocal
 autoheader
 automake --force-missing --add-missing
