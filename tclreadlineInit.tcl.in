@@ -16,7 +16,14 @@ namespace eval tclreadline:: {
 proc ::tclreadline::Init {} {
     uplevel #0 {
         if {![info exists tclreadline::library]} {
-            if {[catch {load [file join @TCLRL_LIBDIR@ libtclreadline[info sharedlibextension]]} msg]} {
+            set msg ""
+            foreach dirname {@TCLRL_LIBDIR@ [file dirname [info script]]} {
+                if {[catch {load [file join $dirname libtclreadline[info sharedlibextension]]} msg] == 0} {
+                    set msg ""
+                    break
+                }
+            }
+            if {$msg != ""} {
                 puts stderr $msg
                 exit 2
             }
