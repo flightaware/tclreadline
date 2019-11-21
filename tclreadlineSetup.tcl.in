@@ -20,8 +20,10 @@ proc unknown args {
     # may get modified if caught errors occur below.  The variables will
     # be restored just before re-executing the missing command.
 
-    set savedErrorCode $errorCode
-    set savedErrorInfo $errorInfo
+    # If for some reson these don't exists, don't save or restore them.
+
+    if {[info exists errorCode]} { set savedErrorCode $errorCode }
+    if {[info exists errorInfo]} { set savedErrorInfo $errorInfo }
     set name [lindex $args 0]
     if {![info exists auto_noload]} {
         #
@@ -40,8 +42,8 @@ proc unknown args {
             unset unknown_pending
         }
         if {$msg} {
-            set errorCode $savedErrorCode
-            set errorInfo $savedErrorInfo
+            if {[info exists savedErrorCode]} { set errorCode $savedErrorCode }
+            if {[info exists savedErrorInfo]} { set errorInfo $savedErrorInfo }
             set code [catch {uplevel 1 $args} msg]
             if {$code == 1} {
                 #
@@ -62,8 +64,8 @@ proc unknown args {
     if {![info exists auto_noexec]} {
         set new [auto_execok $name]
         if {$new != ""} {
-            set errorCode $savedErrorCode
-            set errorInfo $savedErrorInfo
+            if {[info exists savedErrorCode]} { set errorCode $savedErrorCode }
+            if {[info exists savedErrorInfo]} { set errorInfo $savedErrorInfo }
             set redir ""
             if {[info commands console] == ""} {
                 set redir ">&@stdout <@stdin"
@@ -72,8 +74,8 @@ proc unknown args {
             return [uplevel eval exec $redir $new [::tclreadline::Glob [lrange $args 1 end]]]
         }
     }
-    set errorCode $savedErrorCode
-    set errorInfo $savedErrorInfo
+    if {[info exists savedErrorCode]} { set errorCode $savedErrorCode }
+    if {[info exists savedErrorInfo]} { set errorInfo $savedErrorInfo }
     if {$name == "!!"} {
         set newcmd [history event]
     } elseif {[regexp {^!(.+)$} $name dummy event]} {
