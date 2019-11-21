@@ -7,4 +7,3 @@ tclreadline.n
 tclreadlineInit.tcl
 tclreadlineSetup.tcl
 Makefile
-Makefile.in
