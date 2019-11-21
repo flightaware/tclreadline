@@ -8,7 +8,7 @@ dnl Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 dnl This software is copyright under the BSD license.
 dnl ---
 
-AC_INIT([tclreadline], [2.3.7])
+AC_INIT([tclreadline], [2.3.8])
 AC_CONFIG_SRCDIR([tclreadline.c])
 AC_CONFIG_HEADERS(config.h)
 AC_PREREQ(2.13)
