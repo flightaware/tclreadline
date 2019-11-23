@@ -3648,17 +3648,37 @@ namespace eval tclreadline {
 	####################################################################
 	####################################################################
     proc complete(unset) {text start end line pos mod} {
-        return [VarCompletion $text]
+		switch -- $pos {
+			1 {
+				return [DisplayHints {{?-nocomplain?} {?--?} {?name name name...?}}]
+			}
+			default {
+				return [VarCompletion $text]
+			}
+		}
     }
 
 	####################################################################
 	####################################################################
-	## update ?idletasks?
+	## unset ?-nocomplain? ?--? ?name name name ...?
 	####################################################################
 	####################################################################
-    proc complete(update) {text start end line pos mod} {
+    proc complete(unset) {text start end line pos mod} {
+        set cmd [Lindex $line 1]
         switch -- $pos {
-            1 { return idletasks }
+            1 {
+                return [DisplayHints {{-nocomplain} {?name name name?}}]
+            }
+            2 {
+                switch -- $cmd {
+                    -nocomplain { return [DisplayHints {{--} {?name name name?}}] }
+                    "--" { return [DisplayHints {{--} {?name name name?}}] }
+                }
+            }
+            default {
+                return [VarCompletion ${text}]                  
+                }
+            }
         }
         return ""
     }
