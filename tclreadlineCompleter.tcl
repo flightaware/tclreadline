@@ -99,12 +99,12 @@ namespace eval tclreadline {
     # set tclreadline::trace to 1, if you
     # want to enable explicit trace calls.
     #
-    variable trace
+    variable trace 1
 
     # set tclreadline::trace_procs to 1, if you
     # want to enable tracing every entry to a proc.
     #
-    variable trace_procs
+    variable trace_procs 1
 
     if {[info exists trace_procs] && $trace_procs} {
         ::proc proc {name arguments body} {
