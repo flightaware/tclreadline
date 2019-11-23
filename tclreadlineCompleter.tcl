@@ -3653,7 +3653,7 @@ namespace eval tclreadline {
 	####################################################################
 	####################################################################
     proc complete(unset) {text start end line pos mod} {
-        set cmd [Lindex $line 1]
+        set one [Lindex $line 1]
         switch -- $pos {
             1 {
                 return [CompleteFromList $text {{-nocomplain} {?name name name?}}]
@@ -3661,9 +3661,15 @@ namespace eval tclreadline {
             2 {
                 switch -- $cmd {
                     -nocomplain { return [CompleteFromList $text {{--} {?name name name?}}] }
-                    "--" { return [DisplayHints {?name name name?}}] }
+                    "--" { return [DisplayHints {?name name name?}}] 
+                    }
             }
-
+            3 {
+                switch -- $cmd {
+                    default { return [DisplayHints {?name name name?}}] 
+                    }
+            }
+            default { return [VarCompletion $text] }
         }
         return ""
     }
