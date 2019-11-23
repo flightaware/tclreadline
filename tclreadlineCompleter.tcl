@@ -3594,7 +3594,12 @@ namespace eval tclreadline {
 
 	####################################################################
 	####################################################################
-	## 
+	## trace add type name ops ?args?
+	## trace remove type name opList commandPrefix
+	## trace info type name
+	## trace variable name ops command
+	## trace vdelete name ops command
+	## trace vinfo name
 	####################################################################
 	####################################################################
     proc complete(trace) {text start end line pos mod} {
