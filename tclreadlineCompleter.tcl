@@ -3639,6 +3639,11 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## unknown cmdName ?arg arg ...? 
+	####################################################################
+	####################################################################
     proc complete(unknown) {text start end line pos mod} {
         switch -- $pos {
             1       { return [CompleteFromList $text [CommandCompletion $text]] }
@@ -3650,23 +3655,19 @@ namespace eval tclreadline {
 	####################################################################
 	####################################################################
 	## unset ?-nocomplain? ?--? ?name name name ...?
+	## Outstanding Issue 
 	####################################################################
 	####################################################################
     proc complete(unset) {text start end line pos mod} {
         set one [Lindex $line 1]
         switch -- $pos {
             1 {
-                return [CompleteFromList $text {{-nocomplain} {?name name name?}}]
+                return [CompleteFromList $text {{-nocomplain} {?name?}}]
             }
             2 {
                 switch -- $cmd {
-                    -nocomplain { return [CompleteFromList $text {{--} {?name name name?}}] }
-                    "--" { return [DisplayHints {?name name name?}}] 
-                    }
-            }
-            3 {
-                switch -- $cmd {
-                    default { return [DisplayHints {?name name name?}}] 
+                    -nocomplain { return [CompleteFromList $text {{--} {?name?}}] }
+                    "--" { return [DisplayHints {?name?}}] 
                     }
             }
             default { return [VarCompletion $text] }
