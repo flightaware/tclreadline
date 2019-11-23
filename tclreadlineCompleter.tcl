@@ -3656,11 +3656,11 @@ namespace eval tclreadline {
         set cmd [Lindex $line 1]
         switch -- $pos {
             1 {
-                return [DisplayHints {{-nocomplain} {?name name name?}}]
+                return [CompleteFromList $text {{-nocomplain} {?name name name?}}]
             }
             2 {
                 switch -- $cmd {
-                    -nocomplain { return [DisplayHints {{--} {?name name name?}}] }
+                    -nocomplain { return [CompleteFromList $text {{--} {?name name name?}}] }
                     "--" { return [DisplayHints {{--} {?name name name?}}] }
                 }
             }
