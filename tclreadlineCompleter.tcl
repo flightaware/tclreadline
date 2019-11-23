@@ -3665,7 +3665,6 @@ namespace eval tclreadline {
 	####################################################################
 	####################################################################
     proc complete(unset) {text start end line pos mod} {
-        set one [Lindex $line 1]
         switch -- $pos {
             1 {
                 return [CompleteFromList $text {{-nocomplain} {?name?}}]
