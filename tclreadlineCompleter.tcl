@@ -3661,7 +3661,7 @@ namespace eval tclreadline {
             2 {
                 switch -- $cmd {
                     -nocomplain { return [CompleteFromList $text {{--} {?name name name?}}] }
-                    "--" { return [DisplayHints {{--} {?name name name?}}] }
+                    "--" { return [DisplayHints {?name name name?}}] }
                 }
             }
             default {
