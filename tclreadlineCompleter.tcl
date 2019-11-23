@@ -299,7 +299,10 @@ namespace eval tclreadline {
                 set id [open /etc/hosts r]
                 if {0 != $id} {
                     while {-1 != [gets $id line]} {
-                        regsub {#.*} $line {} line
+                        # CHANGE FROM >> regsub {#.*} $line {} line >> TO THE FOLLOWING TWO LINES
+                        # BECAUSE IT WAS MESSING WITH MY TEXT EDITOR.
+                        set regex \#.*
+                        regsub $regex $line {} line
                         if {[llength $line] >= 2} {
                             lappend hosts [lindex $line 1]
                         }
@@ -310,9 +313,10 @@ namespace eval tclreadline {
         }
         return $hosts
     }
+    
 
     #**
-    # never return an empty string, never complete.
+    # DisplayHints never returns an empty string, never complete.
     # This is useful for showing options lists for example.
     #
     proc DisplayHints {lst} {
@@ -546,8 +550,7 @@ namespace eval tclreadline {
                     # returning "" if it knows nothing specific
                     # about this switch.
                     #
-                    set values [SpecificSwitchCompleter \
-                                    $text $start $line $prev 0]
+                    set values [SpecificSwitchCompleter $text $start $line $prev 0]
 
                     if [string length $values] {
                         set result $values
@@ -566,14 +569,12 @@ namespace eval tclreadline {
                         return 1
                     }
                 } else {
-                    set result [SpecificSwitchCompleter \
-                                    $text $start $line $prev 1]
+                    set result [SpecificSwitchCompleter $text $start $line $prev 1]
                     return 1
                 }
 
             } else {
-                set result [CompleteFromList $text \
-                                [RemoveUsedOptions $line $options(switches)]]
+                set result [CompleteFromList $text [RemoveUsedOptions $line $options(switches)]]
                 return 1
             }
         }
@@ -1509,6 +1510,16 @@ namespace eval tclreadline {
     #                 TCL
     # -------------------------------------
 
+    ############################################################
+    ############################################################
+    ####  after ms 
+    ####  after ms     ?script script script ...? 
+    ####  after cancel id 
+    ####  after cancel script script ... 
+    ####  after idle   script ?script script ...? 
+    ####  after info   ?id? 
+    ############################################################
+    ############################################################   
     proc complete(after) {text start end line pos mod} {
         set sub [Lindex $line 1]
         switch -- $pos {
@@ -1517,35 +1528,56 @@ namespace eval tclreadline {
             }
             2 {
                 switch -- $sub {
-                    cancel  { return [CompleteFromList $text "<script> [after info]"] }
+                    cancel  { return [DisplayHints "<id> <script>"] }
                     idle    { return [DisplayHints <script>] }
-                    info    { return [CompleteFromList $text [after info]] }
+                    info    { return [DisplayHints ?id?] }
                     default { return [DisplayHints ?script?] }
                 }
             }
             default {
                 switch -- $sub {
-                    info    { return [DisplayHints {}] }
-                    default { return [DisplayHints ?script?] }
+                    info    { return [DisplayHints ?id?] }
+                    default { return [DisplayHints {"?script ...script?"}] }
                 }
             }
         }
         return ""
     }
 
+    ############################################################
+    ############################################################ 
+    ## append varName ?value value value ...?
+    ############################################################
+    ############################################################ 
     proc complete(append) {text start end line pos mod} {
         switch -- $pos {
             1       { return [VarCompletion $text] }
-            default { return [DisplayHints ?value?] }
+            2       { return [DisplayHints value] }
+            default { return [DisplayHints {{?value value ...?}}] }
         }
         return ""
     }
 
+    ############################################################
+    ############################################################  
+    ## array anymore     arrayName searchId 
+    ## array donesearch  arrayName searchId 
+    ## array exists      arrayName 
+    ## array get         arrayName ?pattern? 
+    ## array names       arrayName ?mode?    ?pattern? 
+    ## array nextelement arrayName searchId 
+    ## array set         arrayName list 
+    ## array size        arrayName 
+    ## array startsearch arrayName 
+    ## array statistics  arrayName 
+    ## array unset       arrayName ?pattern? 
+    ############################################################
+    ############################################################     
     proc complete(array) {text start end line pos mod} {
         switch -- $pos {
             1 {
-                set cmds {anymore donesearch exists get names
-                          nextelement set size startsearch}
+                set cmds {anymore donesearch exists get names nextelement
+                          set size startsearch statistics unset}
                 return [CompleteFromList $text $cmds]
             }
             2 {
@@ -1568,52 +1600,105 @@ namespace eval tclreadline {
                 set cmd [Lindex $line 1]
                 set array_name [Lindex $line 2]
                 switch -- $cmd {
+                    anymore     -
+                    donesearch  -
+                    nextelement { return [DisplayHints <searchId>] } 
+                    set         { return [DisplayHints <list>] }
                     get         -
-                    names       {
+                    unset       {
                         set pattern [Lindex $line 3]
-                        set matches [uplevel [info level] \
-                                         array names $array_name ${pattern}*]
+                        set matches [uplevel [info level] array names $array_name ${pattern}*]
                         if {![llength $matches]} {
                             return [DisplayHints ?pattern?]
                         } else {
                             return [CompleteFromList $text $matches]
-                        }
+                        }                    
                     }
-                    anymore     -
-                    donesearch  -
-                    nextelement { return [DisplayHints <searchId>] }
+                    names     { return [CompleteFromList $text {-exact -glob -regexp}] }
+                    default {
+                        return { }
+                    } 
                 }
+            }
+            default {
+                set cmd [Lindex $line 1]   
+                set array_name [Lindex $line 2]                
+                switch -- $cmd { 
+                    names {
+                        set pattern [Lindex $line 4]
+                        set matches [uplevel [info level] array names $array_name ${pattern}*]
+                        if {![llength $matches]} {
+                            return [DisplayHints ?pattern?]
+                        } else {
+                            return [CompleteFromList $text $matches]
+                        }                           
+                    }
+                    default { return { } }
+                }    
             }
         }
         return ""
     }
 
-    # proc complete(bgerror) {text start end line pos mod} {
-    # }
+    ############################################################
+    ############################################################  
+    #### bgerror message
+    ############################################################
+    ############################################################    
+    proc complete(bgerror) {text start end line pos mod} {
+        switch -- $pos {
+            1       { return [DisplayHints <message>] }
+        }
+        return ""     
+    }
 
+    ############################################################
+    ############################################################
+    ####  binary decode format       ?-maxlen x? ?-wrapchar x? ?-strict? data
+    ####  binary encode format       ?-maxlen x? ?-wrapchar x? ?-strict?  data
+    ####  binary format formatString ?arg?
+    ####  binary scan   string       formatString ?varName?
+    ############################################################
+    ############################################################
     proc complete(binary) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
             1 {
-                return [CompleteFromList $text {format scan}]
+                return [CompleteFromList $text {decode encode format scan}]
             }
             2 {
                 switch -- $cmd {
-                    format { return [DisplayHints <formatString>] }
-                    scan   { return [DisplayHints <string>] }
+                    decode  -
+                    encode  { return [CompleteFromList $text {base64 hex uuencode}] }
+                    format  { return [DisplayHints <formatString>] }
+                    scan    { return [DisplayHints <string>] }
                 }
             }
             3 {
                 switch -- $cmd {
-                    format { return [DisplayHints ?arg?] }
-                    scan   { return [DisplayHints <formatString>] }
-                }
+                    decode  -
+                    encode  { return [CompleteFromList $text {-maxlen -wrapchar -strict}] }                
+                    format  { return [DisplayHints {{?arg arg ...?}}] }
+                    scan    { return [VarCompletion $text] }                    
+                }                 
             }
             default {
                 switch -- $cmd {
-                    format { return [DisplayHints ?arg?] }
-                    scan   { return [DisplayHints ?varName?] }
-                }
+                    decode  -
+                    encode  { 
+                        set sub [Lindex $line [expr {$pos - 1}]]
+                        switch -- $sub {
+                            -maxlen   { return [DisplayHints <length>] }
+                            -wrapchar { return [DisplayHints <character>] }
+                            -strict   {}
+                            default   {
+                                set subcmds [RemoveUsedOptions $line {-maxlen -wrapchar -strict}]
+                                return [TryFromList $text $subcmds]
+                            }
+                        }
+                    }                
+                    format  { return [DisplayHints {{?arg arg ...?}}] }
+                }                
             }
         }
         return ""
@@ -1622,45 +1707,83 @@ namespace eval tclreadline {
     # proc complete(break) {text start end line pos mod} {
     # }
 
+    ############################################################
+    ############################################################
+    ####  
+    ############################################################
+    ############################################################    
+    proc complete(cd) {text start end line pos mod} {
+        return ""        
+    }
+    
+    ############################################################
+    ############################################################
+    ####  
+    ############################################################
+    ############################################################ 
     proc complete(catch) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <script>] }
-            2 { return [DisplayHints ?varName?] }
+            2 { return [VarCompletion $text] }
         }
         return ""
     }
 
-    proc complete(cd) {text start end line pos mod} {
-        return ""
-    }
-
+    ############################################################
+    ############################################################
+    ####  clock add           timeVal     ?count unit...?    ?-option value? 
+    ####  clock clicks        ?-option?  
+    ####  clock format        timeVal     ?-option value...? 
+    ####  clock microseconds             
+    ####  clock milliseconds             
+    ####  clock scan          inputString ?-option value...? 
+    ####  clock seconds                  
+    #########################
+    ####   --UNITS seconds, minutes, hours, days, weeks, months, years
+    ####   --[TIMEZONE] gmt     ut      utc     bst     wet     wat     at
+    ####                nft     nst     ndt     ast     adt     est     edt
+    ####                cst     cdt     mst     mdt     pst     pdt     yst
+    ####                ydt     hst     hdt     cat     ahst    nt      idlw
+    ####                cet     cest    met     mewt    mest    swt     sst
+    ####                eet     eest    bt      it      zp4     zp5     ist
+    ####                zp6     wast    wadt    jt      cct     jst     cast
+    ####                cadt    east    eadt    gst     nzt     nzst    nzdt
+    ####                idle
+    
+    
+    
+    ############################################################
+    ############################################################ 
     proc complete(clock) {text start end line pos mod} {
+    
+# seconds minutes hours days weeks months years
+    
         set cmd [Lindex $line 1]
         switch -- $pos {
             1 {
-                return [CompleteFromList $text {clicks format scan seconds}]
+                return [CompleteFromList $text {add clicks format microseconds milliseconds scan seconds}]
             }
             2 {
                 switch -- $cmd {
-                    format  { return [DisplayHints <clockValue>] }
-                    scan    { return [DisplayHints <dateString>] }
-                    clicks  -
-                    seconds {}
+                    add          -
+                    format       { return [DisplayHints <timeVal>] }
+                    scan         { return [DisplayHints <inputString>] }
+                    clicks       { return [DisplayHints {{?microseconds milliseconds?}}] }
+                    default      { return "" }
                 }
             }
             3 -
             5 {
                 switch -- $cmd {
                     format  {
-                        set subcmds [RemoveUsedOptions $line {-format -gmt}]
+                        set subcmds [RemoveUsedOptions $line {-format -timezone -gmt}]
                         return [TryFromList $text $subcmds]
                     }
                     scan    {
-                        set subcmds [RemoveUsedOptions $line {-base -gmt}]
+                        set subcmds [RemoveUsedOptions $line {-base -format -gmt -locale -timezone}]
                         return [TryFromList $text $subcmds]
                     }
-                    clicks  -
-                    seconds {}
+                    default { return "" }
                 }
             }
             4 -
@@ -1679,10 +1802,10 @@ namespace eval tclreadline {
                             -gmt  { return [DisplayHints <boolean>] }
                         }
                     }
-                    clicks  -
-                    seconds {}
+                    default { return "" }
                 }
             }
+            default { return "" }
         }
         return ""
     }
@@ -3530,6 +3653,11 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## uplevel ?level? arg ?arg ...?
+	####################################################################
+	####################################################################
     proc complete(uplevel) {text start end line pos mod} {
         set one [Lindex $line 1]
         switch -- $pos {
@@ -3548,6 +3676,11 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## upvar ?level? otherVar myVar ?otherVar myVar ...?
+	####################################################################
+	####################################################################
     proc complete(upvar) {text start end line pos mod} {
         set one [Lindex $line 1]
         switch -- $pos {
@@ -3574,18 +3707,24 @@ namespace eval tclreadline {
                 switch [expr {$virtual_pos % 2}] {
                     0 { return [DisplayHints ?myVar?] }
                     1 { return [DisplayHints ?otherVar?] }
-                }
+					 }
             }
         }
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## variable name
+	## variable ?name value...?
+	####################################################################
+	####################################################################
     proc complete(variable) {text start end line pos mod} {
         set modulo [expr {$pos % 2}]
         switch -- $modulo {
             1 { return [VarCompletion $text] }
             0 {
-                if {$text == "" || $text == "\"" || $text == "\{"} {
+					if {$text == "" || $text == "\"" || $text == "\{"} {
                     set line [QuoteQuotes $line]
                     if {[catch {set value [list [uplevel [info level] \
                                     set [PreviousWord $start $line]]]} msg]} {
@@ -3599,13 +3738,28 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## vwait varName
+	####################################################################
+	####################################################################
     proc complete(vwait) {text start end line pos mod} {
         switch -- $pos {
             1 { return [VarCompletion $mod] }
         }
         return ""
     }
-
+	
+	####################################################################
+	####################################################################
+	## while test body
+	##
+	## Test Note:
+	## produces error still on 'while { <TAB>':                   
+	# ~~~Ignore This Comment Line. Just Brace Balancing } ~~~
+	## tclreadline::Loop: error. {unmatched open brace in list `::tclreadline::ScriptCompleter "}
+	####################################################################
+	####################################################################
     proc complete(while) {text start end line pos mod} {
         switch -- $pos {
             1 -
@@ -3615,6 +3769,8 @@ namespace eval tclreadline {
         }
         return ""
     }
+    
+
 
     # --- TclOO PACKAGE ---
     proc complete(_tcloo) {text start end line pos mod} {
