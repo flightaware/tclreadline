@@ -3664,9 +3664,9 @@ namespace eval tclreadline {
                     "--" { return [DisplayHints {?name name name?}}] }
                 }
             }
-            default {
-                return [VarCompletion ${text}]                  
-                }
+            #default {
+                #return [VarCompletion $text]                  
+                #}
             }
         }
         return ""
