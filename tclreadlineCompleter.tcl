@@ -3605,7 +3605,8 @@ namespace eval tclreadline {
     proc complete(trace) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
-            1 { return [CompleteFromList $mod {variable vdelete vinfo}] }
+            1 { return [CompleteFromList $mod {variable vdelete vinfo add 
+				info remove }] }
             2 { return [CompleteFromList $text [uplevel [info level] info vars "${mod}*"]] }
             3 {
                 # TODO LW: 2 'variable' cases, missing 'vinfo' case?
