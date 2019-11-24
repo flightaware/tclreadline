@@ -3616,7 +3616,7 @@ namespace eval tclreadline {
                 switch -- $cmd {
                     add -
                     remove -
-                    info { return [CompleteFromList $text {command execution variable}] }
+                    info { return [CompleteFromList $text {command execution variable}]}
                     default {}
                 }
             }
@@ -3624,7 +3624,7 @@ namespace eval tclreadline {
 				switch -- [PreviousWord $start $line] {
 					command -
 					execution -
-                    info { return [DisplayHints {{<name> <ops> <command>}} ] } 
+                    info { return [DisplayHints {{<name> <ops> <command>}}]} 
                     default {}
 				}
 			}
