@@ -99,12 +99,12 @@ namespace eval tclreadline {
     # set tclreadline::trace to 1, if you
     # want to enable explicit trace calls.
     #
-    variable trace
+    variable trace 1
 
     # set tclreadline::trace_procs to 1, if you
     # want to enable tracing every entry to a proc.
     #
-    variable trace_procs
+    variable trace_procs 1
 
     if {[info exists trace_procs] && $trace_procs} {
         ::proc proc {name arguments body} {
@@ -3592,47 +3592,71 @@ namespace eval tclreadline {
         return ""
     }
 
+                    # UNDONE #
+	####################################################################
+	####################################################################
+	## trace add type name ops ?args?
+	## trace remove type name opList commandPrefix
+	## trace info type name
+    ##
+    ## OLD METHODS BELOW THAT MAY BE REMOVED FROM TCL
+	## trace variable name ops command
+	## trace vdelete name ops command
+	## trace vinfo name
+	####################################################################
+	####################################################################
+
     proc complete(trace) {text start end line pos mod} {
         set cmd [Lindex $line 1]
-        switch -- $pos {
-            1 { return [CompleteFromList $mod {variable vdelete vinfo}] }
-            2 { return [CompleteFromList $text [uplevel [info level] info vars "${mod}*"]] }
+		switch -- $pos {
+			1 { return [CompleteFromList $text {variable vdelete vinfo add 
+				info remove }] 
+			}
+            2 {
+                switch -- [PreviousWord $start $line] {
+                    add -
+                    remove -
+                    info { return [CompleteFromList $text {command execution variable}] }
+                    default {}
+                }
+            }
             3 {
-                # TODO LW: 2 'variable' cases, missing 'vinfo' case?
-                switch -- $cmd {
-                    variable -
-                    variable { return [CompleteFromList $text {r w u}] }
-                    vdelete  {
-                        set var [PreviousWord $start $line]
-                        set modes ""
-                        foreach info [uplevel [info level] trace vinfo $var] {
-                            lappend modes [lindex $info 0]
-                        }
-                        return [CompleteFromList $text $modes]
-                    }
-                }
-            }
-            4 {
-                switch -- $cmd {
-                    variable {
-                        return [CompleteFromList $text [CommandCompletion $text]]
-                    }
-                    vdelete {
-                        set var [Lindex $line 2]
-                        set mode [PreviousWord $start $line]
-                        set scripts ""
-                        foreach info [uplevel [info level] trace vinfo $var] {
-                            if {$mode == [lindex $info 0]} {
-                                lappend scripts [list [lindex $info 1]]
-                            }
-                        }
-                        return [DisplayHints $scripts]
-                    }
-                }
-            }
-        }
-        return ""
-    }
+				# TODO LW: 2 'variable' cases, missing 'vinfo' case?
+				switch -- $cmd {
+					variable -
+					variable { return [CompleteFromList $text {r w u}] }
+					vdelete  {
+						set var [PreviousWord $start $line]
+						set modes ""
+						foreach info [uplevel [info level] trace vinfo $var] {
+							lappend modes [lindex $info 0]
+						}
+						return [CompleteFromList $text $modes]
+					}
+				}
+			}
+			4 {
+				switch -- $cmd {
+					variable {
+						return [CompleteFromList $text [CommandCompletion $text]]
+					}
+					vdelete {
+						set var [Lindex $line 2]
+						set mode [PreviousWord $start $line]
+						set scripts ""
+						foreach info [uplevel [info level] trace vinfo $var] {
+							if {$mode == [lindex $info 0]} {
+								lappend scripts [list [lindex $info 1]]
+							}
+						}
+						return [DisplayHints $scripts]
+					}
+				}
+			}
+		}
+		return ""
+	}
+
 
 	####################################################################
 	####################################################################
