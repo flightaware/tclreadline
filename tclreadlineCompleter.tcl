@@ -3620,11 +3620,11 @@ namespace eval tclreadline {
                     default {}
                 }
             }
-            3 {
+            3 { 
 				switch -- [PreviousWord $start $line] {
-                    info { return [DisplayHints <name>] } 
 					command -
-					execution { return [DisplayHints <name> <ops> <command> ] }
+					execution -
+                    info { return [DisplayHints {{<name> <ops> <command>}} ] } 
                     default {}
 				}
 			}
