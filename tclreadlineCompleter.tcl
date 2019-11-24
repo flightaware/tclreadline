@@ -3613,7 +3613,7 @@ namespace eval tclreadline {
 				info remove }] 
 			}
             2 {
-                switch -- [PreviousWord $start $line] {
+                switch -- $cmd {
                     add -
                     remove -
                     info { return [CompleteFromList $text {command execution variable}] }
@@ -3623,9 +3623,10 @@ namespace eval tclreadline {
             3 {
 				# TODO LW: 2 'variable' cases, missing 'vinfo' case?
 				switch -- $cmd {
-					variable -
-					variable { return [CompleteFromList $text {r w u}] }
-					vdelete  {
+                    info { return [DisplayHints <name>] } 
+					command -
+					execution { return [DisplayHints <name> <ops> <command> ] }
+					variable  {
 						set var [PreviousWord $start $line]
 						set modes ""
 						foreach info [uplevel [info level] trace vinfo $var] {
