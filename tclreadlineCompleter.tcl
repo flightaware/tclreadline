@@ -3621,19 +3621,11 @@ namespace eval tclreadline {
                 }
             }
             3 {
-				# TODO LW: 2 'variable' cases, missing 'vinfo' case?
-				switch -- $cmd {
+				switch -- [PreviousWord $start $line] {
                     info { return [DisplayHints <name>] } 
 					command -
 					execution { return [DisplayHints <name> <ops> <command> ] }
-					variable  {
-						set var [PreviousWord $start $line]
-						set modes ""
-						foreach info [uplevel [info level] trace vinfo $var] {
-							lappend modes [lindex $info 0]
-						}
-						return [CompleteFromList $text $modes]
-					}
+                    default {}
 				}
 			}
 			4 {
