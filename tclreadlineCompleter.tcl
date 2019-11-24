@@ -3620,11 +3620,12 @@ namespace eval tclreadline {
                     default {}
                 }
             }
-            3 { 
+            3 { puts stderr " This is the sub minus 2 positions ====> [set sub [Lindex $line [expr {$pos - 2}]]]"
 				switch -- [PreviousWord $start $line] {
 					command -
 					execution -
-                    info { return [DisplayHints {{<name> <ops> <command>}}]} 
+                    info 
+                    { return [DisplayHints {{<name> <ops> <command>}}]} 
                     default {}
 				}
 			}
