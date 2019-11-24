@@ -3609,7 +3609,7 @@ namespace eval tclreadline {
     proc complete(trace) {text start end line pos mod} {
         set cmd [Lindex $line 1]
 		switch -- $pos {
-			1 { return [CompleteFromList $text {variable vdelete vinfo add 
+			1 { return [CompleteFromList $text {add 
 				info remove }] 
 			}
             2 {
