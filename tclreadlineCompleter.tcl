@@ -3296,6 +3296,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+	####################################################################
+	####################################################################
+	## split string ?splitChars?
+	####################################################################
+	####################################################################
     proc complete(split) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <string>] }
@@ -3303,6 +3309,33 @@ namespace eval tclreadline {
         }
     }
 
+
+	####################################################################
+	####################################################################
+	## string bytelength string
+	## string compare ?-nocase? ?-length int? string1 string2
+	## string equal ?-nocase? ?-length int? string1 string2
+	## string first needleString haystackString ?startIndex?
+	## string index string charIndex
+	## string is [class] ?-strict? ?-failindex varname? string
+	## string last needleString haystackString ?lastIndex?
+	## string length string
+	## string map ?-nocase? mapping string
+	## string match ?-nocase? pattern string
+	## string range string first last
+	## string repeat string count
+	## string replace string first last ?newstring?
+	## string reverse string
+	## string tolower string ?first? ?last?
+	## string totitle string ?first? ?last?
+	## string toupper string ?first? ?last?
+	## string trim string ?chars?
+	## string trimleft string ?chars?
+	## string trimright string ?chars?
+	## string wordend string charIndex
+	## string wordstart string charIndex
+	####################################################################
+	####################################################################
     proc complete(string) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         set prev [PreviousWord $start $line]
@@ -3479,7 +3512,8 @@ namespace eval tclreadline {
 							# UNDONE #
 	####################################################################
 	####################################################################
-    ##	TODO/UNDONE - Figure VarComplete on matchvar, indexvar like 
+    ##	TODO/UNDONE - Figure VarComplete on matchvar, indexvar much like 
+    ## "string is failindex" does 
     ##
     ## switch ?options? string pattern body ?pattern body ...?
 	####################################################################
