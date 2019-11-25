@@ -3542,6 +3542,11 @@ namespace eval tclreadline {
 
     # --- END OF TCLREADLINE PACKAGE ---
 
+	####################################################################
+	####################################################################
+    ## tell channelId
+	####################################################################
+	####################################################################
     proc complete(tell) {text start end line pos mod} {
         switch -- $pos {
             1 { return [ChannelId $text] }
@@ -3582,6 +3587,13 @@ namespace eval tclreadline {
         }
         return ""
     }
+
+
+	####################################################################
+	####################################################################
+    ## time script ?count?
+	####################################################################
+	####################################################################
 
     proc complete(time) {text start end line pos mod} {
         switch -- $pos {
@@ -3628,7 +3640,7 @@ namespace eval tclreadline {
                     default {}
 				}
 			}
-			4 {
+			4 { # Use sub on this one
 				switch -- $cmd {
 					variable {
 						return [CompleteFromList $text [CommandCompletion $text]]
