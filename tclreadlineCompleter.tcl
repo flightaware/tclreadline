@@ -3620,18 +3620,11 @@ namespace eval tclreadline {
                     default {}
                 }
             }
-            3 { # Improve this 
-                set sub [Lindex $line [expr {$pos - 2}]]
-                if {$sub == "add"} {
-                     set helptext {{<name> <ops> <command>}} 
-                    } else {
-                        set helptext 
-                    }
+            3 { 
 				switch -- [PreviousWord $start $line] {
 					command -
 					execution -
-                    info 
-                    { return [DisplayHints {{<name> <ops> <command>}}]} 
+                    info { return [DisplayHints {{<name> <ops> <command>}}]} 
                     default {}
 				}
 			}
