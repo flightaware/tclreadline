@@ -3093,6 +3093,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+	####################################################################
+	####################################################################
+	## rename oldName newName
+	####################################################################
+	####################################################################
     proc complete(rename) {text start end line pos mod} {
         switch -- $pos {
             1 { return [CompleteFromList $text [CommandCompletion $text]] }
@@ -3105,11 +3111,22 @@ namespace eval tclreadline {
     #     This is not a mac ...
     # }
 
+
+	####################################################################
+	####################################################################
+	## return ?result?
+	## return ?-code code? ?result?
+	## return ?option value ...? ?result?
+	####################################################################
+	####################################################################
     proc complete(return) {text start end line pos mod} {
         # TODO this is not perfect yet
         set cmds {-code -errorinfo -errorcode ?string?}
         set res [PreviousWord $start $line]
         switch -- $res {
+            -level { return [DisplayHints <level>] }
+            -options { return [DisplayHints <optionsDict>] }
+            -errorstack { return [DisplayHints <list>] }
             -errorinfo { return [DisplayHints <info>] }
             -code      -
             -errorcode {
