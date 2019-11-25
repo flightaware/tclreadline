@@ -3251,6 +3251,13 @@ namespace eval tclreadline {
         return ""
     }
 
+
+	####################################################################
+	####################################################################
+	## socket ?options? host port
+	## socket -server command ?options? port
+	####################################################################
+	####################################################################
     proc complete(socket) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         set prev [PreviousWord $start $line]
