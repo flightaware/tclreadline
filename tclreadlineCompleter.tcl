@@ -3474,7 +3474,7 @@ namespace eval tclreadline {
         if {[llength $prev] && "--" != $prev
                 && ("-" == [string index $prev 0] || 1 == $pos)} {
             set cmds [RemoveUsedOptions $line \
-                          {-exact -glob -regexp --} {--}]
+                          {-exact -glob -regexp -nocase --} {--}]
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
