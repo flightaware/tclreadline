@@ -3308,7 +3308,7 @@ namespace eval tclreadline {
         set prev [PreviousWord $start $line]
         set cmds {
             bytelength compare equal first index is last length map match
-            range repeat replace tolower toupper totitle trim trimleft
+            range repeat replace reverse tolower toupper totitle trim trimleft
             trimright wordend wordstart}
         switch -- $pos {
             1 { return [CompleteFromList $text $cmds] }
@@ -3328,8 +3328,8 @@ namespace eval tclreadline {
                     is {
                         return [CompleteFromList $text \
                                     {alnum alpha ascii boolean control digit double
-                                     false graph integer lower print punct space
-                                     true upper wordchar xdigit}]
+                                     entier false graph integer list lower print punct space
+                                     true upper wideinteger wordchar xdigit}]
                     }
 
                     bytelength -
@@ -3338,6 +3338,7 @@ namespace eval tclreadline {
                     range      -
                     repeat     -
                     replace    -
+                    reverse    -
                     tolower    -
                     totitle    -
                     toupper    -
