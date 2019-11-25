@@ -3291,10 +3291,17 @@ namespace eval tclreadline {
         return ""
     }
 
+
+	####################################################################
+	####################################################################
+	## source fileName
+	## source -encoding encodingName fileName
+	####################################################################
+	####################################################################
     proc complete(source) {text start end line pos mod} {
         switch -- $pos {
             1 {
-                return [TryFromList $text {-encoding}]
+                return [TryFromList $text {-encoding <filenName>}]
             }
             2 {
                 switch -- [PreviousWord $start $line] {
