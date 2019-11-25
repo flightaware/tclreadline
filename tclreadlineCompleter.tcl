@@ -3294,18 +3294,19 @@ namespace eval tclreadline {
     proc complete(source) {text start end line pos mod} {
         switch -- $pos {
             1 {
-                return [CompleteFromList $text {-encoding}]
+                return [TryFromList $text {-encoding}]
             }
             2 {
                 switch -- [PreviousWord $start $line] {
                     -encoding  {
                         return [CompleteFromList $text [encoding names]]
                     }
-                    default {return ""}
+                    default { return ""}
                 }
             }
 			default {return "" }        
-    }
+		}
+	}
 
 
 	####################################################################
