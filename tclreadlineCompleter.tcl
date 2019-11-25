@@ -3471,10 +3471,17 @@ namespace eval tclreadline {
 
     proc complete(switch) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
-        if {[llength $prev] && "--" != $prev
+        if {[llength $prev] && "--" != $prev && "-regexp" != $prev
                 && ("-" == [string index $prev 0] || 1 == $pos)} {
             set cmds [RemoveUsedOptions $line \
-                          {-exact -glob -regexp -nocase --} {--}]
+                          {-exact -glob -nocase -regexp --} {--}]
+            if {[llength $cmds]} {
+                return [string trim [CompleteFromList $text $cmds]]
+            }
+        } elseif {[llength $prev] && "--" != $prev
+                && ("-regexp" == $prev || 1 == $pos)} {
+            set cmds [RemoveUsedOptions $line \
+                          {-matchvar -indexvar --} {--}]
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
