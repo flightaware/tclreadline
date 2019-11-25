@@ -3292,8 +3292,19 @@ namespace eval tclreadline {
     }
 
     proc complete(source) {text start end line pos mod} {
-        # allow file name completion
-        return ""
+        switch -- $pos {
+            1 {
+                return [CompleteFromList $text {-encoding}]
+            }
+            2 {
+                switch -- [PreviousWord $start $line] {
+                    -encoding  {
+                        return [CompleteFromList $text [encoding names]]
+                    }
+                    default {return ""}
+                }
+            }
+			default {return "" }        
     }
 
 
