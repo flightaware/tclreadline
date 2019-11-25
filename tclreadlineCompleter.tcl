@@ -2819,7 +2819,7 @@ namespace eval tclreadline {
 
     # TODO import ! -force
     proc complete(namespace) {text start end line pos mod} {
-        # TODO dosn't work ???
+        # TODO doesn't work ???
         set space_matches [namespace children :: [string trim ${mod}*]]
         set cmd [Lindex $line 1]
         switch -- $pos {
@@ -3464,11 +3464,25 @@ namespace eval tclreadline {
         return ""
     }
 
+
+	####################################################################
+	####################################################################
+    ## subst ?-nobackslashes? ?-nocommands? ?-novariables? string
+	####################################################################
+	####################################################################
     proc complete(subst) {text start end line pos mod} {
         return [CompleteFromList $text [RemoveUsedOptions $line {
             -nobackslashes -nocommands -novariables <string>}]]
     }
-
+    
+							# UNDONE #
+	####################################################################
+	####################################################################
+    ##	TODO/UNDONE - Figure VarComplete on matchvar, indexvar like 
+    ##
+    ## switch ?options? string pattern body ?pattern body ...?
+	####################################################################
+	####################################################################
     proc complete(switch) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
         if {[llength $prev] && "--" != $prev && "-regexp" != $prev
@@ -3611,9 +3625,11 @@ namespace eval tclreadline {
         return ""
     }
 
-                    # UNDONE #
+							# UNDONE #
 	####################################################################
 	####################################################################
+	## TODO/UNDONE - Nothing Works really but especially switch/case 4 
+	##
 	## trace add type name ops ?args?
 	## trace remove type name opList commandPrefix
 	## trace info type name
