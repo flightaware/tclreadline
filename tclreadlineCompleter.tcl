@@ -3074,10 +3074,14 @@ namespace eval tclreadline {
 
     proc complete(regsub) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
-        if {[llength $prev] && "--" != $prev
+        if {"-start" == $prev} {
+			 return [DisplayHints <value>]
+			}
+        elseif {[llength $prev] && "--" != $prev
                 && ("-" == [string index $prev 0] || 1 == $pos)} {
             set cmds [RemoveUsedOptions $line \
-                          {-all -nocase --} {--}]
+                          {-all -nocase -expanded -linestop -lineanchor -nocase 
+							  -start --} {--}]
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
