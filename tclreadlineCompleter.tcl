@@ -3072,22 +3072,28 @@ namespace eval tclreadline {
         return ""
     }
 
-proc complete(regsub) {text start end line pos mod} {
-        set cmds [RemoveUsedOptions $line {-all -nocase -expanded -linestop -lineanchor -nocase -start --} {--}]
-        set option [PreviousWord $start $line]
-        switch -- $option {
-              -start { return [DisplayHints <string>] }
-              -all -
-              -command -
-              -nocase -
-              -expand -
-              -linestop -
-              -lineanchor -
-              -nocase
-               default  {return [string trim [CompleteFromList $text $cmds]]}
+    proc complete(regsub) {text start end line pos mod} {
+        set prev [PreviousWord $start $line]
+        if {[llength $prev] && "--" != $prev
+                && ("-" == [string index $prev 0] || 1 == $pos)} {
+            set cmds [RemoveUsedOptions $line \
+                          {-all -nocase -expanded -linestop -lineanchor -nocase 
+							  -start --} {--}]
+            if {[llength $cmds]} {
+                return [string trim [CompleteFromList $text $cmds]]
             }
+        } else {
+            set virtual_pos [expr {$pos - [FirstNonOption $line]}]
+            switch -- $virtual_pos {
+                0 { return [DisplayHints <expression>] }
+                1 { return [DisplayHints <string>] }
+                2 { return [DisplayHints <subSpec>] }
+                3 { return [DisplayHints <varName>] }
+            }
+        }
         return ""
     }
+
 
 	####################################################################
 	####################################################################
