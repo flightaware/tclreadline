@@ -3074,7 +3074,8 @@ namespace eval tclreadline {
 
     proc complete(regsub) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
-        if {"-start" == $prev} {
+        if {[llength $prev] && "--" != $prev
+                && ("-s" == [string range $prev 0 1 ] || 1 == $pos)}} {
 			 return [DisplayHints <value>]
 			}
         elseif {[llength $prev] && "--" != $prev
