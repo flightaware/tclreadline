@@ -2717,8 +2717,21 @@ namespace eval tclreadline {
             1 { return [DisplayHints <varname>] }
             2 { return [DisplayHints <list>] }
             3 { return [BraceOrCommand $text $start $end $line $pos $mod]}
-		    4 { return "" }
-		}
+		    default {
+                    set modulo [expr $pos % 2]
+                    switch -- $modulo {
+			            1 { return [DisplayHint <varname>] }
+			            0 { 
+                            set prev [PreviousWord $start $line]
+				            if {"{" == $prev} {
+						            return [DisplayHints "<body>"]
+					            } else {
+						            return [DisplayHint <varlist>]
+					            }
+				            }
+			            }
+		            }
+     }
         return ""
     }
 
