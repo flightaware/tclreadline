@@ -2712,6 +2712,16 @@ namespace eval tclreadline {
         return ""
     }
 
+    proc complete(lmap) {text start end line pos mod} {
+        switch -- $pos {
+            1 { return [DisplayHints <varname>] }
+            2 { return [DisplayHints <list>] }
+            3 { return [BraceOrCommand $text $start $end $line $pos $mod]}
+		    4 { return "" }
+		}
+        return ""
+    }
+
 	####################################################################
 	####################################################################
 	## load ?-global? ?-lazy? ?--? fileName
