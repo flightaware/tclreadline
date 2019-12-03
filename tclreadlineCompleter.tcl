@@ -2591,10 +2591,28 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## lappend varName ?value value value ...?
+	####################################################################
+	####################################################################
     proc complete(lappend) {text start end line pos mod} {
         switch -- $pos {
             1       { return [VarCompletion $text] }
             default { return [TryFromList $text ?value?] }
+        }
+        return ""
+    }
+    
+	####################################################################
+	####################################################################
+	## lassign list ?varName ...?
+	####################################################################
+	####################################################################
+    proc complete(lassign) {text start end line pos mod} {
+        switch -- $pos {
+            1       { return [DisplayHints <list>] }
+            default { return [CompleteFromList $text ?varName?] }
         }
         return ""
     }
@@ -2681,6 +2699,11 @@ namespace eval tclreadline {
 
     # --- END OF `LIBRARY' ---
 
+	####################################################################
+	####################################################################
+	## lindex list ?index ...?
+	####################################################################
+	####################################################################
     proc complete(lindex) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <list>] }
@@ -2689,6 +2712,11 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## linsert list index ?element element ...?
+	####################################################################
+	####################################################################
     proc complete(linsert) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <list>] }
@@ -2734,7 +2762,7 @@ namespace eval tclreadline {
             1 { return [DisplayHints <varname>] }
             2 { return [DisplayHints <list>] }
             # Best I can do to notify user of option to body or continue list
-            3 { return [DisplayHints {<body> <varlist>}] }
+            3 { return [DisplayHints {<body> ?varlist?}] }
 		    default {
                     set modulo [expr $pos % 2]
                     switch -- $modulo {
