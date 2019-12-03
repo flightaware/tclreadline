@@ -2716,7 +2716,7 @@ namespace eval tclreadline {
         switch -- $pos {
             1 { return [DisplayHints <varname>] }
             2 { return [DisplayHints <list>] }
-            3 { return [DisplayHints <body>]}
+            3 { return [DisplayHints {<body> <varlist>}] }
 		    default {
                     set modulo [expr $pos % 2]
                     switch -- $modulo {
