@@ -2716,13 +2716,15 @@ namespace eval tclreadline {
         switch -- $pos {
             1 { return [DisplayHints <varname>] }
             2 { return [DisplayHints <list>] }
-            #3 { return [BraceOrCommand $text $start $end $line $pos $mod]}
+            3 { return [BraceOrCommand $text $start $end $line $pos $mod]}
 		    default {
-                    set modulo [expr $pos % 2]
-                    switch -- $modulo {
-			            1 { return [DisplayHint <varname>] }
-			            0 { return [DisplayHint <varlist>] }
-		            }
+					if { "{" != $mod } {
+						set modulo [expr $pos % 2]
+						switch -- $modulo {
+							1 { return [DisplayHints <varlist>] }
+							0 { return [DisplayHints <list>] }
+						}
+					} else { return [DisplayHints <body>] }
 				}
 			}
         return ""
