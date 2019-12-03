@@ -2699,10 +2699,20 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## list ?arg arg ...?
+	####################################################################
+	####################################################################
     proc complete(list) {text start end line pos mod} {
         return [DisplayHints ?arg?]
     }
 
+	####################################################################
+	####################################################################
+	## llength list
+	####################################################################
+	####################################################################
     proc complete(llength) {text start end line pos mod} {
         switch -- $pos {
             1 {
@@ -2712,10 +2722,18 @@ namespace eval tclreadline {
         return ""
     }
 
+
+	####################################################################
+	####################################################################
+	## lmap varname list body
+	## lmap varlist1 list1 ?varlist2 list2 ...? body
+	####################################################################
+	####################################################################
     proc complete(lmap) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <varname>] }
             2 { return [DisplayHints <list>] }
+            # Best I can do to notify user of option to body or continue list
             3 { return [DisplayHints {<body> <varlist>}] }
 		    default {
                     set modulo [expr $pos % 2]
