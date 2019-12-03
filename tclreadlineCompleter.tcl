@@ -701,6 +701,30 @@ namespace eval tclreadline {
         return $expr_pos
     }
 
+    proc FirstNonOptionOrNonOptionPair {line pairwords} {
+        set expr_pos 1
+
+        # Presuming the pair item to the option is a singlet, let's remove from list and add it
+        # I'm sure not all complex test cases are covered though
+        foreach pair $pairwords {
+            if lsearch -start 1 $line $pair {
+                set found [lsearch -start 1 $line $pair]
+                set line [lreplace $line $found+1 $found+1]
+                incr expr_pos 1
+            }
+
+        }
+        
+        foreach word [lrange $line 1 end] {; # 0 is the command itself
+            if {"-" != [string index $word 0]} {
+                break
+            } else {
+                incr expr_pos
+            }
+        }
+        return $expr_pos
+    }
+
     proc RemoveUsedOptions {line opts {terminate {}}} {
         if {[llength $terminate]} {
             if {[regexp -- $terminate $line]} {
@@ -2707,6 +2731,11 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## lrange list first last 
+	####################################################################
+	####################################################################
     proc complete(lrange) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <list>] }
@@ -2716,6 +2745,24 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## lrepeat count ?element element ...?
+	####################################################################
+	####################################################################
+    proc complete(lrepeat) {text start end line pos mod} {
+        switch -- $pos {
+            1 { return [DisplayHints <count>] }
+            2 { return [DisplayHints ?element?] }
+        }
+        return ""
+    }
+
+	####################################################################
+	####################################################################
+	## lreplace list first last ?element element ...?
+	####################################################################
+	####################################################################
     proc complete(lreplace) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <list>] }
@@ -2726,6 +2773,18 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## lreverse list
+	####################################################################
+	####################################################################
+	proc complete(lreverse) {text start end line pos mod} {
+			return [DisplayHints <list>]
+		}
+
+							# UNDONE #
+	####################################################################
+	####################################################################
     proc complete(lsearch) {text start end line pos mod} {
         set options {-exact -glob -regexp}
         switch -- $pos {
@@ -2748,16 +2807,37 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## lset varName ?index ...? newValue
+	####################################################################
+	####################################################################
+	proc complete(lset) {text start end line pos mod} {
+			switch -- $pos {
+				1 { return [VarCompletion $mod] }
+				2 { return [DisplayHints ?index...?] }
+				3 { return [DisplayHints <newValue>] }
+			}
+			return ""
+		}
+
+	####################################################################
+	####################################################################
+	## lsort ?options? list
+	####################################################################
+	####################################################################
     proc complete(lsort) {text start end line pos mod} {
         set options [RemoveUsedOptions $line \
                          {-ascii -dictionary -integer -real -command
-                          -increasing -decreasing -index <list>}]
+                          -increasing -decreasing -nocase -unique -indices 
+                          -stride -index <list>}]
         switch -- $pos {
             1       { return [CompleteFromList $text $options] }
             default {
                 switch -- [PreviousWord $start $line] {
                     -command { return [CompleteFromList $text [CommandCompletion $text]] }
                     -index   { return [DisplayHints <index>] }
+                    -stride   { return [DisplayHints <strideLength>] }
                     default  { return [CompleteFromList $text $options] }
                 }
             }
@@ -2769,7 +2849,17 @@ namespace eval tclreadline {
 
     # create a msgcat namespace inside
     # tclreadline and import some commands.
-    #
+    #   
+	## ::msgcat::mc src-string ?arg arg ...?
+	## ::msgcat::mcmax ?src-string src-string ...?
+	## ::msgcat::mclocale ?newLocale?
+	## ::msgcat::mcpreferences
+	## ::msgcat::mcload dirname
+	## ::msgcat::mcset locale src-string ?translate-string?
+	## ::msgcat::mcmset locale src-trans-list
+	## ::msgcat::mcflset src-string ?translate-string?
+	## ::msgcat::mcflmset src-trans-list
+	## ::msgcat::mcunknown locale src-string
     namespace eval msgcat {
         catch {namespace import ::tclreadline::DisplayHints}
     }
@@ -2777,6 +2867,13 @@ namespace eval tclreadline {
     proc msgcat::complete(mc) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <src-string>] }
+            2 { return [DisplayHints ?arg...arg?] }
+        }
+        return ""
+    }
+
+    proc msgcat::complete(mcmax) {text start end line pos mod} {
+            return [DisplayHints <src-string>]
         }
         return ""
     }
@@ -2806,6 +2903,29 @@ namespace eval tclreadline {
         }
         return ""
     }
+    
+    proc msgcat::complete(mcmset) {text start end line pos mod} {
+        switch -- $pos {
+            1 { return [DisplayHints <locale>] }
+            2 { return [DisplayHints <src-trans-list>] }
+        }
+        return ""
+    }
+
+    proc msgcat::complete(mcflset) {text start end line pos mod} {
+        switch -- $pos {
+            1 { return [DisplayHints <src-string>] }
+            2 { return [DisplayHints ?translate-string?] }
+        }
+        return ""
+    }
+
+    proc msgcat::complete(mcflmset) {text start end line pos mod} {
+        switch -- $pos {
+            1 { return [DisplayHints <src-trans-list>] }
+        }
+        return ""
+    }
 
     proc msgcat::complete(mcunknown) {text start end line pos mod} {
         switch -- $pos {
@@ -2827,6 +2947,7 @@ namespace eval tclreadline {
                 set cmds {
                     children code current delete eval export forget
                     import inscope origin parent qualifiers tail which
+                    exists ensemble path upvar unknown
                 }
                 return [TryFromList $text $cmds]
             }
@@ -2845,6 +2966,9 @@ namespace eval tclreadline {
                     }
                     code       { return [DisplayHints <script> ] }
                     current    {}
+                    ensemble   { return [CompleteFromList $text {create 
+						configure exists] }
+                    exists     { return [DisplayHints <namespace> ] }
                     export     { return [CompleteFromList $text {-clear ?pattern?}] }
                     import     {
                         if {"-" != [string index $mod 0]} {
@@ -2852,8 +2976,11 @@ namespace eval tclreadline {
                         }
                         return [CompleteFromList $mod "-force $space_matches"]
                     }
+                    path       { return [CompleteFromList $mod $space_matches]}
                     origin     { return [DisplayHints <command>] }
                     # tail       { return [DisplayHints <string>] }
+                    unknown    { return [DisplayHints <script> ] }
+                    upvar      { return [DisplayHints ?otherVar?]}
                     which      { return [CompleteFromList $mod {-command -variable <name>}] }
                 }
             }
@@ -2866,6 +2993,7 @@ namespace eval tclreadline {
                     delete   { return [TryFromList $mod $space_matches] }
                     eval     -
                     inscope  { return [BraceOrCommand $text $start $end $line $pos $mod] }
+                    upvar      { return [DisplayHints ?myvar?]}
                     which    { return [CompleteFromList $mod {-variable <name>}] }
                 }
             }
@@ -2884,6 +3012,17 @@ namespace eval tclreadline {
         return ""
     }
 
+
+							# UNDONE #
+	####################################################################
+	####################################################################
+	## TODO: Platform Specific Serial Connections Section Is Not implemented.
+	##
+	## open fileName
+	## open fileName access
+	## open fileName access permissions
+	####################################################################
+	####################################################################
     proc complete(open) {text start end line pos mod} {
             # 2 { return [DisplayHints ?access?] }
         switch -- $pos {
@@ -2900,13 +3039,29 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## package forget ?package package ...?
+	## package ifneeded package version ?script?
+	## package names
+	## package present ?-exact? package ?requirement...?
+	## package provide package ?version?
+	## package require package ?requirement...?
+	## package require -exact package version
+	## package unknown ?command?
+	## package vcompare version1 version2
+	## package versions package
+	## package vsatisfies version requirement...
+	## package prefer ?latest|stable?
+	####################################################################
+	####################################################################
     proc complete(package) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
             1 {
                 set cmds {
                     forget ifneeded names present provide require
-                    unknown vcompare versions vsatisfies
+                    unknown vcompare versions vsatisfies prefer
                 }
                 return [TryFromList $text $cmds]
             }
@@ -2923,6 +3078,7 @@ namespace eval tclreadline {
                     unknown    { return [DisplayHints ?command?] }
                     vcompare   -
                     vsatisfies { return [DisplayHints <version1>] }
+                    prefer	   { return [DisplayHints ?stable|latest?] }
                 }
             }
             3 {
@@ -2967,12 +3123,22 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## pid ?fileId?
+	####################################################################
+	####################################################################
     proc complete(pid) {text start end line pos mod} {
         switch -- $pos {
             1 { return [ChannelId $text] }
         }
     }
 
+	####################################################################
+	####################################################################
+	## pkg_mkIndex ?options...? dir ?pattern pattern ...?
+	####################################################################
+	####################################################################
     proc complete(pkg_mkIndex) {text start end line pos mod} {
         set cmds [RemoveUsedOptions $line {-direct -load -verbose -- <dir>} {--}]
         set res [string trim [TryFromList $text $cmds]]
@@ -2985,6 +3151,13 @@ namespace eval tclreadline {
         return $res
     }
 
+							# UNDONE #
+	####################################################################
+	####################################################################
+    ##	TODO/UNDONE - figure why known_procs is empty on 1st complete 
+	## proc names args body
+	####################################################################
+	####################################################################
     proc complete(proc) {text start end line pos mod} {
         switch -- $pos {
             1 {
@@ -3011,6 +3184,11 @@ namespace eval tclreadline {
         return ""
     }
 
+	####################################################################
+	####################################################################
+	## puts ?-nonewline? ?channelId? string
+	####################################################################
+	####################################################################
     proc complete(puts) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
@@ -3051,18 +3229,24 @@ namespace eval tclreadline {
         return ""
     }
 
+							# UNDONE #
+	####################################################################
+	####################################################################
+	# Need to see if I can fix FirstNonOptionOrNonOptionPair function
+	# or change to match pkg_mkIndex
     proc complete(regexp) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
         if {[llength $prev] && "--" != $prev
                 && ("-" == [string index $prev 0] || 1 == $pos)} {
             set cmds [RemoveUsedOptions $line \
                           {-nocase -indices -expanded -line
-                           -linestop -lineanchor -about <expression> --} {--}]
+                           -linestop -lineanchor -all -inline -about <expression> --} {--}]
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
         } else {
-            set virtual_pos [expr {$pos - [FirstNonOption $line]}]
+            set virtual_pos [expr {$pos - [FirstNonOptionOrNonOptionPair $line 
+				"-start"]}]
             switch -- $virtual_pos {
                 0       { return [DisplayHints <string>] }
                 1       { return [DisplayHints ?matchVar?] }
@@ -3072,6 +3256,11 @@ namespace eval tclreadline {
         return ""
     }
 
+							# UNDONE #
+	####################################################################
+	####################################################################
+	# Need to see if I can fix FirstNonOptionOrNonOptionPair function
+	# or change to match pkg_mkIndex
     proc complete(regsub) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
         if {[llength $prev] && "--" != $prev
