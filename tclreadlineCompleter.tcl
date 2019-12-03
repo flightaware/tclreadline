@@ -2713,21 +2713,16 @@ namespace eval tclreadline {
     }
 
     proc complete(load) {text start end line pos mod} {
-        switch -- $pos {
-            1 {
-                return ""; # filename
-            }
-            2 {
-                if {![llength $mod]} {
-                    return [DisplayHints ?packageName?]
-                }
-            }
-            3 {
-                if {![llength $mod]} {
-                    return [DisplayHints ?interp?]
-                }
-            }
-        }
+    
+		set opts [RemoveUsedOptions $line {-global -lazy -- <fileName>} {--}]
+		set res [string trim [TryFromList $text $opts]]
+        set prev [PreviousWord $start $line]
+        if {"--" == $prev} {
+            return ""
+        } else {
+			return $res
+		}
+
         return ""
     }
 
