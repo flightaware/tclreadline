@@ -2406,40 +2406,52 @@ namespace eval tclreadline {
             -proxyhost   { return [CompleteFromList $text [HostList]] }
             -proxyport   { return [DisplayHints <number>] }
             -proxyfilter { return [CompleteFromList $text [CommandCompletion $text]] }
+            -urlencoding { return [DisplayHints <encoding>] }
             -useragent   { return [DisplayHints <string>] }
             default      {
                 return [CompleteFromList $text \
                             [RemoveUsedOptions $line \
                                  {-accept -proxyhost -proxyport
-                                  -proxyfilter -useragent}]]
+                                  -proxyfilter -urlencoding -useragent}]]
             }
         }
         return ""
     }
 
     proc http::complete(geturl) {text start end line pos mod} {
+		set subopts {-binary -blocksize -channel -command -handler -headers 
+			-keepalive -method -myaddr -progress -protocol -query 
+			-queryblocksize -querychannel -queryprogress -strict -timeout -type 
+			-validate}
         switch -- $pos {
             1       { return [DisplayHints <url>] }
             default {
                 set prev [PreviousWord $start $line]
                 switch -- $prev {
-                    -blocksize { return [DisplayHints <size>] }
+                    -blocksize -
+                    -queryblocksize { return [DisplayHints <size>] }
+                    -querychannel -
                     -channel   { return [ChannelId $text] }
                     -command   -
                     -handler   -
-                    -progress  {
+                    -progress  -
+                    -queryprogress  {
                         return [CompleteFromList $text [CommandCompletion $text]]
                     }
                     -headers   { return [DisplayHints <keyvaluelist>] }
+                    -method    { return [DisplayHints <type>] }
+                    -myaddr    { return [DisplayHints <address>] }
+                    -protocol  { return [DisplayHints <version>] }
                     -query     { return [DisplayHints <query>] }
                     -timeout   { return [DisplayHints <milliseconds>] }
+                    -type      { return [DisplayHints <mimetype>] }
+                    -binary	   -
+                    -keepalive -
+                    -strict	   -
                     -validate  { return [CompleteBoolean $text] }
                     default    {
                         return [CompleteFromList $text \
-                                    [RemoveUsedOptions $line \
-                                         {-blocksize -channel -command
-                                          -handler -headers -progress
-                                          -query -timeout -validate}]]
+                                    [RemoveUsedOptions $line $subopts]]
                     }
                 }
             }
@@ -3086,16 +3098,6 @@ namespace eval tclreadline {
     # create a msgcat namespace inside
     # tclreadline and import some commands.
     #   
-    ## ::msgcat::mc src-string ?arg arg ...?
-    ## ::msgcat::mcmax ?src-string src-string ...?
-    ## ::msgcat::mclocale ?newLocale?
-    ## ::msgcat::mcpreferences
-    ## ::msgcat::mcload dirname
-    ## ::msgcat::mcset locale src-string ?translate-string?
-    ## ::msgcat::mcmset locale src-trans-list
-    ## ::msgcat::mcflset src-string ?translate-string?
-    ## ::msgcat::mcflmset src-trans-list
-    ## ::msgcat::mcunknown locale src-string
     namespace eval msgcat {
         catch {namespace import ::tclreadline::DisplayHints}
     }
@@ -4222,6 +4224,7 @@ namespace eval tclreadline {
         }
         return ""
     }
+
 
 
     ####################################################################
