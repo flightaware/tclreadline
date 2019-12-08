@@ -1534,16 +1534,16 @@ namespace eval tclreadline {
     #                 TCL
     # -------------------------------------
 
-    ############################################################
-    ############################################################
-    ####  after ms 
-    ####  after ms     ?script script script ...? 
-    ####  after cancel id 
-    ####  after cancel script script ... 
-    ####  after idle   script ?script script ...? 
-    ####  after info   ?id? 
-    ############################################################
-    ############################################################   
+    ####################################################################
+    ####################################################################
+    ##  after ms 
+    ##  after ms     ?script script script ...? 
+    ##  after cancel id 
+    ##  after cancel script script ... 
+    ##  after idle   script ?script script ...? 
+    ##  after info   ?id? 
+    ####################################################################
+    ####################################################################
     proc complete(after) {text start end line pos mod} {
         set sub [Lindex $line 1]
         switch -- $pos {
@@ -1568,11 +1568,11 @@ namespace eval tclreadline {
         return ""
     }
 
-    ############################################################
-    ############################################################ 
+    ####################################################################
+    ####################################################################
     ## append varName ?value value value ...?
-    ############################################################
-    ############################################################ 
+    ####################################################################
+    ####################################################################
     proc complete(append) {text start end line pos mod} {
         switch -- $pos {
             1       { return [VarCompletion $text] }
@@ -1582,8 +1582,8 @@ namespace eval tclreadline {
         return ""
     }
 
-    ############################################################
-    ############################################################  
+    ####################################################################
+    #################################################################### 
     ## array anymore     arrayName searchId 
     ## array donesearch  arrayName searchId 
     ## array exists      arrayName 
@@ -1595,8 +1595,8 @@ namespace eval tclreadline {
     ## array startsearch arrayName 
     ## array statistics  arrayName 
     ## array unset       arrayName ?pattern? 
-    ############################################################
-    ############################################################     
+    ####################################################################
+    ####################################################################  
     proc complete(array) {text start end line pos mod} {
         switch -- $pos {
             1 {
@@ -1664,11 +1664,11 @@ namespace eval tclreadline {
         return ""
     }
 
-    ############################################################
-    ############################################################  
-    #### bgerror message
-    ############################################################
-    ############################################################    
+    ####################################################################
+    ####################################################################
+    ## bgerror message
+    ####################################################################
+    ####################################################################   
     proc complete(bgerror) {text start end line pos mod} {
         switch -- $pos {
             1       { return [DisplayHints <message>] }
@@ -1676,14 +1676,14 @@ namespace eval tclreadline {
         return ""     
     }
 
-    ############################################################
-    ############################################################
-    ####  binary decode format       ?-maxlen x? ?-wrapchar x? ?-strict? data
-    ####  binary encode format       ?-maxlen x? ?-wrapchar x? ?-strict?  data
-    ####  binary format formatString ?arg?
-    ####  binary scan   string       formatString ?varName?
-    ############################################################
-    ############################################################
+    ####################################################################
+    ####################################################################
+    ##  binary decode format       ?-maxlen x? ?-wrapchar x? ?-strict? data
+    ##  binary encode format       ?-maxlen x? ?-wrapchar x? ?-strict?  data
+    ##  binary format formatString ?arg?
+    ##  binary scan   string       formatString ?varName?    
+    ####################################################################
+    ####################################################################
     proc complete(binary) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
@@ -1731,20 +1731,20 @@ namespace eval tclreadline {
     # proc complete(break) {text start end line pos mod} {
     # }
 
-    ############################################################
-    ############################################################
-    ####  
-    ############################################################
-    ############################################################    
+    ####################################################################
+    ####################################################################
+    ##  
+    ####################################################################
+    ####################################################################
     proc complete(cd) {text start end line pos mod} {
         return ""        
     }
     
-    ############################################################
-    ############################################################
-    ####  
-    ############################################################
-    ############################################################ 
+    ####################################################################
+    ####################################################################
+    ##  
+    ####################################################################
+    ####################################################################
     proc complete(catch) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <script>] }
@@ -1753,28 +1753,28 @@ namespace eval tclreadline {
         return ""
     }
 
-    ############################################################
-    ############################################################
-    ####  clock add           timeVal     ?count unit...?    ?-option value? 
-    ####  clock clicks        ?-option?  
-    ####  clock format        timeVal     ?-option value...? 
-    ####  clock microseconds             
-    ####  clock milliseconds             
-    ####  clock scan          inputString ?-option value...? 
-    ####  clock seconds                  
+    ####################################################################
+    ####################################################################
+    ##  clock add           timeVal     ?count unit...?    ?-option value? 
+    ##  clock clicks        ?-option?  
+    ##  clock format        timeVal     ?-option value...? 
+    ##  clock microseconds             
+    ##  clock milliseconds             
+    ##  clock scan          inputString ?-option value...? 
+    ##  clock seconds                  
     #########################
-    ####   --UNITS seconds, minutes, hours, days, weeks, months, years
-    ####   --[TIMEZONE] gmt     ut      utc     bst     wet     wat     at
-    ####                nft     nst     ndt     ast     adt     est     edt
-    ####                cst     cdt     mst     mdt     pst     pdt     yst
-    ####                ydt     hst     hdt     cat     ahst    nt      idlw
-    ####                cet     cest    met     mewt    mest    swt     sst
-    ####                eet     eest    bt      it      zp4     zp5     ist
-    ####                zp6     wast    wadt    jt      cct     jst     cast
-    ####                cadt    east    eadt    gst     nzt     nzst    nzdt
-    ####                idle
-    ############################################################
-    ############################################################ 
+    ##   --UNITS seconds, minutes, hours, days, weeks, months, years
+    ##   --[TIMEZONE] gmt     ut      utc     bst     wet     wat     at
+    ##                nft     nst     ndt     ast     adt     est     edt
+    ##                cst     cdt     mst     mdt     pst     pdt     yst
+    ##                ydt     hst     hdt     cat     ahst    nt      idlw
+    ##                cet     cest    met     mewt    mest    swt     sst
+    ##                eet     eest    bt      it      zp4     zp5     ist
+    ##                zp6     wast    wadt    jt      cct     jst     cast
+    ##                cadt    east    eadt    gst     nzt     nzst    nzdt
+    ##                idle
+    ####################################################################
+    #################################################################### 
     proc complete(clock) {text start end line pos mod} {
     
     # seconds minutes hours days weeks months years
