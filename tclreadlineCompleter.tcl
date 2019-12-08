@@ -1853,7 +1853,7 @@ namespace eval tclreadline {
         set cmd [Lindex $line 1]
         switch -- $pos {
             1 {
-                return [CompleteFromList $text {convertfrom convertto names system}]
+                return [CompleteFromList $text {convertfrom convertto dirs names system}]
             }
             2 {
                 switch -- $cmd {
@@ -1866,6 +1866,7 @@ namespace eval tclreadline {
             }
             3 {
                 switch -- $cmd {
+                    dirs        { return return [DisplayHints ?dirList?] }
                     convertfrom { return [DisplayHints <data>] }
                     convertto   { return [DisplayHints <string>] }
                 }
@@ -1874,6 +1875,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## eof channelId
+    ####################################################################
+    ####################################################################
     proc complete(eof) {text start end line pos mod} {
         switch -- $pos {
             1 { return [InChannelId $text] }
@@ -1881,6 +1888,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## error message ?info? ?code?
+    ####################################################################
+    ####################################################################
     proc complete(error) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints <message>] }
@@ -1890,6 +1903,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## eval arg ?arg ...?
+    ####################################################################
+    ####################################################################
     proc complete(eval) {text start end line pos mod} {
         switch -- $pos {
             1       { return [DisplayHints <arg>] }
@@ -1898,6 +1917,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## exec ?switches? arg ?arg ...? ?&?
+    ####################################################################
+    ####################################################################
     proc complete(exec) {text start end line pos mod} {
         set redir [list | |& < <@ << > 2> >& >> 2>> >>& >@ 2>@ >&@]
         variable executables
@@ -1934,7 +1959,13 @@ namespace eval tclreadline {
         }
         return ""
     }
-
+    
+    
+    ####################################################################
+    ####################################################################
+    ## exit ?returnCode?
+    ####################################################################
+    ####################################################################
     proc complete(exit) {text start end line pos mod} {
         switch -- $pos {
             1 { return [DisplayHints ?returnCode?] }
@@ -1942,6 +1973,9 @@ namespace eval tclreadline {
         return ""
     }
 
+                            # UNDONE #
+    ####################################################################
+    ####################################################################
     proc complete(expr) {text start end line pos mod} {
         set left $text
         set right ""
