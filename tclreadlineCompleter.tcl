@@ -1777,7 +1777,7 @@ namespace eval tclreadline {
     ############################################################ 
     proc complete(clock) {text start end line pos mod} {
     
-# seconds minutes hours days weeks months years
+    # seconds minutes hours days weeks months years
     
         set cmd [Lindex $line 1]
         switch -- $pos {
@@ -1831,6 +1831,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## close channelId
+    ####################################################################
+    ####################################################################
     proc complete(close) {text start end line pos mod} {
         switch -- $pos {
             1 { return [ChannelId $text] }
@@ -1838,6 +1844,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## concat ?arg arg...?
+    ####################################################################
+    ####################################################################
     proc complete(concat) {text start end line pos mod} {
         return [DisplayHints ?arg?]
     }
@@ -1846,9 +1858,19 @@ namespace eval tclreadline {
     # }
 
     # proc complete(dde) {text start end line pos mod} {
-    #     We're not on windoze here ...
+    #     Windows Test Specific here ...
     # }
 
+
+    ####################################################################
+    ####################################################################
+    ## encoding convertfrom ?encoding? data
+    ## encoding convertto ?encoding? string
+    ## encoding dirs ?directoryList?
+    ## encoding names
+    ## encoding system ?encoding?
+    ####################################################################
+    ####################################################################
     proc complete(encoding) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
@@ -1857,6 +1879,7 @@ namespace eval tclreadline {
             }
             2 {
                 switch -- $cmd {
+                    dirs        { return [DisplayHints ?dirList?] }
                     convertfrom -
                     convertto   -
                     system      {
@@ -1866,7 +1889,6 @@ namespace eval tclreadline {
             }
             3 {
                 switch -- $cmd {
-                    dirs        { return return [DisplayHints ?dirList?] }
                     convertfrom { return [DisplayHints <data>] }
                     convertto   { return [DisplayHints <string>] }
                 }
@@ -3512,7 +3534,7 @@ namespace eval tclreadline {
     }
 
     # proc complete(resource) {text start end line pos mod} {
-    #     This is not a mac ...
+    #     Macintosh test specific here ...
     # }
 
 
