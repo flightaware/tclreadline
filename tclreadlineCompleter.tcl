@@ -2008,13 +2008,27 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## fblocked channelId
+    ####################################################################
+    ####################################################################
     proc complete(fblocked) {text start end line pos mod} {
         switch -- $pos {
             1 { return [InChannelId $text] }
         }
         return ""
     }
+    
 
+    ####################################################################
+    ####################################################################
+    ## fconfigure channelId
+    ## fconfigure channelId name
+    ## fconfigure channelId name value ?name value ...?
+    ####################################################################
+    ####################################################################
     proc complete(fconfigure) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
@@ -2044,6 +2058,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## fcopy inchan outchan ?-size size? ?-command callback?
+    ####################################################################
+    ####################################################################
     proc complete(fcopy) {text start end line pos mod} {
         switch -- $pos {
             1       { return [InChannelId $text] }
@@ -2062,6 +2082,10 @@ namespace eval tclreadline {
         return ""
     }
 
+
+                            # UNDONE #
+    ####################################################################
+    ####################################################################
     proc complete(file) {text start end line pos mod} {
         switch -- $pos {
             1 {
