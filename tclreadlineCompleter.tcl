@@ -3029,7 +3029,7 @@ namespace eval tclreadline {
     ####################################################################
     proc complete(lreverse) {text start end line pos mod} {
             return [DisplayHints <list>]
-        }
+    }
 
                             # UNDONE #
     ####################################################################
@@ -3077,7 +3077,7 @@ namespace eval tclreadline {
     ####################################################################
     proc complete(lsort) {text start end line pos mod} {
         set options [RemoveUsedOptions $line \
-                         {-ascii dictionary -integer -real -command
+                         {-ascii -dictionary -integer -real -command
                           -increasing -decreasing -nocase -unique -indices 
                           -stride -index <list>}]
         switch -- $pos {
@@ -3114,8 +3114,6 @@ namespace eval tclreadline {
     proc msgcat::complete(mcmax) {text start end line pos mod} {
             return [DisplayHints <src-string>]
         }
-        return ""
-    }
 
     proc msgcat::complete(mclocale) {text start end line pos mod} {
         switch -- $pos {
@@ -3177,7 +3175,7 @@ namespace eval tclreadline {
     # --- END OF MSGCAT PACKAGE ---
 
     # TODO import ! -force
-proc complete(namespace) {text start end line pos mod} {
+    proc complete(namespace) {text start end line pos mod} {
         # TODO doesn't work ???
         set space_matches [namespace children :: [string trim ${mod}*]]
         set cmd [Lindex $line 1]
@@ -3252,7 +3250,6 @@ proc complete(namespace) {text start end line pos mod} {
         }
         return ""
     }
-
 
                             # UNDONE #
     ####################################################################
