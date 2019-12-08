@@ -707,9 +707,10 @@ namespace eval tclreadline {
         # Presuming the pair item to the option is a singlet, let's remove from list and add it
         # I'm sure not all complex test cases are covered though
         foreach pair $pairwords {
-            if lsearch -start 1 $line $pair {
+            if {[lsearch -start 1 $line $pair]} {
                 set found [lsearch -start 1 $line $pair]
                 set line [lreplace $line $found+1 $found+1]
+                puts $line
                 incr expr_pos 1
             }
 
@@ -3176,7 +3177,7 @@ namespace eval tclreadline {
     # --- END OF MSGCAT PACKAGE ---
 
     # TODO import ! -force
-    proc complete(namespace) {text start end line pos mod} {
+proc complete(namespace) {text start end line pos mod} {
         # TODO doesn't work ???
         set space_matches [namespace children :: [string trim ${mod}*]]
         set cmd [Lindex $line 1]
@@ -3219,7 +3220,8 @@ namespace eval tclreadline {
                     # tail       { return [DisplayHints <string>] }
                     unknown    { return [DisplayHints <script> ] }
                     upvar      { return [DisplayHints ?otherVar?]}
-                    which      { return [CompleteFromList $mod {-command -variable <name>}] }
+                    which      { return [CompleteFromList $mod {-command -variable <name>}] } 
+                    }
                 }
             }
             3 {
@@ -3231,7 +3233,7 @@ namespace eval tclreadline {
                     delete   { return [TryFromList $mod $space_matches] }
                     eval     -
                     inscope  { return [BraceOrCommand $text $start $end $line $pos $mod] }
-                    upvar      { return [DisplayHints ?myvar?]}
+                    upvar    { return [DisplayHints ?myvar?]}
                     which    { return [CompleteFromList $mod {-variable <name>}] }
                 }
             }
@@ -3246,6 +3248,7 @@ namespace eval tclreadline {
                     which   { return [CompleteFromList $mod {<name>}] }
                 }
             }
+        
         }
         return ""
     }
@@ -3497,20 +3500,19 @@ namespace eval tclreadline {
                             # UNDONE #
     ####################################################################
     ####################################################################
-    # Need to see if I can fix FirstNonOptionOrNonOptionPair function
-    # or change to match pkg_mkIndex
     proc complete(regsub) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
         if {[llength $prev] && "--" != $prev
                 && ("-" == [string index $prev 0] || 1 == $pos)} {
             set cmds [RemoveUsedOptions $line \
                           {-all -nocase -expanded -linestop -lineanchor -nocase 
-                              -start --} {--}]
+                              -start --} {--}] 
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
         } else {
-            set virtual_pos [expr {$pos - [FirstNonOption $line]}]
+            set virtual_pos [expr {$pos - [FirstNonOptionOrNonOptionPair $line 
+                {-start}]}]
             switch -- $virtual_pos {
                 0 { return [DisplayHints <expression>] }
                 1 { return [DisplayHints <string>] }
