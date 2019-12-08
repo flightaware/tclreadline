@@ -1733,7 +1733,7 @@ namespace eval tclreadline {
 
     ####################################################################
     ####################################################################
-    ##  
+    ##  cd ?dirName?    
     ####################################################################
     ####################################################################
     proc complete(cd) {text start end line pos mod} {
@@ -1742,7 +1742,7 @@ namespace eval tclreadline {
     
     ####################################################################
     ####################################################################
-    ##  
+    ##  catch script ?resultVarName? ?optionsVarName?
     ####################################################################
     ####################################################################
     proc complete(catch) {text start end line pos mod} {
@@ -3064,7 +3064,7 @@ namespace eval tclreadline {
     ####################################################################
     proc complete(lsort) {text start end line pos mod} {
         set options [RemoveUsedOptions $line \
-                         {-ascii -dictionary -integer -real -command
+                         {-ascii dictionary -integer -real -command
                           -increasing -decreasing -nocase -unique -indices 
                           -stride -index <list>}]
         switch -- $pos {
