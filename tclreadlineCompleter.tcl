@@ -4226,6 +4226,26 @@ namespace eval tclreadline {
     }
 
 
+    ####################################################################
+    ####################################################################
+    ## unload ?switches? fileName
+    ## unload ?switches? fileName packageName
+    ## unload ?switches? fileName packageName interp
+    ####################################################################
+    ####################################################################
+    proc complete(unload) {text start end line pos mod} {
+    
+        set opts [RemoveUsedOptions $line {-nocomplain -keeplibrary -- <fileName>} {--}]
+        set res [string trim [TryFromList $text $opts]]
+        set prev [PreviousWord $start $line]
+        if {"--" == $prev} {
+            return ""
+        } else {
+            return $res
+        }
+
+        return ""
+    }
 
     ####################################################################
     ####################################################################
