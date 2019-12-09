@@ -2403,10 +2403,10 @@ namespace eval tclreadline {
     }
 
     proc http::complete(geturl) {text start end line pos mod} {
-		set subopts {-binary -blocksize -channel -command -handler -headers 
-			-keepalive -method -myaddr -progress -protocol -query 
-			-queryblocksize -querychannel -queryprogress -strict -timeout -type 
-			-validate}
+        set subopts {-binary -blocksize -channel -command -handler -headers 
+            -keepalive -method -myaddr -progress -protocol -query 
+            -queryblocksize -querychannel -queryprogress -strict -timeout -type 
+            -validate}
         switch -- $pos {
             1       { return [DisplayHints <url>] }
             default {
@@ -2429,9 +2429,9 @@ namespace eval tclreadline {
                     -query     { return [DisplayHints <query>] }
                     -timeout   { return [DisplayHints <milliseconds>] }
                     -type      { return [DisplayHints <mimetype>] }
-                    -binary	   -
+                    -binary    -
                     -keepalive -
-                    -strict	   -
+                    -strict    -
                     -validate  { return [CompleteBoolean $text] }
                     default    {
                         return [CompleteFromList $text \
