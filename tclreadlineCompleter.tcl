@@ -2115,17 +2115,17 @@ namespace eval tclreadline {
     }
 
 
-                            # UNDONE #
+                            # TODO #
     ####################################################################
     ####################################################################
     proc complete(file) {text start end line pos mod} {
         switch -- $pos {
             1 {
                 set cmds {
-                    atime attributes channels copy delete dirname executable exists
-                    extension isdirectory isfile join lstat mkdir mtime
-                    nativename owned pathtype readable readlink rename
-                    rootname size split stat tail type volumes writable
+                    atime attributes channels copy delete dirname executable 
+                    exists extension isdirectory isfile join link lstat mkdir mtime
+                    nativename normalize owned pathtype readable readlink rename 
+                    rootname separator size split stat system tail tempfile type volumes writable
                 }
                 return [TryFromList $text $cmds]
             }
@@ -2146,6 +2146,7 @@ namespace eval tclreadline {
                     mtime       -
                     mkdir       -
                     nativename  -
+                    normalize   -
                     owned       -
                     pathtype    -
                     readable    -
@@ -2154,6 +2155,7 @@ namespace eval tclreadline {
                     size        -
                     split       -
                     stat        -
+                    system      -
                     tail        -
                     type        -
                     volumes     -
@@ -2161,8 +2163,12 @@ namespace eval tclreadline {
                         return ""
                     }
 
-                    copy   -
-                    delete -
+                    # TODO: The following take additional options
+                    copy      -
+                    delete    -
+                    link      -
+                    separator -
+                    tempfile  -
                     rename {
                         # return [TryFromList $text "-force [glob *]"]
                         # this is not perfect. The  `-force' and `--'
