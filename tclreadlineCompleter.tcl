@@ -1974,6 +1974,8 @@ namespace eval tclreadline {
                             # UNDONE #
     ####################################################################
     ####################################################################
+    # Need to delete or converte to ::tcl::mathfunc in my 8.6 TCL version
+    #
     proc complete(expr) {text start end line pos mod} {
         set left $text
         set right ""
@@ -2550,6 +2552,12 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## info option ?arg arg ...?
+    ####################################################################
+    ####################################################################
     proc complete(info) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         set tcloo 0
@@ -2559,9 +2567,9 @@ namespace eval tclreadline {
         switch -- $pos {
             1 {
                 set cmds {
-                    args body cmdcount commands complete default exists
-                    globals hostname level library loaded locals
-                    nameofexecutable patchlevel procs script
+                    args body cmdcount commands complete coroutine default 
+                    frame functions exists errorstack globals hostname level 
+                    library loaded locals nameofexecutable patchlevel procs script
                     sharedlibextension tclversion vars
                 }
                 if {$tcloo} {
@@ -2592,11 +2600,14 @@ namespace eval tclreadline {
                             return [complete(proc) $text 0 0 $line 1 $mod]
                         }
                         complete { return [DisplayHints <command>] }
+                        frame    -
                         level    { return [DisplayHints ?number?] }
+                        errorstack   -
                         loaded   { return [DisplayHints ?interp?] }
                         commands -
                         exists   -
                         globals  -
+                        functions -
                         locals   -
                         vars     {
                             if {"exists" == $cmd} {
@@ -2626,13 +2637,19 @@ namespace eval tclreadline {
         return ""
     }
 
+
+    ####################################################################
+    ####################################################################
+    ## interp subcommand ?arg arg ...?
+    ####################################################################
+    ####################################################################
     proc complete(interp) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {
             1 {
                 set cmds {
-                    alias aliases create delete eval exists expose hide hidden
-                    invokehidden issafe marktrusted share slaves target transfer
+                    alias aliases create delete debug eval exists expose hide hidden 
+                    invokehidden issafe limit marktrusted recursionlimit share slaves target transfer
                 }
                 return [TryFromList $text $cmds]
             }
@@ -2646,14 +2663,17 @@ namespace eval tclreadline {
                             return [DisplayHints ?path?]
                         }
                     }
-
+                    
+                    debug        -
                     eval         -
                     exists       -
                     expose       -
                     hide         -
                     hidden       -
                     invokehidden -
+                    limit        -
                     marktrusted  -
+                    recursionlimit  -
                     target       { return [CompleteFromList $text [interp slaves]] }
 
                     aliases -
@@ -2681,6 +2701,11 @@ namespace eval tclreadline {
 
                     eval   { return [DisplayHints <arg>] }
                     delete { return [CompleteFromList $text [interp slaves]] }
+                    
+                    debug {
+                        return [CompleteFromList $text \
+                                    {?-frame bool?}]
+                    }
 
                     expose { return [DisplayHints <hiddenName>] }
                     hide   { return [DisplayHints <exposedCmdName>] }
@@ -2690,6 +2715,8 @@ namespace eval tclreadline {
                                     {?-global? <hiddenCmdName>}]
                     }
 
+                    limit { return [DisplayHints <limitType>] }
+                    recursionlimit { return [DisplayHints ?newlimit?] }
                     target { return [DisplayHints <alias>] }
 
                     exists      {}
@@ -2706,6 +2733,7 @@ namespace eval tclreadline {
             4 {
                 switch -- $cmd {
                     alias { return [DisplayHints <targetPath>] }
+                    debug  { return [DisplayHints ?bool?] }
                     eval  { return [DisplayHints ?arg?] }
 
                     invokehidden {
@@ -2721,6 +2749,8 @@ namespace eval tclreadline {
                         }
                     }
 
+                    limit { return [DisplayHints ?-option?] }
+
                     expose { return [DisplayHints ?exposedCmdName?] }
                     hide   { return [DisplayHints ?hiddenCmdName?] }
 
@@ -2733,6 +2763,8 @@ namespace eval tclreadline {
                     alias        { return [DisplayHints <targetCmd>] }
                     invokehidden -
                     eval         { return [DisplayHints ?arg?] }
+                    
+                    limit { return [DisplayHints ?value?] }
 
                     expose { return [DisplayHints ?exposedCmdName?] }
                     hide   { return [DisplayHints ?hiddenCmdName?] }
@@ -4018,7 +4050,7 @@ namespace eval tclreadline {
         return [CompleteFromList $text [RemoveUsedOptions $line {
             -nobackslashes -nocommands -novariables <string>}]]
     }
-    
+
                             # UNDONE #
     ####################################################################
     ####################################################################
