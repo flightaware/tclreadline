@@ -4205,56 +4205,46 @@ namespace eval tclreadline {
                             # UNDONE #
     ####################################################################
     ####################################################################
-    ## TODO/UNDONE - Nothing Works really but especially switch/case 4 
-    ##
-    ## trace add type name ops ?args?
-    ## trace remove type name opList commandPrefix
-    ## trace info type name
-    ##
-    ## OLD METHODS BELOW THAT MAY BE REMOVED FROM TCL
-    ## trace variable name ops command
-    ## trace vdelete name ops command
-    ## trace vinfo name
-    ####################################################################
-    ####################################################################
-
     proc complete(trace) {text start end line pos mod} {
-        set cmd [Lindex $line 1]
-        switch -- $pos {
-            1 { return [CompleteFromList $text {add 
-                info remove }] 
+        set cmd [Lindex ${line} 1]
+        switch -- ${pos} {
+            1 {
+                return [CompleteFromList ${mod} {variable vdelete vinfo}]
             }
             2 {
-                switch -- $cmd {
-                    add -
-                    remove -
-                    info { return [CompleteFromList $text {command execution variable}]}
-                    default {}
+                return [CompleteFromList ${text} \
+                [uplevel [info level] info vars "${mod}*"]]
+            }
+            3 {
+                switch -- ${cmd} {
+                    variable -
+                    variable { return [CompleteFromList ${text} {r w u}] }
+                    vdelete {
+                        set var [PreviousWord ${start} ${line}]
+                        set modes ""
+                        foreach info [uplevel [info level] trace vinfo ${var}] {
+                            lappend modes [lindex ${info} 0]
+                        }
+                        return [CompleteFromList ${text} ${modes}]
+                    }
                 }
             }
-            3 { 
-                switch -- [PreviousWord $start $line] {
-                    command -
-                    execution -
-                    info { return [DisplayHints {{<name> <ops> <command>}}]} 
-                    default {}
-                }
-            }
-            4 { # Use sub on this one
-                switch -- $cmd {
+            4 {
+                switch -- ${cmd} {
                     variable {
-                        return [CompleteFromList $text [CommandCompletion $text]]
+                        return [CompleteFromList ${text} \
+                        [CommandCompletion ${text}]]
                     }
                     vdelete {
-                        set var [Lindex $line 2]
-                        set mode [PreviousWord $start $line]
+                        set var [Lindex ${line} 2]
+                        set mode [PreviousWord ${start} ${line}]
                         set scripts ""
-                        foreach info [uplevel [info level] trace vinfo $var] {
-                            if {$mode == [lindex $info 0]} {
-                                lappend scripts [list [lindex $info 1]]
+                        foreach info [uplevel [info level] trace vinfo ${var}] {
+                            if {${mode} == [lindex ${info} 0]} {
+                                lappend scripts [list [lindex ${info} 1]]
                             }
                         }
-                        return [DisplayHints $scripts]
+                        return [DisplayHints ${scripts}]
                     }
                 }
             }
