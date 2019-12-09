@@ -701,31 +701,6 @@ namespace eval tclreadline {
         return $expr_pos
     }
 
-    proc FirstNonOptionOrNonOptionPair {line pairwords} {
-        set expr_pos 1
-
-        # Presuming the pair item to the option is a singlet, let's remove from list and add it
-        # I'm sure not all complex test cases are covered though
-        foreach pair $pairwords {
-            if {[lsearch -start 1 $line $pair]} {
-                set found [lsearch -start 1 $line $pair]
-                set line [lreplace $line $found+1 $found+1]
-                puts $line
-                incr expr_pos 1
-            }
-
-        }
-        
-        foreach word [lrange $line 1 end] {; # 0 is the command itself
-            if {"-" != [string index $word 0]} {
-                break
-            } else {
-                incr expr_pos
-            }
-        }
-        return $expr_pos
-    }
-
     proc RemoveUsedOptions {line opts {terminate {}}} {
         if {[llength $terminate]} {
             if {[regexp -- $terminate $line]} {
@@ -3251,7 +3226,7 @@ namespace eval tclreadline {
         return ""
     }
 
-                            # UNDONE #
+                            # TODO #
     ####################################################################
     ####################################################################
     ## TODO: Platform Specific Serial Connections Section Is Not implemented.
@@ -3389,10 +3364,8 @@ namespace eval tclreadline {
         return $res
     }
 
-                            # UNDONE #
     ####################################################################
     ####################################################################
-    ##  TODO/UNDONE - figure why known_procs is empty on 1st complete 
     ## proc names args body
     ####################################################################
     ####################################################################
@@ -3467,56 +3440,100 @@ namespace eval tclreadline {
         return ""
     }
 
-                            # UNDONE #
+                            # TODO #
     ####################################################################
     ####################################################################
-    # Need to see if I can fix FirstNonOptionOrNonOptionPair function
-    # or change to match pkg_mkIndex
+    ## UNDONE/TODO - Fix the -start option having to be last to not interrupt 
+    ## other completer options
+    ## regsub -about
+    ## regsub -expanded
+    ## regsub -indices
+    ## regsub -line
+    ## regsub -linestop
+    ## regsub -lineanchor
+    ## regsub -nocase
+    ## regsub -all
+    ## regsub -inline
+    ## regsub -start index
+    ## regsub --
+    ####################################################################
+    ####################################################################
     proc complete(regexp) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
         if {[llength $prev] && "--" != $prev
                 && ("-" == [string index $prev 0] || 1 == $pos)} {
             set cmds [RemoveUsedOptions $line \
-                          {-nocase -indices -expanded -line
+                          {-nocase -indices -expanded -line -start
                            -linestop -lineanchor -all -inline -about <expression> --} {--}]
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
+        } elseif {[string match "*-start \[0-9\]*" $line]} {  
+            # Slightly hackish method to account for -start integer value 
+            set virtual_pos [expr {$pos - [FirstNonOption $line ]}]
+            switch -- $virtual_pos {
+                1       { return [DisplayHints <string>] }
+                2       { return [DisplayHints ?matchVar?] }
+                default { return [DisplayHints ?subMatchVar?] }
+            }
         } else {
-            set virtual_pos [expr {$pos - [FirstNonOptionOrNonOptionPair $line 
-                "-start"]}]
+            set virtual_pos [expr {$pos - [FirstNonOption $line ]}]
             switch -- $virtual_pos {
                 0       { return [DisplayHints <string>] }
                 1       { return [DisplayHints ?matchVar?] }
                 default { return [DisplayHints ?subMatchVar?] }
             }
         }
+        
         return ""
     }
 
-                            # UNDONE #
+                            # TODO #
+    ####################################################################
+    ####################################################################
+    ## UNDONE/TODO - Fix the -start option having to be last to not interrupt 
+    ## other completer options
+    ## 
+    ## regsub ?switches? exp string subSpec ?varName?
+    ## regsub --all
+    ## regsub --expanded
+    ## regsub --line
+    ## regsub --linestop
+    ## regsub --lineanchor
+    ## regsub --nocase
+    ## regsub --start index
+    ## regsub --
     ####################################################################
     ####################################################################
     proc complete(regsub) {text start end line pos mod} {
         set prev [PreviousWord $start $line]
         if {[llength $prev] && "--" != $prev
-                && ("-" == [string index $prev 0] || 1 == $pos)} {
+                && ("-" == [string index $prev 0] || 1 == $pos || "-" == $mod)} {
             set cmds [RemoveUsedOptions $line \
                           {-all -nocase -expanded -linestop -lineanchor -nocase 
                               -start --} {--}] 
             if {[llength $cmds]} {
                 return [string trim [CompleteFromList $text $cmds]]
             }
+        } elseif {[string match "*-start \[0-9\]*" $line]} { 
+                # Slightly hackish method to account for -start integer value 
+            set virtual_pos [expr {$pos - [FirstNonOption $line]}]
+            switch -- $virtual_pos {
+                1 { return [DisplayHints <expression>] }
+                2 { return [DisplayHints <string>] }
+                3 { return [DisplayHints <subSpec>] }
+                4 { return [DisplayHints <varName>] }
+            }
         } else {
-            set virtual_pos [expr {$pos - [FirstNonOptionOrNonOptionPair $line 
-                {-start}]}]
+            set virtual_pos [expr {$pos - [FirstNonOption $line]}]
             switch -- $virtual_pos {
                 0 { return [DisplayHints <expression>] }
                 1 { return [DisplayHints <string>] }
                 2 { return [DisplayHints <subSpec>] }
                 3 { return [DisplayHints <varName>] }
             }
-        }
+        } 
+        
         return ""
     }
 
