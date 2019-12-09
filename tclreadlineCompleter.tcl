@@ -2311,10 +2311,10 @@ namespace eval tclreadline {
         return [VarCompletion $text]
     }
 
-                            # UNDONE #
+
     ####################################################################
     ####################################################################
-    ## TODO/UNDONE - history command doesnt seem to be a completeable cmd
+    ## NOTE - history command wont complete without at least 1 historical entry 
     ## history
     ## history add command ?exec?
     ## history change newValue ?event?
