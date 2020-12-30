@@ -27,8 +27,6 @@ jobs:
     - name: configure	
       run: |
         autoreconf -vif
-        ls -l /usr/local/Cellar/readline/
-        brew versions readline
         ./configure --with-readline-includes=/usr/local/Cellar/readline/8.1/include --with-readline-library=/usr/local/Cellar/readline/8.1/lib --with-tcl=/usr/local/opt/tcl-tk/lib --with-tcl-includes=/usr/local/opt/tcl-tk/include
     - name: make
       run: make
