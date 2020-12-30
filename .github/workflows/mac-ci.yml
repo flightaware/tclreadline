@@ -1,0 +1,35 @@
+name: Mac CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install tcl-tk || true
+        brew install readline
+        brew install autoconf automake
+        sudo mkdir -p /usr/local
+        sudo ln -sf /usr/local/opt/tcl-tk/include /usr/local/include/tcl8.6
+        sudo cp /usr/local/opt/tcl-tk/lib/libtcl* /usr/local/lib
+        sudo ln -sf /usr/local/opt/tcl-tk/bin/tclsh8.6 /usr/local/bin/tclsh
+        sudo ln -sf /usr/local/opt/tcl-tk/bin/tclsh8.6 /usr/local/bin/tclsh8.6
+    - name: configure	
+      run: |
+        autoreconf -vif
+        ./configure --with-readline-includes=/usr/local/Cellar/readline/8.1/include --with-readline-library=/usr/local/Cellar/readline/8.1/lib --with-tcl=/usr/local/opt/tcl-tk/lib --with-tcl-includes=/usr/local/opt/tcl-tk/include
+    - name: make
+      run: make
+    - name: install
+      run: sudo make install
+

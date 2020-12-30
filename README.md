@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/flightaware/tclreadline.svg?branch=master)](https://travis-ci.org/flightaware/tclreadline)
+![Linux CI](https://github.com/flightaware/tclreadline/workflows/Linux%20CI/badge.svg)
+![Mac CI](https://github.com/flightaware/tclreadline/workflows/Mac%20CI/badge.svg)
 
 # tclreadline -- gnu readline for tcl
 
