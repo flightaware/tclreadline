@@ -26,8 +26,10 @@ jobs:
         sudo apt-get install -y tcl8.6-dev tk8.6-dev libreadline-dev expect
     - name: configure	
       run: | 
-        autoreconf -vi
-        ./configure --with-tcl=/usr/lib/tcl8.6	
+        autoreconf -vif
+        /usr/bin/libtoolize --install
+        /bin/sh -x ./autogen.sh
+#        ./configure --with-tcl=/usr/lib/tcl8.6	
     - name: make	
       run: make	
     - name: install	
