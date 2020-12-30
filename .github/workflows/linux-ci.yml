@@ -28,8 +28,8 @@ jobs:
       run: | 
         autoreconf -vif
         /usr/bin/libtoolize --install
-        /bin/sh -x ./autogen.sh
-#        ./configure --with-tcl=/usr/lib/tcl8.6	
+        ./configure --with-tcl=/usr/lib/tcl8.6 --with-tk=/usr/lib/tk8.6
+#        /bin/sh -x ./autogen.sh
     - name: make	
       run: make	
     - name: install	
