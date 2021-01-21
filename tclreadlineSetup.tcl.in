@@ -219,7 +219,7 @@ namespace eval tclreadline {
                 set historyfile [lindex $args 0]
             }
         } elseif {[info exists env(TCL_HISTORY_FILE)]} {
-            set historyfile $env(HOME)/$env(TCL_HISTORY_FILE)
+            set historyfile $env(TCL_HISTORY_FILE)
         } else {
             if {[info exists env(HOME)]} {
                 set historyfile $env(HOME)/.tclsh-history
