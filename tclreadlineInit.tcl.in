@@ -17,7 +17,11 @@ proc ::tclreadline::Init {} {
     uplevel #0 {
         if {![info exists tclreadline::library]} {
             set msg ""
-            foreach dirname [list @TCLRL_LIBDIR@ [file dirname [info script]]] {
+            set libsList [list @TCLRL_LIBDIR@ [file dirname [info script]]]
+            switch -- $tcl_platform(os) {
+                Linux {lappend libsList /usr/lib /usr/lib64}
+            }
+            foreach dirname $libsList {
                 if {[catch {load [file join $dirname libtclreadline[info sharedlibextension]]} msg] == 0} {
                     set msg ""
                     break
