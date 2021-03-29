@@ -76,13 +76,15 @@ proc unknown args {
     }
     if {[info exists savedErrorCode]} { set errorCode $savedErrorCode }
     if {[info exists savedErrorInfo]} { set errorInfo $savedErrorInfo }
-    if {$name == "!!"} {
-        set newcmd [history event]
-    } elseif {[regexp {^!(.+)$} $name dummy event]} {
-        set newcmd [history event $event]
-    } elseif {[regexp {^\^([^^]*)\^([^^]*)\^?$} $name dummy old new]} {
-        set newcmd [history event -1]
-        catch {regsub -all -- $old $newcmd $new newcmd}
+    if {[::tclreadline::readline historyexpansion]} {
+        if {$name == "!!"} {
+            set newcmd [history event]
+        } elseif {[regexp {^!(.+)$} $name dummy event]} {
+            set newcmd [history event $event]
+        } elseif {[regexp {^\^([^^]*)\^([^^]*)\^?$} $name dummy old new]} {
+            set newcmd [history event -1]
+            catch {regsub -all -- $old $newcmd $new newcmd}
+        }
     }
     if {[info exists newcmd]} {
         tclLog $newcmd

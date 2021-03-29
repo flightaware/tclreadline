@@ -171,6 +171,11 @@ The form w/o argument might not work if tclreadline was compiled
 with an older version of libreadline.
 
 .TP 5
+\fB::tclreadline::readline historyexpansion\fP [\fIbool\fP]
+enable or disable history expansion.
+\fBtclreadline::readline historyexpansion\fP returns the current value.
+
+.TP 5
 \fB::tclreadline::readline bell\fP
 Ring the terminal bell, obeying the setting of bell-style
 -- audible or visible.
