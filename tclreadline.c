@@ -356,16 +356,16 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                 Tcl_WrongNumArgs(interp, 2, objv, "?boolean?");
                 return TCL_ERROR;
             } else if (3 == objc) {
-                int bool = tclrl_use_builtin_completer;
+                int boolval = tclrl_use_builtin_completer;
                 if (TCL_OK != Tcl_GetBoolean(interp,
                                  Tcl_GetStringFromObj(objv[2], 0),
-                                 &bool)) {
+                                 &boolval)) {
                     Tcl_AppendResult(interp,
                         "wrong # args: should be a boolean value.",
                         (char*) NULL);
                     return TCL_ERROR;
                 } else {
-                    tclrl_use_builtin_completer = bool;
+                    tclrl_use_builtin_completer = boolval;
                 }
             }
             Tcl_AppendResult(interp, tclrl_use_builtin_completer ? "1" : "0",
@@ -452,16 +452,16 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                 Tcl_WrongNumArgs(interp, 2, objv, "?boolean?");
                 return TCL_ERROR;
             } else if (3 == objc) {
-                int bool = tclrl_use_history_expansion;
+                int boolval = tclrl_use_history_expansion;
                 if (TCL_OK != Tcl_GetBoolean(interp,
                                  Tcl_GetStringFromObj(objv[2], 0),
-                                 &bool)) {
+                                 &boolval)) {
                     Tcl_AppendResult(interp,
                         "wrong # args: should be a boolean value.",
                         (char*) NULL);
                     return TCL_ERROR;
                 } else {
-                    tclrl_use_history_expansion = bool;
+                    tclrl_use_history_expansion = boolval;
                 }
             }
             Tcl_AppendResult(interp, tclrl_use_history_expansion ? "1" : "0",
