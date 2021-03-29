@@ -84,18 +84,18 @@ Note that all commands reside in the namespace \fB::tclreadline::\fP.
 
 .TP 5
 \fB::tclreadline::readline add\fP \fIstring\fP
-adds a string to the completer. If the string contains white
+Adds a string to the completer. If the string contains white
 spaces, each of the words will be completed consecutively when
 hitting <Tab>. Example:
 
     ::tclreadline::readline add "button pathName ?options?"
 
-typing but<Tab> will complete to button. Hitting <Tab> again
+Typing but<Tab> will complete to button. Hitting <Tab> again
 will complete to "button pathName".  ...
 
 .TP 5
 \fB::tclreadline::readline complete\fP \fIstring\fP
-returns 1 if \fIstring\fP is a complete tcl command and 0 otherwise.
+Returns 1 if \fIstring\fP is a complete tcl command and 0 otherwise.
 
 .TP 5
 \fB::tclreadline::readline customcompleter\fP [\fIstring\fP]
@@ -126,7 +126,7 @@ the file tclreadlineSetup.tcl.
 
 .TP 5
 \fB::tclreadline::readline builtincompleter\fP [\fIbool\fP]
-enable or disable the builtin completer. If the builtin completer
+Enable or disable the builtin completer. If the builtin completer
 is enabled, it will be invoked either if there is no custom completer,
 or the custom completer returned an empty  string. The builtin
 completer is on by default.
@@ -135,7 +135,7 @@ custom completer (also, if called w/o the \fIbool\fP argument).
 
 .TP 5
 \fB::tclreadline::readline eofchar\fP [\fIscript\fP]
-set a script which will be called, if readline returns the eof character
+Set a script which will be called, if readline returns the eof character
 (this is typically the case if CTRL-D is entered at the very beginning
 of the line). The default for this script is "puts {}; exit". Setting
 this to an empty value disables any action on eof.
@@ -143,37 +143,37 @@ this to an empty value disables any action on eof.
 
 .TP 5
 \fB::tclreadline::readline initialize\fP \fIhistoryfile\fP
-initialize the tclreadline interface and read the history from
+Initialize the tclreadline interface and read the history from
 the \fIhistoryfile\fP. On success an empty string is returned.
 This command has to be called before any other tclreadline commands.
 
 .TP 5
 \fB::tclreadline::readline read\fP \fIprompt\fP
-prints the \fIprompt\fP to stdout and enters the tclreadline event
+Prints the \fIprompt\fP to stdout and enters the tclreadline event
 loop. Both readline and X events are processed. Returns the
 (eventually history-expanded) input string.
-\fBtclreadline::readline read\fP rises an error, if an
+\fBtclreadline::readline read\fP raises an error if an
 error occurs while evaluating a script completer.
 
 .TP 5
 \fB::tclreadline::readline write\fP \fIhistoryfile\fP
-writes the history to the \fIhistoryfile\fP. This command is called
+Writes the history to the \fIhistoryfile\fP. This command is called
 automatically from the internal routine ::tclreadline::Exit.
 If the variable \fBtclreadline::historyLength\fP is non-negative,
 the historyfile will be truncated to hold only this number lines.
 
 .TP 5
 \fB::tclreadline::readline reset-terminal\fP [\fIterminalName\fP]
-w/o argument: reset the state of the terminal to what it was
+Without argument: reset the state of the terminal to what it was
 before tclreadline was used. With argument: reinitialize readline's
 idea of the terminal settings using terminalName as the terminal type.
-The form w/o argument might not work if tclreadline was compiled
+The form without argument might not work if tclreadline was compiled
 with an older version of libreadline.
 
 .TP 5
 \fB::tclreadline::readline historyexpansion\fP [\fIbool\fP]
-enable or disable history expansion.
-\fBtclreadline::readline historyexpansion\fP returns the current value.
+Enable or disable history expansion. With no argument, returns the current
+value.
 
 .TP 5
 \fB::tclreadline::readline bell\fP
@@ -190,7 +190,7 @@ Redraw the current input line.
 
 .TP 5
 \fB::tclreadline::Print\fP [\fIyes / no\fP]
-turns on or off the default behavior of tclsh to print the result of
+Turns on or off the default behavior of tclsh to print the result of
 every command. This is turned on by default, so it will just behave
 as the tclsh w/o tclreadline. Turning off might be useful, when reading
 binary data for example. If \fB::tclreadline::Print\fP is called w/o
@@ -198,7 +198,7 @@ arguments, it returns the current setting.
 
 .TP 5
 \fB::tclreadline::Loop\fP [\fIhistoryfile\fP]
-enter the tclreadline main loop. This command is typically called from
+Enter the tclreadline main loop. This command is typically called from
 the startup resource file (something .tclshrc, depending on the interpreter
 you use, see the file `sample.tclshrc'). The main loop sets up some
 completion characteristics as variable -- try something like "puts $b<TAB>" --
@@ -213,7 +213,7 @@ it is probably a good idea to start with tclreadline::Loop
 
 .TP 5
 \fB::tclreadline::prompt1\fP
-a proc which is called by ::tclreadline::Loop and returns a string
+A proc which is called by ::tclreadline::Loop and returns a string
 which will be displayed as the primary prompt. This prompt will be
 something like "[info nameofexecutable] \\[[pwd]\\]" possibly fancy colored.
 The default proc is defined on entering the ::tclreadline::Loop,
@@ -238,7 +238,7 @@ in the file tclreadlineSetup.tcl in your tclreadline installation directory.
 
 .TP 5
 \fB::tclreadline::prompt2\fP
-a proc which is called by ::tclreadline::Loop and returns a string
+A proc which is called by ::tclreadline::Loop and returns a string
 which will be displayed as the secondary prompt when interactively
 prompting  for  continuation  of  an incomplete command.
 
@@ -256,19 +256,19 @@ namespace \fI::tclreadline\fP:
 
 .TP 5
 \fBtclreadline::version\fP (read-only)
-holds the version string "@VERSION@".
+Holds the version string "@VERSION@".
 
 .TP 5
 \fBtclreadline::patchLevel\fP (read-only)
-holds the patch level string "@PATCHLEVEL_STR@".
+Holds the patch level string "@PATCHLEVEL_STR@".
 
 .TP 5
 \fBtclreadline::library\fP (read-only)
-holds the library string "@TCLRL_DIR@".
+Holds the library string "@TCLRL_DIR@".
 
 .TP 5
 \fBtclreadline::license\fP (read-only)
-holds a BSD license statement.
+Holds a BSD license statement.
 
 .TP 5
 \fBtclreadline::historyLength\fP
@@ -278,7 +278,7 @@ will not be truncated.  See also \fBtclreadline::write\fP.
 
 .SH "FILES"
 
-the \fB.tclshrc\fP file in the HOME directory, which
+The \fB.tclshrc\fP file in the HOME directory, which
 is read on tclsh startup. Alternatively, the name of this initialization
 file might be \fB.wishrc\fP ... depending on what interpreter you use.
 These files should typically contain something like
@@ -292,14 +292,14 @@ These files should typically contain something like
 which will enter the tclreadline main loop.
 
 .PP
-the \fB.tclsh-history\fP file in the HOME directory. On startup
+The \fB.tclsh-history\fP file in the HOME directory. On startup
 commands will be read from this file. On exit, the readline history
 is written to this file. Note that if you abort tclsh with <cntrl-c>
 no history is written. For the future it is planned to set up a signal
 handler, which will write the history on <ctrl-c> before exiting.
 
 .PP
-the \fB.inputrc\fP file in the users HOME directory. This file
+The \fB.inputrc\fP file in the users HOME directory. This file
 is used normally for all programs which use the gnu readline (e.g.  bash).
 The `global' readline settings there will be valid also for
 \fBtclreadline\fP. Additionally the .inputrc might hold conditional
@@ -314,7 +314,7 @@ some lines in your .inputrc:
 For further documentation please refer to the gnu readline documentation.
 
 .SH "BUGS"
-citing the readline manual:  It's too big and too slow.
+Citing the readline manual:  It's too big and too slow.
 
 
 .SH "SEE ALSO"
