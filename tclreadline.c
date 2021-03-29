@@ -99,6 +99,7 @@ static char* tclrl_eof_string            = (char*) NULL;
 static char* tclrl_custom_completer      = (char*) NULL;
 static char* tclrl_last_line             = (char*) NULL;
 static int   tclrl_use_builtin_completer = 1;
+static int   tclrl_use_history_expansion = 1;
 static int   tclrl_history_length        = -1;
 Tcl_Interp*  tclrl_interp                = (Tcl_Interp*) NULL;
 
@@ -206,12 +207,13 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
         "read", "initialize", "write", "add", "complete",
         "customcompleter", "builtincompleter", "eofchar",
         "reset-terminal", "bell", "text", "update",
-        (char *) NULL
+        "historyexpansion", (char *) NULL
     };
     enum SubCmdIdx {
         TCLRL_READ, TCLRL_INITIALIZE, TCLRL_WRITE, TCLRL_ADD, TCLRL_COMPLETE,
         TCLRL_CUSTOMCOMPLETER, TCLRL_BUILTINCOMPLETER, TCLRL_EOFCHAR,
-        TCLRL_RESET_TERMINAL, TCLRL_BELL, TCLRL_TEXT, TCLRL_UPDATE
+        TCLRL_RESET_TERMINAL, TCLRL_BELL, TCLRL_TEXT, TCLRL_UPDATE,
+        TCLRL_HISTORYEXPANSION
     };
 
     Tcl_ResetResult(interp); /* clear the result space */
@@ -434,7 +436,6 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 
             break;
 
-
         case TCLRL_TEXT:
             if (objc != 2) {
                 Tcl_WrongNumArgs(interp, 2, objv, "");
@@ -444,6 +445,27 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
             /* Return the current input line */
             Tcl_SetObjResult(interp,
                Tcl_NewStringObj(rl_line_buffer ? rl_line_buffer : "", -1));
+            break;
+
+        case TCLRL_HISTORYEXPANSION:
+            if (objc > 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "?boolean?");
+                return TCL_ERROR;
+            } else if (3 == objc) {
+                int bool = tclrl_use_history_expansion;
+                if (TCL_OK != Tcl_GetBoolean(interp,
+                                 Tcl_GetStringFromObj(objv[2], 0),
+                                 &bool)) {
+                    Tcl_AppendResult(interp,
+                        "wrong # args: should be a boolean value.",
+                        (char*) NULL);
+                    return TCL_ERROR;
+                } else {
+                    tclrl_use_history_expansion = bool;
+                }
+            }
+            Tcl_AppendResult(interp, tclrl_use_history_expansion ? "1" : "0",
+                (char*) NULL);
             break;
 
         default:
@@ -502,23 +524,28 @@ TclReadlineLineCompleteHandler(char* ptr)
          */
 
         char* expansion = (char*) NULL;
-        int status = history_expand(ptr, &expansion);
+        if (tclrl_use_history_expansion) {
+            int status = history_expand(ptr, &expansion);
 
-        if (status >= 2) {
-            /* TODO: make this a valid tcl output */
-            printf("%s\n", expansion);
-            FREE(ptr);
-            FREE(expansion);
-            return;
-        } else if (status <= -1) {
-            Tcl_AppendResult
-                (tclrl_interp, "error in history expansion: ", expansion, "\n", (char*) NULL);
+            if (status >= 2) {
+                /* TODO: make this a valid tcl output */
+                printf("%s\n", expansion);
+                FREE(ptr);
+                FREE(expansion);
+                return;
+            } else if (status <= -1) {
+                Tcl_AppendResult
+                    (tclrl_interp, "error in history expansion: ", expansion, "\n", (char*) NULL);
                 TclReadlineTerminate(TCL_ERROR);
-            FREE(ptr);
-            FREE(expansion);
-            return;
+                FREE(ptr);
+                FREE(expansion);
+                return;
+            } else {
+                Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+            }
         } else {
-            Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+            Tcl_AppendResult(tclrl_interp, ptr, (char*) NULL);
+            expansion = ptr;
         }
 
     #ifdef EXECUTING_MACRO_NAME
@@ -549,7 +576,9 @@ TclReadlineLineCompleteHandler(char* ptr)
          */
         TclReadlineTerminate(LINE_COMPLETE);
         FREE(ptr);
-        FREE(expansion);
+        if (tclrl_use_history_expansion) {
+            FREE(expansion);
+        }
     }
 }
 
@@ -670,7 +699,7 @@ TclReadlineCompletion(char* text, int start, int end)
     int status;
     rl_completion_append_character = ' '; /* reset, just in case ... */
 
-    if (text && ('!' == text[0]
+    if (tclrl_use_history_expansion && text && ('!' == text[0]
             || (start && rl_line_buffer[start - 1] == '!' /* for '$' */))) {
         char* expansion = (char*) NULL;
         int oldlen = strlen(rl_line_buffer);
@@ -893,4 +922,3 @@ TclReadlineParse(char** args, int maxargs, char* buf)
     *args = NULL;
     return nr;
 }
-

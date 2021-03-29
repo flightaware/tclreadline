@@ -3392,7 +3392,8 @@ namespace eval tclreadline {
         switch -- $pos {
             1 { return [CompleteFromList $text \
                             {read initialize write add complete customcompleter
-                             builtincompleter eofchar reset-terminal bell}]
+                             builtincompleter eofchar reset-terminal bell
+                             historyexpansion}]
             }
             2 {
                 switch -- $cmd {
@@ -3402,6 +3403,7 @@ namespace eval tclreadline {
                     add              { return [DisplayHints <completerLine>] }
                     completer        { return [DisplayHints <line>] }
                     customcompleter  { return [DisplayHints ?scriptCompleter?] }
+                    historyexpansion -
                     builtincompleter { return [CompleteBoolean $text] }
                     eofchar          { return [DisplayHints ?script?] }
                     reset-terminal   {
