@@ -4,7 +4,7 @@
   * ---
   * tclreadline -- gnu readline for tcl
   * https://github.com/flightaware/tclreadline/
-  * Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
+  * Copyright (c) 1998 - 2021, guanlong huang <gl041188@gmail.com>
   * This software is copyright under the BSD license.
   * ================================================================== */
 
