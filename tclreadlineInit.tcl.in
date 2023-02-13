@@ -18,7 +18,7 @@ proc ::tclreadline::Init {} {
         if {![info exists tclreadline::library]} {
             set msg ""
             foreach dirname [list @TCLRL_LIBDIR@ [file dirname [info script]]] {
-                if {[catch {load [file join $dirname libtclreadline[info sharedlibextension]]} msg] == 0} {
+                if {[catch {load [file join $dirname libtclreadline[info sharedlibextension]] Tclreadline} msg] == 0} {
                     set msg ""
                     break
                 }
