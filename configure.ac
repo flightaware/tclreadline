@@ -245,11 +245,12 @@ AC_TRY_LINK(,[
 AC_MSG_CHECKING([for the readline version number])
 AC_TRY_RUN([
 #include <stdio.h>
-int main () {
+#include <unistd.h>
+int main (void) {
     FILE *fp = fopen("conftestversion", "w");
     extern char *rl_library_version;
     fprintf(fp, "%s", rl_library_version);
-    close(fp);
+    fclose(fp);
     return 0;
 }],
     READLINE_VERSION=`cat conftestversion`
