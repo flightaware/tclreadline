@@ -26,11 +26,13 @@
 #endif
 
 
+#ifdef EXTEND_LINE_BUFFER
 /*
  * this prototype may be missing
  * in readline.h
  */
 void rl_extend_line_buffer(int len);
+#endif
 
 #ifdef EXECUTING_MACRO_HACK
 /**
@@ -524,29 +526,32 @@ TclReadlineLineCompleteHandler(char* ptr)
          */
 
         char* expansion = (char*) NULL;
+        char* expand_output = (char*) NULL;
         if (tclrl_use_history_expansion) {
-            int status = history_expand(ptr, &expansion);
+            int status = history_expand(ptr, &expand_output);
 
             if (status >= 2) {
                 /* TODO: make this a valid tcl output */
-                printf("%s\n", expansion);
+                printf("%s\n", expand_output);
                 FREE(ptr);
-                FREE(expansion);
+                FREE(expand_output);
                 return;
             } else if (status <= -1) {
                 Tcl_AppendResult
-                    (tclrl_interp, "error in history expansion: ", expansion, "\n", (char*) NULL);
+                    (tclrl_interp, "error in history expansion: ", expand_output, "\n", (char*) NULL);
                 TclReadlineTerminate(TCL_ERROR);
                 FREE(ptr);
-                FREE(expansion);
+                FREE(expand_output);
                 return;
-            } else {
-                Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+            } else if (status == 0) {
+                expansion = ptr;
+            } else { /* status == 1 */
+                expansion = expand_output;
             }
         } else {
-            Tcl_AppendResult(tclrl_interp, ptr, (char*) NULL);
             expansion = ptr;
         }
+        Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
 
     #ifdef EXECUTING_MACRO_NAME
         /**
@@ -576,9 +581,7 @@ TclReadlineLineCompleteHandler(char* ptr)
          */
         TclReadlineTerminate(LINE_COMPLETE);
         FREE(ptr);
-        if (tclrl_use_history_expansion) {
-            FREE(expansion);
-        }
+        FREE(expand_output);
     }
 }
 
@@ -699,6 +702,10 @@ TclReadlineCompletion(char* text, int start, int end)
     int status;
     rl_completion_append_character = ' '; /* reset, just in case ... */
 
+    /* Only enable history expansion like '!!<TAB>' if the rl_extend_line_buffer
+     * function is available; e.g. libedit doesn't provide it, and alternative
+     * approaches to replace the line buffer don't give the desired behavior */
+#ifdef EXTEND_LINE_BUFFER
     if (tclrl_use_history_expansion && text && ('!' == text[0]
             || (start && rl_line_buffer[start - 1] == '!' /* for '$' */))) {
         char* expansion = (char*) NULL;
@@ -720,6 +727,7 @@ TclReadlineCompletion(char* text, int start, int end)
         }
         FREE(expansion);
     }
+#endif
 
     if (tclrl_custom_completer) {
         char start_s[BUFSIZ], end_s[BUFSIZ];

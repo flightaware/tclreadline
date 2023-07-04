@@ -241,6 +241,18 @@ AC_TRY_LINK(,[
     [ Define if rl_cleanup_after_signal is resolved in libreadline. ]),
     AC_MSG_RESULT(no))
 
+# check for readline's rl_extend_line_buffer
+
+AC_MSG_CHECKING([for rl_extend_line_buffer() in -lreadline])
+AC_TRY_LINK(,[
+    extern void rl_extend_line_buffer(int len);
+    rl_extend_line_buffer(1);
+],
+    AC_MSG_RESULT(yes);
+    AC_DEFINE(EXTEND_LINE_BUFFER, 1,
+    [ Define if rl_extend_line_buffer is resolved in libreadline. ]),
+    AC_MSG_RESULT(no))
+
 
 AC_MSG_CHECKING([for the readline version number])
 AC_TRY_RUN([
