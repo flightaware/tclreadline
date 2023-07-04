@@ -524,29 +524,32 @@ TclReadlineLineCompleteHandler(char* ptr)
          */
 
         char* expansion = (char*) NULL;
+        char* expand_output = (char*) NULL;
         if (tclrl_use_history_expansion) {
-            int status = history_expand(ptr, &expansion);
+            int status = history_expand(ptr, &expand_output);
 
             if (status >= 2) {
                 /* TODO: make this a valid tcl output */
-                printf("%s\n", expansion);
+                printf("%s\n", expand_output);
                 FREE(ptr);
-                FREE(expansion);
+                FREE(expand_output);
                 return;
             } else if (status <= -1) {
                 Tcl_AppendResult
-                    (tclrl_interp, "error in history expansion: ", expansion, "\n", (char*) NULL);
+                    (tclrl_interp, "error in history expansion: ", expand_output, "\n", (char*) NULL);
                 TclReadlineTerminate(TCL_ERROR);
                 FREE(ptr);
-                FREE(expansion);
+                FREE(expand_output);
                 return;
-            } else {
-                Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+            } else if (status == 0) {
+                expansion = ptr;
+            } else { /* status == 1 */
+                expansion = expand_output;
             }
         } else {
-            Tcl_AppendResult(tclrl_interp, ptr, (char*) NULL);
             expansion = ptr;
         }
+        Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
 
     #ifdef EXECUTING_MACRO_NAME
         /**
@@ -576,9 +579,7 @@ TclReadlineLineCompleteHandler(char* ptr)
          */
         TclReadlineTerminate(LINE_COMPLETE);
         FREE(ptr);
-        if (tclrl_use_history_expansion) {
-            FREE(expansion);
-        }
+        FREE(expand_output);
     }
 }
 
