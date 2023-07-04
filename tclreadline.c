@@ -26,11 +26,13 @@
 #endif
 
 
+#ifdef EXTEND_LINE_BUFFER
 /*
  * this prototype may be missing
  * in readline.h
  */
 void rl_extend_line_buffer(int len);
+#endif
 
 #ifdef EXECUTING_MACRO_HACK
 /**
@@ -700,6 +702,10 @@ TclReadlineCompletion(char* text, int start, int end)
     int status;
     rl_completion_append_character = ' '; /* reset, just in case ... */
 
+    /* Only enable history expansion like '!!<TAB>' if the rl_extend_line_buffer
+     * function is available; e.g. libedit doesn't provide it, and alternative
+     * approaches to replace the line buffer don't give the desired behavior */
+#ifdef EXTEND_LINE_BUFFER
     if (tclrl_use_history_expansion && text && ('!' == text[0]
             || (start && rl_line_buffer[start - 1] == '!' /* for '$' */))) {
         char* expansion = (char*) NULL;
@@ -721,6 +727,7 @@ TclReadlineCompletion(char* text, int start, int end)
         }
         FREE(expansion);
     }
+#endif
 
     if (tclrl_custom_completer) {
         char start_s[BUFSIZ], end_s[BUFSIZ];
