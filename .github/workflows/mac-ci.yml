@@ -21,7 +21,6 @@ jobs:
       run: |
         glibtoolize
         autoreconf -vif
-        ls -lR /opt/homebrew/opt/readline/
         ./configure --with-readline-includes=/opt/homebrew/opt/readline/include --with-readline-library=/opt/homebrew/opt/readline/lib --with-tcl=/opt/homebrew/opt/tcl-tk/lib --with-tcl-includes=/opt/homebrew/opt/tcl-tk/include
     - name: make
       run: make
