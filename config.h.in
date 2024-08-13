@@ -9,6 +9,9 @@
 /* Define the name of the executing macro variable in libreadline. */
 #undef EXECUTING_MACRO_NAME
 
+/* Define if rl_extend_line_buffer is resolved in libreadline. */
+#undef EXTEND_LINE_BUFFER
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
