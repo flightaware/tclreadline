@@ -8,10 +8,10 @@ dnl Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
 dnl This software is copyright under the BSD license.
 dnl ---
 
-AC_INIT([tclreadline], [2.3.8])
+AC_INIT([tclreadline],[2.3.8])
 AC_CONFIG_SRCDIR([tclreadline.c])
 AC_CONFIG_HEADERS(config.h)
-AC_PREREQ(2.13)
+AC_PREREQ([2.71])
 AC_REVISION($Revision$)
 AC_CONFIG_AUX_DIR(./aux)
 
@@ -37,8 +37,8 @@ dnl AM_INIT_AUTOMAKE(tclreadline, $VERSION)
 AC_CANONICAL_HOST
 AC_PROG_CC
 AC_EXEEXT
-dnl AC_LIBTOOL_DLOPEN
-AM_PROG_LIBTOOL
+
+LT_INIT([dlopen])
 AC_SUBST(LIBTOOL_DEPS)
 
 AC_C_CONST
@@ -130,7 +130,11 @@ TCLRL_DIR="${TCLRL_LIBDIR}/tclreadline$VERSION"
 AC_SUBST(TCLRL_DIR)
 
 # HEADERS
-AC_HEADER_STDC
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADERS(string.h)
 
 #--------------------------------------------------------------------
@@ -216,46 +220,42 @@ AC_CHECK_DECL(rl_executing_macro
 , AC_DEFINE(EXECUTING_MACRO_NAME, rl_executing_macro,
   [ Define the name of the executing macro variable in libreadline. ])
 , AC_MSG_CHECKING([for _rl_executing_macro in -lreadline])
-  AC_TRY_LINK(,[
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
     extern char* _rl_executing_macro;
     _rl_executing_macro = (char*) 0;
-  ]
-  , AC_MSG_RESULT(yes)
+  
+  ]])],[AC_MSG_RESULT(yes)
     AC_DEFINE(EXECUTING_MACRO_HACK, 1,
-    [ Define if EXECUTING_MACRO_NAME is resolved in libreadline. ])
+     Define if EXECUTING_MACRO_NAME is resolved in libreadline. )
     AC_DEFINE(EXECUTING_MACRO_NAME, _rl_executing_macro,
-    [ Define the name of the executing macro variable in libreadline. ])
-  , AC_MSG_RESULT(no))
+     Define the name of the executing macro variable in libreadline. )
+  ],[AC_MSG_RESULT(no)])
 , [AC_INCLUDES_DEFAULT
 #include "$READLINE_INCLUDE_DIR/readline.h"])
 
 # check for readline's rl_cleanup_after_signal
 
 AC_MSG_CHECKING([for rl_cleanup_after_signal() in -lreadline])
-AC_TRY_LINK(,[
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
     extern void rl_cleanup_after_signal();
     rl_cleanup_after_signal();
-],
-    AC_MSG_RESULT(yes);
+]])],[AC_MSG_RESULT(yes);
     AC_DEFINE(CLEANUP_AFER_SIGNAL, 1,
-    [ Define if rl_cleanup_after_signal is resolved in libreadline. ]),
-    AC_MSG_RESULT(no))
+     Define if rl_cleanup_after_signal is resolved in libreadline. )],[AC_MSG_RESULT(no)])
 
 # check for readline's rl_extend_line_buffer
 
 AC_MSG_CHECKING([for rl_extend_line_buffer() in -lreadline])
-AC_TRY_LINK(,[
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
     extern void rl_extend_line_buffer(int len);
     rl_extend_line_buffer(1);
-],
-    AC_MSG_RESULT(yes);
+]])],[AC_MSG_RESULT(yes);
     AC_DEFINE(EXTEND_LINE_BUFFER, 1,
-    [ Define if rl_extend_line_buffer is resolved in libreadline. ]),
-    AC_MSG_RESULT(no))
+     Define if rl_extend_line_buffer is resolved in libreadline. )],[AC_MSG_RESULT(no)])
 
 
 AC_MSG_CHECKING([for the readline version number])
-AC_TRY_RUN([
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <unistd.h>
 int main (void) {
@@ -264,12 +264,9 @@ int main (void) {
     fprintf(fp, "%s", rl_library_version);
     fclose(fp);
     return 0;
-}],
-    READLINE_VERSION=`cat conftestversion`
-    AC_MSG_RESULT($READLINE_VERSION),
-    AC_MSG_RESULT(failed),
-    AC_MSG_RESULT(no cross compiling)
-)
+}]])],[READLINE_VERSION=`cat conftestversion`
+    AC_MSG_RESULT($READLINE_VERSION)],[AC_MSG_RESULT(failed)],[AC_MSG_RESULT(no cross compiling)
+])
 
 AC_ARG_ENABLE(tclstub,
     [  --enable-tclstub        build with TCL stub library],
@@ -325,4 +322,5 @@ AC_SUBST(TCL_INCLUDE_DIR)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(READLINE_INCLUDE_DIR)
-AC_OUTPUT(Makefile tclreadline.h tclreadlineInit.tcl tclreadlineSetup.tcl tclreadline.n pkgIndex.tcl)
+AC_CONFIG_FILES([Makefile tclreadline.h tclreadlineInit.tcl tclreadlineSetup.tcl tclreadline.n pkgIndex.tcl])
+AC_OUTPUT

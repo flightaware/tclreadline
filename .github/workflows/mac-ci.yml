@@ -16,19 +16,12 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tcl-tk || brew upgrade tcl-tk
-        brew install readline || brew upgrade readline
-        brew install autoconf || brew upgrade autoconf
-        brew install automake || brew upgrade automake
-        sudo mkdir -p /usr/local
-        sudo ln -sf /usr/local/opt/tcl-tk/include /usr/local/include/tcl8.6
-        sudo cp /usr/local/opt/tcl-tk/lib/libtcl* /usr/local/lib
-        sudo ln -sf /usr/local/opt/tcl-tk/bin/tclsh8.6 /usr/local/bin/tclsh
-        sudo ln -sf /usr/local/opt/tcl-tk/bin/tclsh8.6 /usr/local/bin/tclsh8.6
+        brew install tcl-tk readline autoconf automake libtool
     - name: configure	
       run: |
+        glibtoolize
         autoreconf -vif
-        ./configure --with-readline-includes=/usr/local/Cellar/readline/8.1/include --with-readline-library=/usr/local/Cellar/readline/8.1/lib --with-tcl=/usr/local/opt/tcl-tk/lib --with-tcl-includes=/usr/local/opt/tcl-tk/include
+        ./configure --with-readline-includes=/opt/homebrew/opt/readline/include --with-readline-library=/opt/homebrew/opt/readline/lib --with-tcl=/opt/homebrew/opt/tcl-tk/lib --with-tcl-includes=/opt/homebrew/opt/tcl-tk/include
     - name: make
       run: make
     - name: install
