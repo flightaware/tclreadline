@@ -19,7 +19,7 @@ jobs:
         brew install tcl-tk readline autoconf automake libtool
     - name: configure	
       run: |
-        libtoolize
+        glibtoolize
         autoreconf -vif
         ./configure --with-readline-includes=/opt/homebrew/opt/readline/8.1/include --with-readline-library=/opt/homebrew/opt/readline/8.1/lib --with-tcl=/opt/homebrew/opt/tcl-tk/lib --with-tcl-includes=/opt/homebrew/opt/tcl-tk/include
     - name: make
