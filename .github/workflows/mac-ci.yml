@@ -17,7 +17,7 @@ jobs:
       run: |
         brew update
         brew install tcl-tk readline autoconf automake libtool
-    - name: configure	
+    - name: configure
       run: |
         glibtoolize
         autoreconf -vif
@@ -26,4 +26,3 @@ jobs:
       run: make
     - name: install
       run: sudo make install
-
