@@ -25,6 +25,25 @@
 #  include <readline/history.h>
 #endif
 
+/* Check, if Tcl version supports Tcl_Size,
+ * which was introduced in Tcl 8.7 and 9.
+ */
+#ifndef TCL_SIZE_MAX
+#include <limits.h>
+#define TCL_SIZE_MAX INT_MAX
+
+#ifndef Tcl_Size
+typedef int Tcl_Size;
+#endif
+
+#define TCL_SIZE_MODIFIER ""
+#define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
+#endif
+
+/* TCL 9 does not define CONST anymore */
+#ifndef CONST
+#define CONST const
+#endif
 
 #ifdef EXTEND_LINE_BUFFER
 /*
@@ -595,9 +614,15 @@ int
 Tclreadline_Init(Tcl_Interp *interp)
 {
     int status;
- #ifdef USE_TCL_STUBS
-     Tcl_InitStubs(interp, "8.6", 0);
+    /* Require 8.6 or later (9.0 also ok) */
+#ifdef USE_TCL_STUBS
+    if ( NULL == Tcl_InitStubs(interp, "8.6-", 0))
+#else
+    if (NULL == Tcl_PkgRequire(interp, "Tcl", "8.6-", 0))
 #endif
+    {
+        return TCL_ERROR;
+    }
     Tcl_CreateObjCommand(interp, "::tclreadline::readline", TclReadlineCmd,
         (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
     tclrl_interp = interp;
@@ -733,7 +758,7 @@ TclReadlineCompletion(char* text, int start, int end)
         char start_s[BUFSIZ], end_s[BUFSIZ];
         Tcl_Obj* obj;
         Tcl_Obj** objv;
-        int objc;
+        Tcl_Size objc;
         int state;
         char* quoted_text = TclReadlineQuote(text, "$[]{}\"");
         char* quoted_rl_line_buffer = TclReadlineQuote(rl_line_buffer, "$[]{}\"");
@@ -760,7 +785,8 @@ TclReadlineCompletion(char* text, int start, int end)
             return matches;
 
         if (objc) {
-            int i, length;
+            int i;
+            Tcl_Size length;
             matches = (char**) MALLOC(sizeof(char*) * (objc + 1));
             for (i = 0; i < objc; i++) {
                 matches[i] = strdup(Tcl_GetStringFromObj(objv[i], &length));
