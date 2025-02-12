@@ -42,7 +42,8 @@ Before trying to compile tclreadline you should do the following things:
    tclreadline uses the gnu readline callback handler, which
    wasn't implemented in early releases.
 
-3. The usual `./configure; make; make install` sequence should do the rest.
+3. Follow the instructions in README.{your-OS}, if there isn't one,
+   adapt the README.Linux instructions.
 
 4. Optionally (or additionally) you can build the executables
    tclshrl and / or wishrl which are a readline enhanced replacement
