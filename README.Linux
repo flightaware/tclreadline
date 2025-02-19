@@ -1,0 +1,12 @@
+#
+# tclreadline configure for FreeBSD
+#
+
+libtoolize --force --install --copy
+aclocal
+autoheader
+automake --force-missing --add-missing --copy
+autoconf
+./configure --with-tcl=/usr/local/lib/tcl8.6  --with-tcl-includes=/usr/local/include/tcl8.6 --mandir=/usr/local/man 
+#--enable-symbols
+
