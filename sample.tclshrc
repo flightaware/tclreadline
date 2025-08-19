@@ -44,7 +44,7 @@ if {$tcl_interactive} {
     #
     # tclreadline::Print no
 
-    # uncomment the folling line, if you want
+    # uncomment the following line, if you want
     # to change tclreadline's print behaviour
     # frequently with less typing.
     #
