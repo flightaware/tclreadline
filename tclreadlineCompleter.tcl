@@ -816,7 +816,7 @@ namespace eval tclreadline {
     }
 
     # the following two channel proc's make use of
-    # the brandnew (Sep 99) `file channels' command
+    # the brand new (Sep 99) `file channels' command
     # but have some fallback behaviour for older
     # tcl version.
     #
@@ -2696,7 +2696,7 @@ namespace eval tclreadline {
 
     # TODO import ! -force
     proc complete(namespace) {text start end line pos mod} {
-        # TODO dosn't work ???
+        # TODO doesn't work ???
         set space_matches [namespace children :: [string trim ${mod}*]]
         set cmd [Lindex $line 1]
         switch -- $pos {

@@ -40,7 +40,7 @@
     Tcl_Obj mem leak.
 
     * added the command readline text and readline update
-    that retrieve the current input and redraw it respecively.
+    that retrieve the current input and redraw it respectively.
 
 2000-07-27  Johannes Zellner <johannes@zellner.org>
 
