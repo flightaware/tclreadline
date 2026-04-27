@@ -29,7 +29,13 @@ pkg_sources = files(
 subdir('teabase/init')
 
 # --- Readline dependency ---
-readline_dep = dependency('readline', required: true)
+# static: true so pkg-config consults Libs.private / Requires.private (e.g.
+# ncursesw, tinfo).  Without it, a static-only libreadline.a packaging links
+# without its termcap deps and the resulting .so fails to dlopen with
+# "undefined symbol: UP".  When a shared libreadline.so is available the
+# linker still picks it; the only effect is a couple of redundant DT_NEEDED
+# entries that libreadline.so itself would have pulled in anyway.
+readline_dep = dependency('readline', required: true, static: true)
 deps += readline_dep
 
 # --- Version string ---
