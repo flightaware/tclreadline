@@ -1,0 +1,10 @@
+option('tclshrl', type: 'boolean', value: false,
+  description: 'Build readline-enhanced tclsh standalone application')
+
+option('wishrl', type: 'boolean', value: false,
+  description: 'Build readline-enhanced wish standalone application (requires Tk)')
+
+option('initscripts_method', type: 'combo',
+  choices: ['auto', 'c23_embed', 'zipfs', 'objcopy', 'char_array', 'tcl_findLibrary'],
+  value: 'auto',
+  description: 'Method for loading init scripts in standalone binaries')

@@ -8,42 +8,28 @@
   * This software is copyright under the BSD license.
   * ================================================================== */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
-
-#include <tcl.h>
+#include "tclreadline.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined (READLINE_LIBRARY)
-#  include <readline.h>
-#  include <history.h>
-#else
-#  include <readline/readline.h>
-#  include <readline/history.h>
-#endif
-
-/* Check, if Tcl version supports Tcl_Size,
- * which was introduced in Tcl 8.7 and 9.
- */
-#ifndef TCL_SIZE_MAX
-#include <limits.h>
-#define TCL_SIZE_MAX INT_MAX
-
-#ifndef Tcl_Size
-typedef int Tcl_Size;
-#endif
-
-#define TCL_SIZE_MODIFIER ""
-#define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
-#endif
+#include <readline/readline.h>
+#include <readline/history.h>
 
 /* TCL 9 does not define CONST anymore */
 #ifndef CONST
 #define CONST const
 #endif
+
+/*
+ * Metainfo for a pkgconfig command for the extension via Tcl_RegisterConfig
+ * Must only have const static UTF-8 encoded char pointers.
+ */
+Tcl_Config tclreadlineConfig[] = {
+    {"version", PACKAGE_VERSION},
+    /* Add additional configuration or feature information if relevant */
+    {NULL, NULL}
+};
 
 #ifdef EXTEND_LINE_BUFFER
 /*
@@ -63,9 +49,8 @@ extern char* EXECUTING_MACRO_NAME;
 #endif
 
 #include "tclreadline.h"
-static const char* tclrl_library = TCLRL_LIBRARY;
 static const char* tclrl_version_str = TCLRL_VERSION_STR;
-static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
+static const char* tclrl_patchlevel_str = PACKAGE_VERSION;
 
 #define MALLOC(size) malloc(size)
 #define FREE(ptr) (free(ptr), ptr = NULL)
@@ -421,7 +406,7 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                  *   a compiler warning.
                  */
                 rl_reset_terminal(Tcl_GetStringFromObj(objv[2], 0));
-#ifdef CLEANUP_AFER_SIGNAL
+#ifdef CLEANUP_AFTER_SIGNAL
             } else {
                 rl_cleanup_after_signal();
 #endif
@@ -444,9 +429,12 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
             break;
 
         case TCLRL_UPDATE:
-            if (objc != 2) {
-                Tcl_WrongNumArgs(interp, 2, objv, "");
+            if (objc > 3) {
+                Tcl_WrongNumArgs(interp, 2, objv, "?prompt?");
                 return TCL_ERROR;
+            }
+            if (3 == objc) {
+                rl_set_prompt(Tcl_GetString(objv[2]));
             }
 
             /* Update the input line */
@@ -604,19 +592,19 @@ TclReadlineLineCompleteHandler(char* ptr)
     }
 }
 
-int
+DLLEXPORT int
 Tclreadline_SafeInit(Tcl_Interp *interp)
 {
     return Tclreadline_Init(interp);
 }
 
-int
+DLLEXPORT int
 Tclreadline_Init(Tcl_Interp *interp)
 {
     int status;
     /* Require 8.6 or later (9.0 also ok) */
 #ifdef USE_TCL_STUBS
-    if ( NULL == Tcl_InitStubs(interp, "8.6-", 0))
+    if (NULL == Tcl_InitStubs(interp, TCL_VERSION, 0))
 #else
     if (NULL == Tcl_PkgRequire(interp, "Tcl", "8.6-", 0))
 #endif
@@ -625,14 +613,14 @@ Tclreadline_Init(Tcl_Interp *interp)
     }
     Tcl_CreateObjCommand(interp, "::tclreadline::readline", TclReadlineCmd,
         (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
+
+    Tcl_CreateObjCommand(interp, "::tclreadline::build-info", BuildInfoObjCmd, NULL, NULL);
+
     tclrl_interp = interp;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::historyLength",
             (char*) &tclrl_history_length, TCL_LINK_INT)))
         return status;
 
-    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::library",
-            (char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
-        return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::version",
             (char*) &tclrl_version_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
         return status;
@@ -643,9 +631,6 @@ Tclreadline_Init(Tcl_Interp *interp)
             (char*) &tclrl_license, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
         return status;
 
-    if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_library",
-            (char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
-        return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_version",
             (char*) &tclrl_version_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
         return status;
@@ -653,7 +638,10 @@ Tclreadline_Init(Tcl_Interp *interp)
             (char*) &tclrl_patchlevel_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
         return status;
 
-    return Tcl_PkgProvide(interp, "tclreadline", (char*)tclrl_version_str);
+    /* Register feature configuration  */
+    Tcl_RegisterConfig(interp, PACKAGE_NAME, tclreadlineConfig, "utf-8");
+
+    return Tcl_PkgProvideEx(interp, PACKAGE_NAME, PACKAGE_VERSION, NULL);
 }
 
 static int

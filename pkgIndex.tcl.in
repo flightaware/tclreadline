@@ -1,11 +1,47 @@
-# FILE: pkgIndex.tcl.in
-# $Id$
-# ---
-# tclreadline -- gnu readline for tcl
-# https://github.com/flightaware/tclreadline/
-# Copyright (c) 1998 - 2014, Johannes Zellner <johannes@zellner.org>
-# This software is copyright under the BSD license.
-# ---
+# -*- tcl -*-
+#
+# Tcl package index file - generated from pkgIndex.tcl.in
+#
 
-package ifneeded tclreadline @VERSION@ \
-    [list source [file join $dir tclreadlineInit.tcl]]
+package ifneeded @PACKAGE_NAME@ @PACKAGE_VERSION@ \
+    [list apply [list {dir} {
+        package require platform
+        set package_ns ::@PACKAGE_NAME@
+        set initName [string totitle @PACKAGE_NAME@]
+        if {[package vsatisfies [package require Tcl] 9]} {
+            set fileName "@PKG_LIB_FILE9@"
+        } else {
+            set fileName "@PKG_LIB_FILE8@"
+        }
+        set platformId [platform::identify]
+        set searchPaths [list [file join $dir $platformId] \
+                             {*}[lmap platformId [platform::patterns $platformId] {
+                                 file join $dir $platformId
+                             }] \
+                             $dir]
+        foreach path $searchPaths {
+            set lib [file join $path $fileName]
+            if {[file exists $lib]} {
+                uplevel #0 [list load $lib $initName]
+                # Load was successful
+                set ${package_ns}::dll_path $lib
+                set ${package_ns}::package_dir $dir
+
+                ::tclreadline::readline customcompleter ::tclreadline::ScriptCompleter
+
+                if {[file readable [file join $dir library tclreadlineSetup.tcl]]} {
+                    set ::auto_index(::tclreadline::ScriptCompleter) \
+                        [list source [file normalize [file join $dir library tclreadlineCompleter.tcl]]]
+
+                    source [file join $dir library tclreadlineSetup.tcl]
+                } else {
+                    set ::auto_index(::tclreadline::ScriptCompleter) \
+                        [list source [file normalize [file join $dir tclreadlineCompleter.tcl]]]
+
+                    source [file join $dir tclreadlineSetup.tcl]
+                }
+                return
+            }
+        }
+        error "Could not locate $fileName in directories [join $searchPaths {, }]"
+    }] $dir]

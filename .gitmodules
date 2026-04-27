@@ -1,0 +1,3 @@
+[submodule "teabase"]
+	path = teabase
+	url = https://github.com/cyanogilvie/teabase

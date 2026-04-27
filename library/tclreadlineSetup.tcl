@@ -7,8 +7,9 @@
 # This software is copyright under the BSD license.
 # ---
 
-
-package provide tclreadline @VERSION@
+# Prevent double loading
+if {[info exists tclreadline::loaded]} return
+namespace eval tclreadline {variable loaded 1}
 
 rename unknown _unknown
 proc unknown args {
@@ -184,7 +185,9 @@ namespace eval tclreadline {
 
             if {"" == [info procs exit]} {
 
-                catch {rename ::tclreadline::Exit ""}
+                if {[llength [info commands ::tclreadline::Exit]]} {
+                    rename ::tclreadline::Exit {}
+                }
                 rename exit ::tclreadline::Exit
 
                 proc exit {args} {

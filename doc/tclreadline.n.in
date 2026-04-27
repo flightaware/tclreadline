@@ -185,8 +185,9 @@ Ring the terminal bell, obeying the setting of bell-style
 Return the current input.
 
 .TP 5
-\fB::tclreadline::readline update\fP
-Redraw the current input line.
+\fB::tclreadline::readline update ?prompt?\fP
+Redraw the current input line.  If \fIprompt\fP is supplied, update
+the prompt before redrawing.
 
 .TP 5
 \fB::tclreadline::Print\fP [\fIyes / no\fP]
@@ -264,7 +265,7 @@ Holds the patch level string "@PATCHLEVEL_STR@".
 
 .TP 5
 \fBtclreadline::library\fP (read-only)
-Holds the library string "@TCLRL_DIR@".
+Holds the path to the library scripts (only applies to tclshrl and wishrl).
 
 .TP 5
 \fBtclreadline::license\fP (read-only)

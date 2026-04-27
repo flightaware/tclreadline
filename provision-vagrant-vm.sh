@@ -6,13 +6,11 @@ sudo apt-get install -y \
         build-essential \
         expect \
         itcl3 \
-        libreadline6 \
-        libreadline6-dev \
+        libreadline-dev \
         libtool \
-        tcl \
         tcl-dev
 cd /vagrant
 autoreconf -fvi
-./configure --with-tcl-includes=/usr/include/tcl
+./configure
 make
 sudo make install

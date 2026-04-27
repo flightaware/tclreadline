@@ -10,10 +10,16 @@
 # This software is copyright under the BSD license.
 # ---
 
-package require Expect
-package require tcltest
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+}
+if {[llength [info commands test]] == 0} {
+    namespace import ::tcltest::test
+}
 
-::tcltest::configure {*}$::argv
+::tcltest::loadTestedCommands
+
+package require Expect
 
 ::tcltest::testConstraint itcl3 [expr {
     ![catch { package require Itcl 3.0 }]
@@ -73,12 +79,12 @@ proc send_nl args {
     send [join $args \r]\r
 }
 
-tcltest::test basic-1.1 {::tclreadline::Loop} \
+test basic-1.1 {::tclreadline::Loop} \
         -setup setup \
         -cleanup cleanup \
         -body {}
 
-tcltest::test namespace-1.1 {namespace path completion} \
+test namespace-1.1 {namespace path completion} \
         -setup setup \
         -cleanup cleanup \
         -body {
@@ -90,7 +96,7 @@ tcltest::test namespace-1.1 {namespace path completion} \
     expect -exact ::bar
 }
 
-tcltest::test variable-1.1 {variable namespace path completion} \
+test variable-1.1 {variable namespace path completion} \
         -setup setup \
         -cleanup cleanup \
         -body {
@@ -102,7 +108,7 @@ tcltest::test variable-1.1 {variable namespace path completion} \
     expect -exact ::baz
 }
 
-tcltest::test variable-1.2 {partial variable name completion after '$'} \
+test variable-1.2 {partial variable name completion after '$'} \
         -setup setup \
         -cleanup cleanup \
         -body {
@@ -114,7 +120,7 @@ tcltest::test variable-1.2 {partial variable name completion after '$'} \
     expect 5
 }
 
-tcltest::test variable-1.3 {empty variable name completion after '$'} \
+test variable-1.3 {empty variable name completion after '$'} \
         -setup setup \
         -cleanup cleanup \
         -body {
@@ -126,7 +132,7 @@ tcltest::test variable-1.3 {empty variable name completion after '$'} \
     expect -exact bar
 }
 
-tcltest::test itcl-1.1 {itcl method name completion} \
+test itcl-1.1 {itcl method name completion} \
         -constraints itcl \
         -setup setup \
         -cleanup cleanup \
@@ -153,7 +159,7 @@ tcltest::test itcl-1.1 {itcl method name completion} \
     expect -exact aleph
 }
 
-tcltest::test itcl-2.1 {itcl method argument hints} \
+test itcl-2.1 {itcl method argument hints} \
         -constraints itcl \
         -setup setup \
         -cleanup cleanup \
@@ -190,7 +196,7 @@ tcltest::test itcl-2.1 {itcl method argument hints} \
     expect -exact <asdf>
 }
 
-tcltest::test itcl-3.1 {itcl option name completion for cget and configure} \
+test itcl-3.1 {itcl option name completion for cget and configure} \
         -constraints itcl \
         -setup setup \
         -cleanup cleanup \
@@ -220,7 +226,7 @@ tcltest::test itcl-3.1 {itcl option name completion for cget and configure} \
     expect -exact -opt
 }
 
-tcltest::test itcl-4.1 {itcl wrong method name} \
+test itcl-4.1 {itcl wrong method name} \
         -constraints itcl \
         -setup setup \
         -cleanup cleanup \
@@ -248,7 +254,7 @@ tcltest::test itcl-4.1 {itcl wrong method name} \
     }
 } -returnCodes 1 -result {timed out}
 
-tcltest::test tcloo-1.1 {TclOO method name completion} \
+test tcloo-1.1 {TclOO method name completion} \
         -constraints tcloo \
         -setup setup \
         -cleanup cleanup \
@@ -264,7 +270,7 @@ tcltest::test tcloo-1.1 {TclOO method name completion} \
     expect -glob "*bar*baz*"
 }
 
-tcltest::test tcloo-2.1 {TclOO method argument hints} \
+test tcloo-2.1 {TclOO method argument hints} \
         -constraints tcloo \
         -setup setup \
         -cleanup cleanup \
@@ -295,7 +301,7 @@ tcltest::test tcloo-2.1 {TclOO method argument hints} \
     expect -exact <asdf>
 }
 
-tcltest::test tcloo-3.1 {TclOO wrong method name} \
+test tcloo-3.1 {TclOO wrong method name} \
         -constraints tcloo \
         -setup setup \
         -cleanup cleanup \
@@ -320,10 +326,5 @@ tcltest::test tcloo-3.1 {TclOO wrong method name} \
     }
 } -returnCodes 1 -result {timed out}
 
-# Exit with a nonzero status if there are failed tests.
-set failed [expr {$tcltest::numTests(Failed) > 0}]
-
-tcltest::cleanupTests
-if {$failed} {
-    exit 1
-}
+::tcltest::cleanupTests
+return

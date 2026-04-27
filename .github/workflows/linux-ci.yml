@@ -4,11 +4,12 @@ name: Linux CI
 
 # Controls when the action will run.
 on:
+  push
   # Triggers the workflow on push or pull request events but only for the master branch
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  #push:
+  #  branches: [ master, tea ]
+  #pull_request:
+  #  branches: [ master ]
 
 jobs:
   build:
@@ -16,22 +17,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
     - name: Install dependencies
       run: |
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get update -qq
-        sudo apt-get install -y gcc-11 g++-11
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 70 --slave /usr/bin/g++ g++ /usr/bin/g++-11
+        sudo apt-get install -y gcc-14 g++-14
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 70 --slave /usr/bin/g++ g++ /usr/bin/g++-14
         sudo apt-get install -y tcl8.6-dev tk8.6-dev libreadline-dev expect
+
     - name: configure
       run: |
-        autoreconf -vif
-        /usr/bin/libtoolize --install
-        ./configure --with-tcl=/usr/lib/tcl8.6 --with-tk=/usr/lib/tk8.6
+        autoconf
+        ./configure --enable-tclshrl --enable-wishrl
+
     - name: make
       run: make
+
     - name: install
       run: sudo make install
-#    - name: test
-#      run: tclsh tests.tcl
+
+    - name: test
+      run: make test TESTFLAGS="-file build-info.test"
+
+    - name: dist
+      run: make dist
+    - uses: actions/upload-artifact@v4
+      with:
+        name: release-tarball
+        path: /tmp/dist/tclreadline*.tar.gz
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        draft: false
+        prerelease: false
+        files: /tmp/dist/tclreadline*.tar.gz
