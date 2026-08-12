@@ -240,7 +240,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[
     extern void rl_cleanup_after_signal();
     rl_cleanup_after_signal();
 ]])],[AC_MSG_RESULT(yes);
-    AC_DEFINE(CLEANUP_AFER_SIGNAL, 1,
+    AC_DEFINE(CLEANUP_AFTER_SIGNAL, 1,
      Define if rl_cleanup_after_signal is resolved in libreadline. )],[AC_MSG_RESULT(no)])
 
 # check for readline's rl_extend_line_buffer

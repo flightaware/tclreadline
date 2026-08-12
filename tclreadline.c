@@ -421,7 +421,7 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                  *   a compiler warning.
                  */
                 rl_reset_terminal(Tcl_GetStringFromObj(objv[2], 0));
-#ifdef CLEANUP_AFER_SIGNAL
+#ifdef CLEANUP_AFTER_SIGNAL
             } else {
                 rl_cleanup_after_signal();
 #endif
@@ -696,7 +696,7 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 
     /*
      * try to read historyfile in home
-     * directory. If this failes, this
+     * directory. If this fails, this
      * is *not* an error.
      */
     rl_attempted_completion_function = (rl_completion_func_t *) TclReadlineCompletion;

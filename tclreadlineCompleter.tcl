@@ -1105,7 +1105,7 @@ namespace eval tclreadline {
         if {1 == [llength $matches]} { ; # unique match
 
             # check if this unique match is an
-            # array name, (whith no "(" yet).
+            # array name, (with no "(" yet).
             #
             if {[uplevel $level array exists $matches]} {
                 return [VarCompletion ${matches}( $level]; # recursion

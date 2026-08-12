@@ -1,7 +1,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if rl_cleanup_after_signal is resolved in libreadline. */
-#undef CLEANUP_AFER_SIGNAL
+#undef CLEANUP_AFTER_SIGNAL
 
 /* Define if EXECUTING_MACRO_NAME is resolved in libreadline. */
 #undef EXECUTING_MACRO_HACK
