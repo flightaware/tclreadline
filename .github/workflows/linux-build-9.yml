@@ -23,12 +23,12 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -y gcc-11 g++-11
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 70 --slave /usr/bin/g++ g++ /usr/bin/g++-11
-        sudo apt-get install -y tcl9.0-dev tk9.0-dev --with-tcl-includes=/usr/include/tcl9.0 --with-tk=/usr/lib/tk9.0
+        sudo apt-get install -y tcl9.0-dev tk9.0-dev libreadline-dev expect
     - name: configure
       run: |
         autoreconf -vif
         /usr/bin/libtoolize --install
-        ./configure --with-tcl=/usr/lib/tcl8.6 --with-tk=/usr/lib/tk8.6
+        ./configure --with-tcl=/usr/lib/tcl9.0 --with-tk=/usr/lib/tk9.0
     - name: make
       run: make
     - name: install
