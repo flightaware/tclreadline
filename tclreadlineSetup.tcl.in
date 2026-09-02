@@ -20,7 +20,7 @@ proc unknown args {
     # may get modified if caught errors occur below.  The variables will
     # be restored just before re-executing the missing command.
 
-    # If for some reson these don't exists, don't save or restore them.
+    # If for some reason these don't exist, don't save or restore them.
 
     if {[info exists errorCode]} { set savedErrorCode $errorCode }
     if {[info exists errorInfo]} { set savedErrorInfo $errorInfo }
@@ -195,7 +195,7 @@ namespace eval tclreadline {
                     }
 
                     # this call is ignored, if tclreadline.c
-                    # was compiled with CLEANUP_AFER_SIGNAL
+                    # was compiled with CLEANUP_AFTER_SIGNAL
                     # not defined. This is the case for
                     # older versions of libreadline.
                     #
