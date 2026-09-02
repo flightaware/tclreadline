@@ -34,4 +34,4 @@ jobs:
     - name: install
       run: sudo make install
     - name: test
-      run: tclsh tests.tcl
+      run: script -q -e -c "tclsh tests.tcl"
