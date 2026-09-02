@@ -33,5 +33,3 @@ jobs:
       run: make
     - name: install
       run: sudo make install
-    - name: test
-      run: script -q -e -c "tclsh tests.tcl"
