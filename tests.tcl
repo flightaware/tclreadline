@@ -323,9 +323,9 @@ tcltest::test tcloo-3.1 {TclOO wrong method name} \
 } -returnCodes 1 -result {timed out}
 
 # Exit with a nonzero status if there are failed tests.
-set failed [expr {$tcltest::numTests(Failed) > 0}]
+set failed $tcltest::numTests(Failed)
 
 tcltest::cleanupTests
 if {$failed} {
-    exit 1
+    exit $failed
 }
