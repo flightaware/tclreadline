@@ -13,7 +13,7 @@
 package require Expect
 package require tcltest
 
-::tcltest::configure -outfile stderr {*}$::argv
+::tcltest::configure {*}$::argv
 
 ::tcltest::testConstraint itcl3 [expr {
     ![catch { package require Itcl 3.0 }]
@@ -34,6 +34,14 @@ set tclshrc [file join $::env(HOME) .tclshrc]
 proc setup {} {
     match_max 100000
     set ::timeout 2
+    expect_before {
+        timeout {
+            error {timed out}
+        }
+        invalid {
+            error {invalid command}
+        }
+    }
 
     if {[file exists $::tclshrc]} {
         file rename $::tclshrc ${::tclshrc}.renamed
@@ -45,18 +53,8 @@ proc setup {} {
         exit 1
     } {SIGINT SIGHUP}
 
-    puts stderr \n----
+    puts \n----
     uplevel #0 spawn [info nameofexecutable]
-
-    expect_before {
-        timeout {
-            error {timed out}
-        }
-        invalid {
-            error {invalid command}
-        }
-    }
-
     send "package require tclreadline\r"
     expect -exact $::prompt
     send "::tclreadline::Loop\r"
