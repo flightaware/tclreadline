@@ -7,6 +7,10 @@ aclocal
 autoheader
 automake --force-missing --add-missing --copy
 autoconf
-./configure --with-tcl=/usr/local/lib/tcl8.6  --with-tcl-includes=/usr/local/include/tcl8.6 --mandir=/usr/local/man 
+if [ -z "`ls /usr/local/lib/tcl[98]* 2>/dev/null`" ]
+then P=/usr
+else P=/usr/local
+fi
+./configure --with-tcl=$P/lib/tcl8.6  --with-tcl-includes=$P/include/tcl8.6 --mandir=$P/man 
 #--enable-symbols
 
