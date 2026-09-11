@@ -325,5 +325,5 @@ set failed $tcltest::numTests(Failed)
 
 tcltest::cleanupTests
 if {$failed} {
-    exit $failed
+    exit 1
 }
