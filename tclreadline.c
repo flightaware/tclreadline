@@ -101,6 +101,7 @@ static void   TclReadlineLineCompleteHandler(char* ptr);
 static int    TclReadlineInitialize(Tcl_Interp* interp, char* historyfile);
 static int    blank_line(char* str);
 static char** TclReadlineCompletion(char* text, int start, int end);
+static void   TclReadlineRemoveDuplicateMatches(char** matches);
 static char*  TclReadline0generator(char* text, int state);
 static char*  TclReadlineKnownCommands(char* text, int state, int mode);
 static int    TclReadlineParse(char** args, int maxargs, char* buf);
@@ -787,7 +788,9 @@ TclReadlineCompletion(char* text, int start, int end)
         if (objc) {
             int i;
             Tcl_Size length;
-            matches = (char**) MALLOC(sizeof(char*) * (objc + 1));
+            /* one extra (NULL) entry, as libedit reads matches[2] even
+             * if matches[1] is NULL */
+            matches = (char**) calloc(objc + 2, sizeof(char*));
             for (i = 0; i < objc; i++) {
                 matches[i] = strdup(Tcl_GetStringFromObj(objv[i], &length));
                 if (1 == objc && !strlen(matches[i])) {
@@ -820,7 +823,44 @@ TclReadlineCompletion(char* text, int start, int end)
         matches = rl_completion_matches(text, (rl_compentry_func_t *)TclReadline0generator);
     }
 
+    if (matches)
+        TclReadlineRemoveDuplicateMatches(matches);
+
     return matches;
+}
+
+static int
+TclReadlineCompareMatches(const void* a, const void* b)
+{
+    return strcmp(*(char* const*) a, *(char* const*) b);
+}
+
+/*
+ * remove duplicates from the matches returned by the custom or
+ * builtin completer. matches[0] is the substitution text, the
+ * actual matches are matches[1] .. matches[n-1]. GNU readline
+ * does this itself (rl_ignore_completion_duplicates), but libedit
+ * does not, which would list duplicates and break detection of a
+ * single match.
+ */
+static void
+TclReadlineRemoveDuplicateMatches(char** matches)
+{
+    int n, i, j;
+
+    for (n = 1; matches[n]; n++)
+        ;
+    if (n < 3)
+        return;
+
+    qsort(matches + 1, n - 1, sizeof(char*), TclReadlineCompareMatches);
+    for (i = 1, j = 2; j < n; j++) {
+        if (strcmp(matches[i], matches[j]))
+            matches[++i] = matches[j];
+        else
+            FREE(matches[j]);
+    }
+    matches[i + 1] = (char*) NULL;
 }
 
 static char*
@@ -838,6 +878,7 @@ TclReadlineKnownCommands(char* text, int state, int mode)
     char* args[256];
     int i, argc;
     char** name;
+    cmds_t* c;
 
     char* local_line = (char*) NULL;
     int sub;
@@ -846,6 +887,21 @@ TclReadlineKnownCommands(char* text, int state, int mode)
     switch (mode) {
 
         case _CMD_SET:
+
+            tmp = strdup(text);
+            argc = TclReadlineParse(args, sizeof(args), tmp);
+
+            /* ignore a line which has already been added */
+            for (c = cmds; c; c = c->next) {
+                for (i = 0; i < argc && c->cmd[i]; i++) {
+                    if (strcmp(c->cmd[i], args[i]))
+                        break;
+                }
+                if (i == argc && !c->cmd[i]) {
+                    FREE(tmp);
+                    return (char*) NULL;
+                }
+            }
 
             new = (cmds_t *) MALLOC(sizeof(cmds_t));
             new->next = (cmds_t *) NULL;
@@ -857,9 +913,6 @@ TclReadlineKnownCommands(char* text, int state, int mode)
                 cmds->prev->next = new;
                 cmds->prev = new;
             }
-
-            tmp = strdup(text);
-            argc = TclReadlineParse(args, sizeof(args), tmp);
 
             new->cmd = (char**) MALLOC(sizeof(char*) * (argc + 1));
 

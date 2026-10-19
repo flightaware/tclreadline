@@ -1217,7 +1217,7 @@ namespace eval tclreadline {
         } else {
             set procs ""
         }
-        set matches [namespace eval $spc concat $commands $procs]
+        set matches [lsort -unique [concat $commands $procs]]
         set namespaces [namespace children $spc $cmd]
 
         if {![llength $matches] && 1 == [llength $namespaces]} {
