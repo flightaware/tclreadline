@@ -840,12 +840,22 @@ TclReadlineKnownCommands(char* text, int state, int mode)
     char** name;
 
     char* local_line = (char*) NULL;
+    char* match = (char*) NULL;
     int sub;
 
 
     switch (mode) {
 
         case _CMD_SET:
+
+            tmp = strdup(text);
+            argc = TclReadlineParse(args, sizeof(args) / sizeof(args[0]), tmp);
+
+            /* an entry without words would crash the completer */
+            if (!argc) {
+                FREE(tmp);
+                return (char*) NULL;
+            }
 
             new = (cmds_t *) MALLOC(sizeof(cmds_t));
             new->next = (cmds_t *) NULL;
@@ -857,9 +867,6 @@ TclReadlineKnownCommands(char* text, int state, int mode)
                 cmds->prev->next = new;
                 cmds->prev = new;
             }
-
-            tmp = strdup(text);
-            argc = TclReadlineParse(args, sizeof(args), tmp);
 
             new->cmd = (char**) MALLOC(sizeof(char*) * (argc + 1));
 
@@ -876,7 +883,7 @@ TclReadlineKnownCommands(char* text, int state, int mode)
         case _CMD_GET:
 
             local_line = strdup(rl_line_buffer);
-            sub = TclReadlineParse(args, sizeof(args), local_line);
+            sub = TclReadlineParse(args, sizeof(args) / sizeof(args[0]), local_line);
 
             if (0 == sub || (1 == sub && '\0' != text[0])) {
                 if (!state) {
@@ -885,10 +892,11 @@ TclReadlineKnownCommands(char* text, int state, int mode)
                 }
                 while (new && (name = new->cmd)) {
                     new = new->next;
-                    if (!strncmp(name[0], text, len))
-                        return strdup(name[0]);
+                    if (!strncmp(name[0], text, len)) {
+                        match = strdup(name[0]);
+                        break;
+                    }
                 }
-                return (char*) NULL;
             } else {
 
                 if (!state) {
@@ -902,21 +910,18 @@ TclReadlineKnownCommands(char* text, int state, int mode)
                         new = new->next;
                     }
 
-                    if (!new)
-                        return (char*) NULL;
+                    if (new) {
+                        for (i = 0; new->cmd[i]; i++) /* EMPTY */;
 
-                    for (i = 0; new->cmd[i]; i++) /* EMPTY */;
-
-                    if (sub < i && !strncmp(new->cmd[sub], text, len))
-                        return strdup(new->cmd[sub]);
-                    else
-                        return (char*) NULL;
-
+                        if (sub < i && !strncmp(new->cmd[sub], text, len))
+                            match = strdup(new->cmd[sub]);
+                    }
                 }
-                else
-                    return (char*) NULL;
             }
 
+            /* args point into local_line, so free it only now */
+            FREE(local_line);
+            return match;
             /* NOTREACHED */
             break;
 
